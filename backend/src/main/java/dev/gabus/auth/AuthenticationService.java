@@ -1,0 +1,56 @@
+package dev.gabus.auth;
+
+import dev.gabus.Config.JwtService; // Ojo con la mayúscula en Config si así lo tienes
+import dev.gabus.dto.Usuario.Role;
+import dev.gabus.dto.Usuario.Usuario;
+import dev.gabus.dto.Usuario.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class AuthenticationService {
+    private final UsuarioRepository repository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+
+    public AuthenticationResponse register(RegisterRequest request) {
+        var user = Usuario.builder()
+                .nombre(request.getNombre())
+                .apellido(request.getApellido())
+                .username(request.getUsername())
+                .password(passwordEncoder.encode(request.getPassword())) // Encriptamos password
+                .role(Role.USER) // Por defecto creamos usuarios con rol USER (Profesor)
+                .build();
+        
+        repository.save(user);
+        
+        var jwtToken = jwtService.generateToken(user);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
+    }
+
+    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
+        
+        // Si llegamos aquí, el usuario y pass son correctos
+        var user = repository.findByUsername(request.getUsername())
+                .orElseThrow(); // Aquí deberías manejar la excepción si no existe
+        
+        var jwtToken = jwtService.generateToken(user);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
+    }
+    
+}

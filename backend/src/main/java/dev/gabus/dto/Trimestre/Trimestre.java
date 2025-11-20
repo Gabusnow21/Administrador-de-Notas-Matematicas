@@ -41,6 +41,7 @@ public class Trimestre {
     private LocalDate fechaFin; // Fecha de cierre del trimestre
 
     // (Opcional) Para saber si el trimestre está cerrado para notas
+    @Builder.Default
     @Column(name = "esta_activo", nullable = false)
     private boolean activo = true;
     
