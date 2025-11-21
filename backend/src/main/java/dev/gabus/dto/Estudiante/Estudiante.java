@@ -1,7 +1,8 @@
 package dev.gabus.dto.Estudiante;
 
-import dev.gabus.dto.Grado.Grado;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import dev.gabus.dto.Grado.Grado;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -41,6 +42,7 @@ public class Estudiante {
     // Muchos estudiantes pueden pertenecer a Un Grado.
     @ManyToOne(fetch = FetchType.LAZY) // LAZY = Solo carga el Grado cuando se acceda a él
     @JoinColumn(name = "grado_id", nullable = false) // Esta será la columna FK en la tabla 'estudiante'
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Evita problemas de serialización con Hibernate
     private Grado grado;
 
     // Más adelante, aquí podemos añadir la relación con Calificaciones
