@@ -1,11 +1,12 @@
 package dev.gabus.dto.Actividad;
 
-import dev.gabus.dto.Materia.*;
-import dev.gabus.dto.Trimestre.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import dev.gabus.dto.Materia.Materia;
+import dev.gabus.dto.Trimestre.Trimestre;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -54,12 +55,14 @@ public class Actividad {
     // Muchas actividades pertenecen a Una Materia
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "materia_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Materia materia;
 
     // --- Relación con Trimestre ---
     // Muchas actividades se realizan en Un Trimestre
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trimestre_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Trimestre trimestre;
     
 }
