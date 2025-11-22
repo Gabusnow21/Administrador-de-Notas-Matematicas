@@ -1,10 +1,11 @@
 package dev.gabus.dto.Calificacion;
 
-import dev.gabus.dto.Actividad.*;
-import dev.gabus.dto.Estudiante.*;
-
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import dev.gabus.dto.Actividad.Actividad;
+import dev.gabus.dto.Estudiante.Estudiante;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -48,11 +49,13 @@ public class Calificacion {
     // Muchas calificaciones pertenecen a Un Estudiante
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "estudiante_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Evita problemas de serialización con Lazy Loading
     private Estudiante estudiante;
 
     // --- Relación con Actividad ---
     // Muchas calificaciones están asociadas a Una Actividad
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "actividad_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Evita problemas de serialización con Lazy Loading
     private Actividad actividad;
 }
