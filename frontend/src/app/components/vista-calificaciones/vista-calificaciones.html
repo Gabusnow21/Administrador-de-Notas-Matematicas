@@ -36,6 +36,41 @@
               <th scope="col">Observación</th>
             </tr>
           </thead>
+          <div class="card mb-4 border-primary">
+    <div class="card-header bg-primary text-white">
+      <i class="bi bi-pencil-square me-2"></i> Asignar o Editar Calificación
+    </div>
+    <div class="card-body">
+      <form (ngSubmit)="guardarNota()" class="row g-3 align-items-end">
+        
+        <div class="col-md-3">
+          <label class="form-label">ID Actividad</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevaCalificacion.actividadId" name="actividadId" placeholder="Ej. 1" required>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Nota</label>
+          <input type="number" class="form-control" [(ngModel)]="nuevaCalificacion.nota" name="nota" step="0.01" placeholder="0 - 10" required>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Observación</label>
+          <input type="text" class="form-control" [(ngModel)]="nuevaCalificacion.observacion" name="observacion" placeholder="Opcional">
+        </div>
+
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-success w-100" [disabled]="procesando">
+            @if (procesando) {
+              <span class="spinner-border spinner-border-sm"></span>
+            } @else {
+              Guardar
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
           <tbody>
             @for (cal of calificaciones; track cal.id) {
               <tr>

@@ -1,12 +1,13 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Calificacion, CalificacionService } from '../../services/calificacion';
+import { Calificacion, CalificacionRequest, CalificacionService } from '../../services/calificacion';
 import { EstudianteService } from '../../services/estudiante';
 import { PercentPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-vista-calificaciones',
-  imports: [RouterLink, PercentPipe],
+  imports: [RouterLink, PercentPipe,FormsModule],
   standalone: true,
   templateUrl: './vista-calificaciones.html',
   styleUrl: './vista-calificaciones.css',
@@ -21,6 +22,17 @@ export class VistaCalificaciones implements OnInit {
   nombreEstudiante: string = 'Cargando...';
   calificaciones: Calificacion[] = [];
   loading: boolean = true;
+  
+  // Variable para botón de carga
+  procesando: boolean = false;
+
+  //Objeto para el formulario
+  nuevaCalificacion: CalificacionRequest = {
+    estudianteId: 0,
+    actividadId: 0,
+    nota: 0,
+    observacion: ''
+  };
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -54,6 +66,31 @@ export class VistaCalificaciones implements OnInit {
       error: (err) => {
         console.error(err);
         this.loading = false;
+        this.cd.detectChanges();
+      }
+    });
+  }
+  guardarNota() {
+    this.procesando = true;
+    // Asegurar que el ID del estudiante es correcto
+    this.nuevaCalificacion.estudianteId = this.estudianteId;
+
+    this.calificacionService.guardarCalificacion(this.nuevaCalificacion).subscribe({
+      next: (res) => {
+        console.log('Guardado:', res);
+        this.procesando = false;
+        
+        // Limpiar campos (opcional)
+        this.nuevaCalificacion.nota = 0;
+        this.nuevaCalificacion.observacion = '';
+        
+        // Recargar la tabla para ver el cambio
+        this.cargarDatos(); 
+      },
+      error: (err) => {
+        console.error('Error guardando:', err);
+        alert('Error al guardar. Verifica que el ID de Actividad exista.');
+        this.procesando = false;
         this.cd.detectChanges();
       }
     });

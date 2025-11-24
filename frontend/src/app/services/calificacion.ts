@@ -16,6 +16,13 @@ export interface Calificacion {
     }
   };
 }
+//Interfaz para enviar datos al backend
+export interface CalificacionRequest {
+  estudianteId: number;
+  actividadId: number;
+  nota: number;
+  observacion: string;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -27,5 +34,10 @@ export class CalificacionService {
   // Aquí puedes agregar métodos para interactuar con la API de calificaciones
   getCalificacionesPorEstudiante(estudianteId: number): Observable<Calificacion[]> {
     return this.http.get<Calificacion[]>(`${this.apiUrl}/estudiante/${estudianteId}`);
+  }
+
+  //Guardar calificacion
+  guardarCalificacion(request: CalificacionRequest): Observable<any> {
+    return this.http.post(this.apiUrl, request);
   }
 }
