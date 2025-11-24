@@ -1,0 +1,69 @@
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="text-primary fw-bold">Boletín de Notas</h2>
+      <h4 class="text-dark">{{ nombreEstudiante }}</h4>
+    </div>
+    <a routerLink="/dashboard" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+  </div>
+
+  @if (loading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+    </div>
+  }
+
+  @if (!loading && calificaciones.length === 0) {
+    <div class="alert alert-info shadow-sm">
+      <i class="bi bi-info-circle-fill me-2"></i>
+      Este estudiante aún no tiene calificaciones registradas.
+    </div>
+  }
+
+  @if (!loading && calificaciones.length > 0) {
+    <div class="card shadow border-0">
+      <div class="card-body p-0">
+        <table class="table table-striped table-hover mb-0">
+          <thead class="bg-primary text-white">
+            <tr>
+              <th scope="col" class="ps-4">Actividad</th>
+              <th scope="col">Trimestre</th>
+              <th scope="col" class="text-center">Ponderación</th>
+              <th scope="col" class="text-center">Nota</th>
+              <th scope="col">Observación</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cal of calificaciones; track cal.id) {
+              <tr>
+                <td class="ps-4 fw-semibold">{{ cal.actividad.nombre }}</td>
+                <td>
+                  <span class="badge bg-light text-dark border">
+                    {{ cal.actividad.trimestre.nombre }}
+                  </span>
+                </td>
+                <td class="text-center text-muted">
+                  {{ cal.actividad.ponderacion /100 | percent }}
+                </td>
+                <td class="text-center">
+                  @if (cal.nota < 7) {
+                    <span class="badge bg-danger fs-6">{{ cal.nota }}</span>
+                  } @else {
+                    <span class="badge bg-success fs-6">{{ cal.nota }}</span>
+                  }
+                </td>
+                <td class="text-muted small fst-italic">
+                  {{ cal.observacion || '-' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+</div>

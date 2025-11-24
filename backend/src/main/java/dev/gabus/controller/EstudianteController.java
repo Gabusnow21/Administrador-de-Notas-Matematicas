@@ -1,15 +1,21 @@
 package dev.gabus.controller;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import dev.gabus.dto.Estudiante.Estudiante;
 import dev.gabus.dto.Estudiante.EstudianteRepository;
 import dev.gabus.dto.Grado.Grado;
 import dev.gabus.dto.Grado.GradoRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/estudiantes")
@@ -29,6 +35,13 @@ public class EstudianteController {
     @GetMapping("/grado/{gradoId}")
     public ResponseEntity<List<Estudiante>> getEstudiantesByGrado(@PathVariable Long gradoId) {
         return ResponseEntity.ok(estudianteRepository.findByGradoId(gradoId));
+    }
+
+    // Obtener un estudiante por ID (Para el encabezado del boletín)
+    @GetMapping("/{id}")
+    public ResponseEntity<Estudiante> getEstudianteById(@PathVariable Long id) {
+        return ResponseEntity.ok(estudianteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Estudiante no encontrado")));
     }
 
     // Crear estudiante

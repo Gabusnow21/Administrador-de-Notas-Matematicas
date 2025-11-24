@@ -8,22 +8,49 @@
 <div class="container">
   <div class="row">
     <div class="col-12">
-      <h2 class="mb-3">Mis Grados</h2>
-      <div class="alert alert-info">
-        Aquí cargaremos la lista de grados desde la base de datos pronto.
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Mis Grados</h2>
+        <button class="btn btn-success"><i class="bi bi-plus-lg"></i> Nuevo Grado</button>
       </div>
-      
-      <div class="row">
-        <div class="col-md-4">
-          <div class="card mb-3 shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title">7mo Grado "A"</h5>
-              <p class="card-text text-muted">Año: 2024</p>
-              <button class="btn btn-primary btn-sm w-100">Ver Estudiantes</button>
-            </div>
+
+      @if (loading) {
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
           </div>
         </div>
-      </div>
+      }
+
+      @if (!loading && grados.length === 0) {
+        <div class="alert alert-warning">
+          No tienes grados registrados aún. ¡Crea el primero!
+        </div>
+      }
+      
+      @if (!loading && grados.length > 0) {
+        <div class="row">
+          
+          @for (grado of grados; track grado.id) {
+            <div class="col-md-4">
+              <div class="card mb-3 shadow-sm hover-effect">
+                <div class="card-body border-start border-4 border-primary">
+                  <h5 class="card-title fw-bold">{{ grado.nivel }} "{{ grado.seccion }}"</h5>
+                  <p class="card-text text-muted mb-2">
+                    <i class="bi bi-calendar-event"></i> Año: {{ grado.anioEscolar }}
+                  </p>
+                  <div class="d-grid">
+                    <button class="btn btn-outline-primary btn-sm"
+                    [routerLink]="['/grado', grado.id]">
+                      Ver Estudiantes
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+        </div>
+      }
 
     </div>
   </div>

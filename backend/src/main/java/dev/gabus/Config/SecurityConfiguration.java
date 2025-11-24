@@ -2,6 +2,7 @@ package dev.gabus.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -32,7 +33,9 @@ public class SecurityConfiguration {
         }))
             .authorizeHttpRequests(auth -> auth
                 // Permitir acceso libre a las rutas de autenticación
-                .requestMatchers("/api/auth/**").permitAll() 
+                .requestMatchers("/api/auth/**").permitAll()
+                //Permite al navergador hacer la petición OPTIONS
+                .requestMatchers(HttpMethod.OPTIONS).permitAll() 
                 // Cualquier otra petición requiere autenticación
                 .anyRequest().authenticated() 
             )

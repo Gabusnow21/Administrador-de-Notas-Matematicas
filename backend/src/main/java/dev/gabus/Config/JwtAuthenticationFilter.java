@@ -1,10 +1,7 @@
 package dev.gabus.Config;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,7 +11,11 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -25,31 +26,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-            @NonNull HttpServletRequest request,
-            @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain
-    ) throws ServletException, IOException {
+        @NonNull HttpServletRequest request,
+        @NonNull HttpServletResponse response,
+        @NonNull FilterChain filterChain
+) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
+    final String authHeader = request.getHeader("Authorization");
+    final String jwt;
+    final String userEmail;
 
-        // 1. Verificar si el header es válido
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        System.out.println("❌ Filtro: No hay header Authorization o no empieza con Bearer");
+        filterChain.doFilter(request, response);
+        return;
+    }
 
-        // 2. Extraer el token
-        jwt = authHeader.substring(7);
+    jwt = authHeader.substring(7);
+    // DEBUG: Imprimir token recibido
+    System.out.println("🔍 Token recibido: " + jwt.substring(0, 10) + "..."); 
+
+    try {
         userEmail = jwtService.extractUsername(jwt);
+        System.out.println("👤 Usuario extraído del token: " + userEmail);
 
-        // 3. Si hay usuario y no está autenticado en el contexto todavía
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-
-            // 4. Validar token y actualizar contexto de seguridad
+            
             if (jwtService.isTokenValid(jwt, userDetails)) {
+                System.out.println("✅ Token VÁLIDO. Autenticando usuario...");
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
@@ -57,8 +61,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                System.out.println("❌ Token INVÁLIDO según jwtService");
             }
         }
-        filterChain.doFilter(request, response);
+    } catch (Exception e) {
+        System.out.println("💥 Excepción verificando token: " + e.getMessage());
+        e.printStackTrace(); // Esto nos dirá el error exacto en la terminal
     }
+
+    filterChain.doFilter(request, response);
+}
 }
