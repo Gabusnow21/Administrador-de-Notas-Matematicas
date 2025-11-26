@@ -23,11 +23,17 @@ export class GradoService {
   getGrados(): Observable<Grado[]> {
     return this.http.get<Grado[]>(this.apiUrl);
   }
+  
   //Crear un nuevo grado
   crearGrado(grado: any): Observable<any> {
     return this.http.post(this.apiUrl, grado);
   }
-  
+
+  //Actualizar un grado existente
+  actualizarGrado(grado: Grado): Observable<Grado> {
+    return this.http.put<Grado>(this.apiUrl, grado);
+  }
+
   //Eliminar un grado por ID
   deleteGrado(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);

@@ -13,7 +13,7 @@
         <button class="btn" 
                 [class.btn-success]="!mostrarFormulario" 
                 [class.btn-danger]="mostrarFormulario"
-                (click)="mostrarFormulario = !mostrarFormulario">
+                (click)="iniciarCreacion()" >
           @if (!mostrarFormulario) {
             <i class="bi bi-plus-lg"></i> Nuevo Grado
           } @else {
@@ -25,7 +25,9 @@
       @if (mostrarFormulario) {
         <div class="card mb-4 bg-light border-success animate__animated animate__fadeIn">
           <div class="card-body">
-            <h5 class="card-title text-success mb-3">Crear Nuevo Grupo</h5>
+            <h5 class="card-title text-success mb-3">
+              {{ updateEdicion ? 'Editar Grado' : 'Crear Nuevo Grado' }}
+            </h5>
             
             <form (ngSubmit)="guardarGrado()" class="row g-3">
               
@@ -83,7 +85,11 @@
                 
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <h5 class="card-title fw-bold mb-0">{{ grado.nivel }} "{{ grado.seccion }}"</h5>
-                  
+                    <div class="d-flex gap-1"> <button class="btn btn-outline-warning btn-sm" 
+                            (click)="editarGrado(grado)"
+                            title="Editar Grado">
+                        <i class="bi bi-pencil-fill"></i>
+                          </button>
                   <button class="btn btn-outline-danger btn-sm" 
                           (click)="eliminarGrado(grado.id, grado.nivel)"
                           title="Eliminar Grado">
@@ -104,11 +110,11 @@
               </div>
             </div>
           </div>
+          
+        </div>
           }
 
-        </div>
-      }
-
     </div>
+    }
   </div>
 </div>

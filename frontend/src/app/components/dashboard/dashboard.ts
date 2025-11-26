@@ -20,9 +20,11 @@ export class Dashboard implements OnInit {
   loading: boolean = true;//Indicador de carga
   mostrarFormulario: boolean = false;//Controla la visibilidad del formulario
   procesando: boolean = false;//Indicador de procesamiento del formulario
+  updateEdicion: boolean = false;//Indicador de modo edicion
   
   //Modelo para el nuevo grado
-  nuevoGrado = {
+  nuevoGrado: any = {
+    id: null,
     nivel: '',       // Ej: "7mo Grado"
     seccion: '',     // Ej: "B"
     anioEscolar: new Date().getFullYear() // Año actual por defecto
@@ -30,6 +32,26 @@ export class Dashboard implements OnInit {
 
   ngOnInit(): void {
     this.cargarGrados();
+  }
+
+  // editar grado
+  editarGrado(grado: Grado) {
+    this.updateEdicion = true;
+    this.mostrarFormulario = true;
+    // Copiamos los datos para no modificar la tarjeta en vivo mientras escribimos
+    this.nuevoGrado = { ...grado }; 
+  }
+
+  // iniciar creacion de grado
+  iniciarCreacion() {
+    this.updateEdicion = false;
+    this.mostrarFormulario = !this.mostrarFormulario;
+    this.nuevoGrado = {
+      id: null,
+      nivel: '',
+      seccion: '',
+      anioEscolar: new Date().getFullYear()
+    };
   }
 
   //Cargar los grados desde el servicio
@@ -57,30 +79,24 @@ export class Dashboard implements OnInit {
   //Guardar nuevo grado
   guardarGrado() {
     this.procesando = true;
-    this.gradoService.crearGrado(this.nuevoGrado).subscribe({
-      next: (res) => {
-        console.log('Grado creado:', res);
-        this.procesando = false;
-        this.mostrarFormulario = false; // Ocultar formulario
-        
-        // Limpiar campos
-        this.nuevoGrado = {
-          nivel: '',
-          seccion: '',
-          anioEscolar: new Date().getFullYear()
-        };
 
-        // Recargar la lista para ver el nuevo
-        this.loading = true;
-        this.cargarGrados();
-      },
-      error: (err) => {
-        console.error('Error creando grado:', err);
-        alert('Error al crear el grado. Revisa la consola.');
-        this.procesando = false;
-        this.cdr.detectChanges();
-      }
-    });
+    if (this.updateEdicion) {
+      // --- MODO EDICIÓN (PUT) ---
+      this.gradoService.actualizarGrado(this.nuevoGrado).subscribe({
+        next: () => {
+          this.finalizarOperacion('Grado actualizado correctamente');
+        },
+        error: (err) => this.manejarError(err)
+      });
+    } else {
+      // --- MODO CREACIÓN (POST) ---
+      this.gradoService.crearGrado(this.nuevoGrado).subscribe({
+        next: () => {
+          this.finalizarOperacion('Grado creado correctamente');
+        },
+        error: (err) => this.manejarError(err)
+      })
+  }
   }
 
   //Eliminar grado con confirmación
@@ -102,6 +118,20 @@ export class Dashboard implements OnInit {
         alert('No se pudo eliminar el grado. Es posible que tenga estudiantes inscritos.');
       }
     });
+  }
+
+  // Helpers para no repetir código
+  finalizarOperacion(mensaje: string) {
+    console.log(mensaje);
+    this.procesando = false;
+    this.mostrarFormulario = false;
+    this.cargarGrados(); // Recargar lista
+  }
+
+  manejarError(err: any) {
+    console.error(err);
+    alert('Ocurrió un error. Revisa la consola.');
+    this.procesando = false;
   }
 
   //Cerrar sesión
