@@ -3,12 +3,58 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h2 class="text-primary">Listado de Estudiantes</h2>
-      <p class="text-muted">Gestionando Grado ID: {{ gradoId }}</p>
+      <p class="text-muted mb-0">Gestionando Grado ID: {{ gradoId }}</p>
     </div>
-    <a routerLink="/dashboard" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> Volver al Dashboard
-    </a>
+    
+    <div class="d-flex gap-2">
+      <button class="btn" 
+              [class.btn-success]="!mostrarFormulario" 
+              [class.btn-danger]="mostrarFormulario"
+              (click)="mostrarFormulario = !mostrarFormulario">
+        @if (!mostrarFormulario) {
+          <i class="bi bi-person-plus-fill me-1"></i> Inscribir Estudiante
+        } @else {
+          <i class="bi bi-x-lg me-1"></i> Cancelar
+        }
+      </button>
+
+      <a routerLink="/dashboard" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+      </a>
+    </div>
   </div>
+
+  @if (mostrarFormulario) {
+    <div class="card mb-4 border-success bg-light animate__animated animate__fadeIn">
+      <div class="card-body">
+        <h5 class="card-title text-success mb-3">Datos del Nuevo Estudiante</h5>
+        
+        <form (ngSubmit)="guardarEstudiante()" class="row g-3">
+          
+          <div class="col-md-5">
+            <label class="form-label">Nombres</label>
+            <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.nombre" name="nombre" placeholder="Ej. Juan Carlos" required>
+          </div>
+
+          <div class="col-md-5">
+            <label class="form-label">Apellidos</label>
+            <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.apellido" name="apellido" placeholder="Ej. Pérez López" required>
+          </div>
+
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-success w-100" [disabled]="procesando">
+              @if (procesando) {
+                <span class="spinner-border spinner-border-sm"></span>
+              } @else {
+                Guardar
+              }
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
 
   @if (loading) {
     <div class="text-center py-5">
@@ -17,15 +63,15 @@
   }
 
   @if (!loading && estudiantes.length === 0) {
-    <div class="alert alert-warning">
-      Este grado aún no tiene estudiantes inscritos.
+    <div class="alert alert-warning shadow-sm">
+      <i class="bi bi-exclamation-triangle me-2"></i> Este grado aún no tiene estudiantes inscritos.
     </div>
   }
 
   @if (!loading && estudiantes.length > 0) {
-    <div class="card shadow-sm">
+    <div class="card shadow-sm border-0">
       <div class="card-body p-0">
-        <table class="table table-hover mb-0">
+        <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
             <tr>
               <th scope="col" class="ps-4">#</th>
@@ -41,9 +87,9 @@
                 <td class="fw-bold">{{ est.apellido }}</td>
                 <td>{{ est.nombre }}</td>
                 <td class="text-end pe-4">
-                  <button class="btn btn-sm btn-primary me-2"
-                  [routerLink]="['/estudiante', est.id, 'calificaciones']">
-                    <i class="bi bi-journal-check"></i> Calificaciones
+                  <button class="btn btn-sm btn-primary" 
+                          [routerLink]="['/estudiante', est.id, 'calificaciones']">
+                    <i class="bi bi-journal-check me-1"></i> Calificaciones
                   </button>
                 </td>
               </tr>
@@ -53,10 +99,4 @@
       </div>
     </div>
   }
-
-  <div class="d-flex justify-content-end mt-3">
-    <button class="btn btn-success">
-      <i class="bi bi-person-plus"></i> Inscribir Estudiante
-    </button>
-  </div>
 </div>
