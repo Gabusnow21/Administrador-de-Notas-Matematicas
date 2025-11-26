@@ -10,7 +10,7 @@
       <button class="btn" 
               [class.btn-success]="!mostrarFormulario" 
               [class.btn-danger]="mostrarFormulario"
-              (click)="mostrarFormulario = !mostrarFormulario">
+              (click)="iniciarInscripcion()">
         @if (!mostrarFormulario) {
           <i class="bi bi-person-plus-fill me-1"></i> Inscribir Estudiante
         } @else {
@@ -27,7 +27,9 @@
   @if (mostrarFormulario) {
     <div class="card mb-4 border-success bg-light animate__animated animate__fadeIn">
       <div class="card-body">
-        <h5 class="card-title text-success mb-3">Datos del Nuevo Estudiante</h5>
+        <h5 class="card-title text-success mb-3">
+          {{ UpdateEdicion ? 'Editar Datos del Estudiante' : 'Datos del Nuevo Estudiante' }}
+        </h5>
         
         <form (ngSubmit)="guardarEstudiante()" class="row g-3">
           
@@ -88,9 +90,23 @@
                 <td>{{ est.nombre }}</td>
                 <td class="text-end pe-4">
                   <button class="btn btn-sm btn-primary" 
-                          [routerLink]="['/estudiante', est.id, 'calificaciones']">
-                    <i class="bi bi-journal-check me-1"></i> Calificaciones
-                  </button>
+                            [routerLink]="['/estudiante', est.id, 'calificaciones']"
+                            title="Ver Notas">
+                      <i class="bi bi-journal-check"></i>
+                    </button>
+
+                    <button class="btn btn-sm btn-warning text-white" 
+                            (click)="editarEstudiante(est)"
+                            title="Editar Datos">
+                      <i class="bi bi-pencil-fill"></i>
+                    </button>
+
+                    <button class="btn btn-sm btn-danger" 
+                            (click)="eliminarEstudiante(est)"
+                            title="Eliminar Estudiante">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
+
                 </td>
               </tr>
             }

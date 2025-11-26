@@ -3,9 +3,11 @@ package dev.gabus.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +18,7 @@ import dev.gabus.dto.Grado.Grado;
 import dev.gabus.dto.Grado.GradoRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+
 
 @RestController
 @RequestMapping("/api/estudiantes")
@@ -61,9 +64,38 @@ public class EstudianteController {
         return ResponseEntity.ok(estudianteRepository.save(estudiante));
     }
 
+    //Actualizar estudiante
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateEstudiante(@PathVariable Long id, @RequestBody EstudianteRequest request) {
+        return estudianteRepository.findById(id).map(estudiante -> {
+            // Actualizamos datos básicos
+            estudiante.setNombre(request.getNombre());
+            estudiante.setApellido(request.getApellido());
+            
+            // Si cambió de grado, lo buscamos y actualizamos
+            if (!estudiante.getGrado().getId().equals(request.getGradoId())) {
+                Grado nuevoGrado = gradoRepository.findById(request.getGradoId())
+                    .orElseThrow(() -> new RuntimeException("Grado no encontrado"));
+                estudiante.setGrado(nuevoGrado);
+            }
+            
+            return ResponseEntity.ok(estudianteRepository.save(estudiante));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // BORRAR Estudiante
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEstudiante(@PathVariable Long id) {
+        if (!estudianteRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        estudianteRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
     // Clase auxiliar para recibir el JSON limpio
     @Data
-    static class EstudianteRequest {
+    public static class EstudianteRequest {
         private String nombre;
         private String apellido;
         private Long gradoId;

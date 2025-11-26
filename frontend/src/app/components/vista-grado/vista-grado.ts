@@ -25,9 +25,11 @@ export class VistaGrado implements OnInit {
 
   mostrarFormulario: boolean = false;//Controla la visibilidad del formulario
   procesando: boolean = false;//Indicador de procesamiento del formulario
-  
+  UpdateEdicion: boolean = false;//Controla si se está en modo edición
+
   //Modelo para el nuevo estudiante
-  nuevoEstudiante = {
+  nuevoEstudiante: any = {
+    id: null,
     nombre: '',
     apellido: '',
     gradoId: 0 
@@ -59,31 +61,77 @@ export class VistaGrado implements OnInit {
     });
   }
 
+  // ... ngOnInit y cargarEstudiantes ...
+
+  // 👇 NUEVA FUNCIÓN: Preparar formulario para editar
+  editarEstudiante(est: Estudiante) {
+    this.UpdateEdicion = true;
+    this.mostrarFormulario = true;
+    // Copiamos los datos para no editar la tabla en vivo
+    this.nuevoEstudiante = { 
+      id: est.id,
+      nombre: est.nombre,
+      apellido: est.apellido,
+      gradoId: this.gradoId // Mantenemos el mismo grado
+    };
+  }
+
+  // Eliminar estudiante
+  eliminarEstudiante(est: Estudiante) {
+    if (!confirm(`¿Eliminar a ${est.nombre} ${est.apellido}? Se borrarán sus notas.`)) return;
+
+    this.estudianteService.deleteEstudiante(est.id).subscribe({
+      next: () => {
+        this.cargarEstudiantes(); // Recargar tabla
+      },
+      error: (err) => alert('Error al eliminar.')
+    });
+  }
+
+  // Resetear formulario (para el botón "Inscribir")
+  iniciarInscripcion() {
+    this.UpdateEdicion = false;
+    this.mostrarFormulario = !this.mostrarFormulario;
+    this.nuevoEstudiante = {
+      id: null,
+      nombre: '',
+      apellido: '',
+      gradoId: this.gradoId
+    };
+  }
+
   //Guardar nuevo estudiante
   guardarEstudiante() {
     this.procesando = true;
     // Aseguramos que el ID del grado sea el correcto
     this.nuevoEstudiante.gradoId = this.gradoId;
-
-    this.estudianteService.createEstudiante(this.nuevoEstudiante).subscribe({
-      next: (res) => {
-        console.log('Estudiante inscrito:', res);
-        this.procesando = false;
-        this.mostrarFormulario = false; // Ocultar form
-        
-        // Limpiar campos
-        this.nuevoEstudiante.nombre = '';
-        this.nuevoEstudiante.apellido = '';
-        
-        // Recargar lista
-        this.loading = true;
-        this.cargarEstudiantes();
-      },
-      error: (err) => {
-        console.error('Error inscribiendo:', err);
-        alert('Error al inscribir estudiante.');
-        this.procesando = false;
-      }
-    });
+    if (this.UpdateEdicion) {
+      // MODO ACTUALIZAR
+      this.estudianteService.updateEstudiante(this.nuevoEstudiante.id, this.nuevoEstudiante).subscribe({
+        next: () => this.finalizarOperacion(),
+        error: (err) => this.manejarError(err)
+      });
+    } else {
+      // MODO CREAR
+      this.estudianteService.createEstudiante(this.nuevoEstudiante).subscribe({
+        next: () => this.finalizarOperacion(),
+        error: (err) => this.manejarError(err)
+      });
+    }
   }
+
+  // Helpers
+  finalizarOperacion() {
+    this.procesando = false;
+    this.mostrarFormulario = false;
+    this.cargarEstudiantes();
+    this.iniciarInscripcion(); // Limpiar campos
+  }
+
+  manejarError(err: any) {
+    console.error(err);
+    this.procesando = false;
+    alert('Ocurrió un error.');
+  }
+
 }

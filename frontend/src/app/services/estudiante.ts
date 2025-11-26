@@ -16,6 +16,7 @@ export interface Estudiante {
   providedIn: 'root',
 })
 export class EstudianteService {
+  //Variables
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8080/api/estudiantes';
 
@@ -30,5 +31,14 @@ export class EstudianteService {
   }
   getEstudianteById(id: number): Observable<Estudiante> {
     return this.http.get<Estudiante>(`${this.apiUrl}/${id}`);
+  }
+  //Actualizar estudiante
+  updateEstudiante(id: number, estudiante: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, estudiante);
+  }
+
+  //Eliminar estudiante
+  deleteEstudiante(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }
