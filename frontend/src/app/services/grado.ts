@@ -28,4 +28,9 @@ export class GradoService {
     return this.http.post(this.apiUrl, grado);
   }
   
+  //Eliminar un grado por ID
+  deleteGrado(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+  
 }

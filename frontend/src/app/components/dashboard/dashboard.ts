@@ -83,6 +83,27 @@ export class Dashboard implements OnInit {
     });
   }
 
+  //Eliminar grado con confirmación
+  eliminarGrado(id: number, nivel: string) {
+    // 1. Preguntar confirmación
+    const confirmacion = confirm(`¿Estás seguro de eliminar el ${nivel}? Esta acción no se puede deshacer.`);
+    
+    if (!confirmacion) return; // Si dice cancelar, no hacemos nada
+
+    // 2. Llamar al servicio
+    this.gradoService.deleteGrado(id).subscribe({
+      next: () => {
+        // 3. Si sale bien, recargamos la lista
+        this.cargarGrados();
+      },
+      error: (err) => {
+        console.error(err);
+        // Mensaje amigable por si falla la base de datos (Foreign Key)
+        alert('No se pudo eliminar el grado. Es posible que tenga estudiantes inscritos.');
+      }
+    });
+  }
+
   //Cerrar sesión
   logout() {
     this.authService.logout();
