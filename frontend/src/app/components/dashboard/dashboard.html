@@ -10,8 +10,54 @@
     <div class="col-12">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Mis Grados</h2>
-        <button class="btn btn-success"><i class="bi bi-plus-lg"></i> Nuevo Grado</button>
+        <button class="btn" 
+                [class.btn-success]="!mostrarFormulario" 
+                [class.btn-danger]="mostrarFormulario"
+                (click)="mostrarFormulario = !mostrarFormulario">
+          @if (!mostrarFormulario) {
+            <i class="bi bi-plus-lg"></i> Nuevo Grado
+          } @else {
+            <i class="bi bi-x-lg"></i> Cancelar
+          }
+        </button>
       </div>
+
+      @if (mostrarFormulario) {
+        <div class="card mb-4 bg-light border-success animate__animated animate__fadeIn">
+          <div class="card-body">
+            <h5 class="card-title text-success mb-3">Crear Nuevo Grupo</h5>
+            
+            <form (ngSubmit)="guardarGrado()" class="row g-3">
+              
+              <div class="col-md-5">
+                <label class="form-label">Nivel / Grado</label>
+                <input type="text" class="form-control" [(ngModel)]="nuevoGrado.nivel" name="nivel" placeholder="Ej. 9no Grado" required>
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label">Sección</label>
+                <input type="text" class="form-control" [(ngModel)]="nuevoGrado.seccion" name="seccion" placeholder="Ej. A" required>
+              </div>
+
+              <div class="col-md-2">
+                <label class="form-label">Año</label>
+                <input type="number" class="form-control" [(ngModel)]="nuevoGrado.anioEscolar" name="anio" required>
+              </div>
+
+              <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-success w-100" [disabled]="procesando">
+                  @if (procesando) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                  } @else {
+                    Guardar
+                  }
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      }
 
       @if (loading) {
         <div class="text-center py-5">

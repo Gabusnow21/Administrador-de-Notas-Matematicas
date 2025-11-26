@@ -19,8 +19,13 @@ export class GradoService {
 
   constructor() { }
 
+  //Obtener todos los grados
   getGrados(): Observable<Grado[]> {
     return this.http.get<Grado[]>(this.apiUrl);
+  }
+  //Crear un nuevo grado
+  crearGrado(grado: any): Observable<any> {
+    return this.http.post(this.apiUrl, grado);
   }
   
 }

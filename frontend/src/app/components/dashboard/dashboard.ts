@@ -2,11 +2,12 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { AuthService } from '../../services/auth';
 import { Grado, GradoService } from '../../services/grado';
 import { RouterLink } from "@angular/router";
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [ RouterLink],
+  imports: [ RouterLink, FormsModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -17,11 +18,21 @@ export class Dashboard implements OnInit {
 
   grados: Grado[] = [];//Aca se guardan los datos de los grados
   loading: boolean = true;//Indicador de carga
+  mostrarFormulario: boolean = false;//Controla la visibilidad del formulario
+  procesando: boolean = false;//Indicador de procesamiento del formulario
   
+  //Modelo para el nuevo grado
+  nuevoGrado = {
+    nivel: '',       // Ej: "7mo Grado"
+    seccion: '',     // Ej: "B"
+    anioEscolar: new Date().getFullYear() // Año actual por defecto
+  };
+
   ngOnInit(): void {
     this.cargarGrados();
   }
 
+  //Cargar los grados desde el servicio
   cargarGrados() {
     console.log('1. Iniciando petición...'); // <--- DEBUG 1
 
@@ -43,6 +54,36 @@ export class Dashboard implements OnInit {
     });
   }
 
+  //Guardar nuevo grado
+  guardarGrado() {
+    this.procesando = true;
+    this.gradoService.crearGrado(this.nuevoGrado).subscribe({
+      next: (res) => {
+        console.log('Grado creado:', res);
+        this.procesando = false;
+        this.mostrarFormulario = false; // Ocultar formulario
+        
+        // Limpiar campos
+        this.nuevoGrado = {
+          nivel: '',
+          seccion: '',
+          anioEscolar: new Date().getFullYear()
+        };
+
+        // Recargar la lista para ver el nuevo
+        this.loading = true;
+        this.cargarGrados();
+      },
+      error: (err) => {
+        console.error('Error creando grado:', err);
+        alert('Error al crear el grado. Revisa la consola.');
+        this.procesando = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  //Cerrar sesión
   logout() {
     this.authService.logout();
   }
