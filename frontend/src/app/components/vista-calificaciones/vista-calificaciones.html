@@ -50,35 +50,68 @@
       <i class="bi bi-pencil-square me-2"></i> Asignar o Editar Calificación
     </div>
     <div class="card-body">
-      <form (ngSubmit)="guardarNota()" class="row g-3 align-items-end">
+      <!-- Formulario para asignar o editar calificación -->
+       <form (ngSubmit)="guardarNota()" class="row g-3 align-items-end">
         
         <div class="col-md-3">
-          <label class="form-label">ID Actividad</label>
-          <input type="number" class="form-control" [(ngModel)]="nuevaCalificacion.actividadId" name="actividadId" placeholder="Ej. 1" required>
+          <label class="form-label">Materia</label>
+          <select class="form-select" [(ngModel)]="materiaIDSeleccionada" (change)="onFiltroChange()" name="materia">
+            <option [value]="0">-- Seleccionar --</option>
+            @for (mat of materias; track mat.id) {
+              <option [value]="mat.id">{{ mat.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Trimestre</label>
+          <select class="form-select" [(ngModel)]="trimestreIDSeleccionado" (change)="onFiltroChange()" name="trimestre">
+            <option [value]="0">-- Seleccionar --</option>
+            @for (tri of trimestres; track tri.id) {
+              <option [value]="tri.id">{{ tri.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Actividad</label>
+          <select class="form-select" 
+                  [(ngModel)]="nuevaCalificacion.actividadId" 
+                  name="actividadId" 
+                  [disabled]="actividades.length === 0" 
+                  required>
+            <option [value]="0">-- Elegir Actividad --</option>
+            @for (act of actividades; track act.id) {
+              <option [value]="act.id">
+                {{ act.nombre }} ({{ act.porcentaje }}%)
+              </option>
+            }
+          </select>
         </div>
 
         <div class="col-md-3">
           <label class="form-label">Nota</label>
-          <input type="number" class="form-control" [(ngModel)]="nuevaCalificacion.nota" name="nota" step="0.01" placeholder="0 - 10" required>
+          <input type="number" class="form-control" [(ngModel)]="nuevaCalificacion.nota" name="nota" step="0.01" max="10" min="0" placeholder="0 - 10" required>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-9">
           <label class="form-label">Observación</label>
-          <input type="text" class="form-control" [(ngModel)]="nuevaCalificacion.observacion" name="observacion" placeholder="Opcional">
+          <input type="text" class="form-control" [(ngModel)]="nuevaCalificacion.observacion" name="observacion" placeholder="Comentarios sobre el desempeño...">
         </div>
 
-        <div class="col-md-2">
-          <button type="submit" class="btn btn-success w-100" [disabled]="procesando">
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-success w-100" 
+                  [disabled]="procesando || nuevaCalificacion.actividadId === 0">
             @if (procesando) {
               <span class="spinner-border spinner-border-sm"></span>
             } @else {
-              Guardar
+              Guardar Nota
             }
           </button>
         </div>
-
       </form>
     </div>
+
   </div>
           <tbody>
             @for (cal of calificaciones; track cal.id) {

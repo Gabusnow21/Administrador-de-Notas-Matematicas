@@ -5,6 +5,9 @@ import { EstudianteService } from '../../services/estudiante';
 import { PercentPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Reporte } from '../../services/reporte';
+import { Materia } from '../../services/materia';
+import { Actividad } from '../../services/actividad';
+import { Trimestre } from '../../services/trimestre';
 
 @Component({
   selector: 'app-vista-calificaciones',
@@ -13,18 +16,30 @@ import { Reporte } from '../../services/reporte';
   templateUrl: './vista-calificaciones.html',
   styleUrl: './vista-calificaciones.css',
 })
+
 export class VistaCalificaciones implements OnInit {
   private route = inject(ActivatedRoute);
   private calificacionService = inject(CalificacionService);
   private estudianteService = inject(EstudianteService);
   private cd = inject(ChangeDetectorRef); // Estrategia segura para forzar actualización
   private reporteService = inject(Reporte);// Servicio de Reportes
+  private materiaService = inject(Materia);
+  private actividadService = inject(Actividad)
+  private trimestreService = inject(Trimestre);
 
+  //Variables
   estudianteId: number = 0;
   nombreEstudiante: string = 'Cargando...';
   calificaciones: Calificacion[] = [];
   loading: boolean = true;
   descargando: boolean = false;//Spin de carga de boletín
+  materias: Materia[] = [];
+  actividades: Actividad[] = [];
+  trimestres: Trimestre[] = [];
+
+  materiaIDSeleccionada: number = 0;
+  trimestreIDSeleccionado: number = 0;
+
   
   // Variable para botón de carga
   procesando: boolean = false;
@@ -44,8 +59,10 @@ export class VistaCalificaciones implements OnInit {
         this.cargarDatos();
       }
     });
+    this.cargarCatalogos();
   }
-
+      // METODOS
+  // Método para cargar datos iniciales
   cargarDatos() {
     // 1. Obtener Nombre del Estudiante (Opcional, si falla no rompe la app)
     this.estudianteService.getEstudianteById(this.estudianteId).subscribe({
@@ -73,6 +90,7 @@ export class VistaCalificaciones implements OnInit {
       }
     });
   }
+  // Método para guardar una nueva calificación
   guardarNota() {
     this.procesando = true;
     // Asegurar que el ID del estudiante es correcto
@@ -128,6 +146,34 @@ export class VistaCalificaciones implements OnInit {
         this.cd.detectChanges();
       }
     });
+  }
+  // Método para cargar catálogos necesarios
+  cargarCatalogos() {
+    this.materiaService.getAll().subscribe(data => {
+      this.materias = data;
+      this.cd.detectChanges();
+    });
+    
+    this.trimestreService.getAll().subscribe(data => {
+      this.trimestres = data;
+      this.cd.detectChanges();
+    });
+  }
+
+  onFiltroChange() {
+    this.actividades = []; // Limpiar anteriores
+    this.nuevaCalificacion.actividadId = 0; // Resetear selección
+
+    if (this.materiaIDSeleccionada && this.trimestreIDSeleccionado) {
+      this.actividadService.getByMateriaAndTrimestre(this.materiaIDSeleccionada, this.trimestreIDSeleccionado)
+        .subscribe({
+          next: (data) => {
+            this.actividades = data;
+            this.cd.detectChanges();
+          },
+          error: (err) => console.error(err)
+        });
+    }
   }
 
 }
