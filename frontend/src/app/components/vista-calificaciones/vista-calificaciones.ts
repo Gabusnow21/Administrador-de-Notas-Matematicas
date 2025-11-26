@@ -4,6 +4,7 @@ import { Calificacion, CalificacionRequest, CalificacionService } from '../../se
 import { EstudianteService } from '../../services/estudiante';
 import { PercentPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Reporte } from '../../services/reporte';
 
 @Component({
   selector: 'app-vista-calificaciones',
@@ -16,12 +17,14 @@ export class VistaCalificaciones implements OnInit {
   private route = inject(ActivatedRoute);
   private calificacionService = inject(CalificacionService);
   private estudianteService = inject(EstudianteService);
-  private cd = inject(ChangeDetectorRef); // 🛡️ Estrategia segura
+  private cd = inject(ChangeDetectorRef); // Estrategia segura para forzar actualización
+  private reporteService = inject(Reporte);// Servicio de Reportes
 
   estudianteId: number = 0;
   nombreEstudiante: string = 'Cargando...';
   calificaciones: Calificacion[] = [];
   loading: boolean = true;
+  descargando: boolean = false;//Spin de carga de boletín
   
   // Variable para botón de carga
   procesando: boolean = false;
@@ -91,6 +94,37 @@ export class VistaCalificaciones implements OnInit {
         console.error('Error guardando:', err);
         alert('Error al guardar. Verifica que el ID de Actividad exista.');
         this.procesando = false;
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  // Método para descargar el boletín en PDF
+  descargarPDF() {
+    this.descargando = true;
+    this.reporteService.descargarBoletin(this.estudianteId).subscribe({
+      next: (blob: Blob) => {
+        // Crear una URL temporal para el archivo
+        const url = window.URL.createObjectURL(blob);
+        
+        // Crear un link invisible y darle clic automáticamente
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Boletin_${this.nombreEstudiante}.pdf`; // Nombre del archivo
+        document.body.appendChild(a);
+        a.click();
+        
+        // Limpieza
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        this.descargando = false;
+        this.cd.detectChanges(); // Refrescar vista (quitar spinner)
+      },
+      error: (err) => {
+        console.error('Error descargando PDF', err);
+        alert('No se pudo generar el reporte.');
+        this.descargando = false;
         this.cd.detectChanges();
       }
     });

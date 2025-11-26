@@ -5,9 +5,18 @@
       <h2 class="text-primary fw-bold">Boletín de Notas</h2>
       <h4 class="text-dark">{{ nombreEstudiante }}</h4>
     </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-danger" (click)="descargarPDF()" [disabled]="descargando">
+        @if (descargando) {
+          <span class="spinner-border spinner-border-sm me-2"></span> Generando...
+        } @else {
+          <i class="bi bi-file-earmark-pdf-fill me-2"></i> Descargar PDF
+        }
+      </button>
     <a routerLink="/dashboard" class="btn btn-outline-secondary">
       <i class="bi bi-arrow-left"></i> Volver
     </a>
+    </div>
   </div>
 
   @if (loading) {
