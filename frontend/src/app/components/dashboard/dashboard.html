@@ -77,7 +77,21 @@
       
       @if (!loading && grados.length > 0) {
         <div class="row">
-          
+          <div class="col-md-6 col-lg-3 d-flex align-items-stretch">
+            <div class="card mb-4 w-100 border-0 shadow-sm bg-success text-white hover-effect" 
+                 style="aspect-ratio: 1 / 1; cursor: pointer;"
+                 [routerLink]="['/registro-notas']">
+              <div class="card-body d-flex flex-column justify-content-center align-items-center text-center h-100">
+                <div class="mb-3">
+                  <i class="bi bi-grid-3x3-gap-fill display-1"></i>
+                </div>
+                <h4 class="fw-bold">Planilla de Notas</h4>
+                <button class="btn btn-light text-success fw-bold mt-3 rounded-pill px-4">
+                  Ir a Registrar <i class="bi bi-arrow-right-short"></i>
+                </button>
+              </div>
+            </div>
+          </div>
           @for (grado of grados; track grado.id) {
           <div class="col-md-6 col-lg-3 d-flex align-items-stretch">
               
