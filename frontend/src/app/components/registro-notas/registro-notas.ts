@@ -1,0 +1,129 @@
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { CalificacionService, PlanillaItem, CalificacionRequest } from '../../services/calificacion';
+import { Grado, GradoService } from '../../services/grado';
+import { Actividad } from '../../services/actividad';
+import { Materia } from '../../services/materia';
+import { Trimestre } from '../../services/trimestre';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-registro-notas',
+  standalone: true,
+  imports: [FormsModule],
+  templateUrl: './registro-notas.html',
+  styleUrl: './registro-notas.css',
+})
+
+export class RegistroNotas implements OnInit {
+  // Inyecciones
+  private gradoService = inject(GradoService);
+  private materiaService = inject(Materia);
+  private trimestreService = inject(Trimestre);
+  private actividadService = inject(Actividad);
+  private calificacionService = inject(CalificacionService);
+  private cd = inject(ChangeDetectorRef);
+
+  // Catálogos
+  grados: Grado[] = [];
+  materias: Materia[] = [];
+  trimestres: Trimestre[] = [];
+  actividades: Actividad[] = [];
+
+  // Selecciones
+  selGrado: number = 0;
+  selMateria: number = 0;
+  selTrimestre: number = 0;
+  selActividad: number = 0;
+
+  // La Tabla de Datos
+  planilla: PlanillaItem[] = [];
+  loading: boolean = false;
+  guardando: boolean = false;
+
+  ngOnInit(): void {
+    this.cargarCatalogos();
+  }
+
+  cargarCatalogos() {
+    this.gradoService.getGrados().subscribe(d => this.grados = d);
+    this.materiaService.getAll().subscribe(d => this.materias = d);
+    this.trimestreService.getAll().subscribe(d => this.trimestres = d);
+  }
+
+  onFiltroChange() {
+    this.actividades = [];
+    this.planilla = []; // Limpiar tabla si cambian filtros
+    this.selActividad = 0;
+
+    if (this.selMateria && this.selTrimestre) {
+      this.actividadService.getByMateriaAndTrimestre(this.selMateria, this.selTrimestre)
+        .subscribe(data => this.actividades = data);
+    }
+  }
+
+  cargarPlanilla() {
+    if (!this.selGrado || !this.selActividad) return;
+
+    this.loading = true;
+    this.calificacionService.obtenerPlanilla(this.selGrado, this.selActividad)
+      .subscribe({
+        next: (data) => {
+          this.planilla = data;
+          this.loading = false;
+          this.cd.detectChanges();
+        },
+        error: (err) => {
+          console.error(err);
+          this.loading = false;
+        }
+      });
+  }
+
+  // Marcar fila como modificada cuando el usuario escribe
+  marcarCambio(item: PlanillaItem) {
+    item.modificado = true;
+  }
+
+  guardarCambios() {
+    this.guardando = true;
+    
+    // Filtramos solo los que se modificaron o tienen nota
+    const aGuardar = this.planilla.filter(p => p.modificado && p.nota !== undefined && p.nota !== null);
+
+    // Truco: Usamos Promesas para esperar que todos se guarden (o forkJoin si eres pro en RxJS)
+    let procesados = 0;
+
+    if (aGuardar.length === 0) {
+      this.guardando = false;
+      alert('No hay cambios para guardar');
+      return;
+    }
+
+    aGuardar.forEach(item => {
+      const request: CalificacionRequest = {
+        estudianteId: item.estudianteId,
+        actividadId: this.selActividad,
+        nota: item.nota!,
+        observacion: item.observacion || ''
+      };
+
+      this.calificacionService.guardarCalificacion(request).subscribe({
+        next: () => {
+          procesados++;
+          item.modificado = false; // Limpiar flag
+          if (procesados === aGuardar.length) {
+            this.guardando = false;
+            alert('¡Notas guardadas correctamente!');
+            this.cd.detectChanges();
+          }
+        },
+        error: () => {
+          procesados++; // Contamos aunque falle para no bloquear
+          if (procesados === aGuardar.length) this.guardando = false;
+        }
+      });
+    });
+  }
+
+}

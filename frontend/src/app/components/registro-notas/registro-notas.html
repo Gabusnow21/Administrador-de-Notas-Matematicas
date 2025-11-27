@@ -1,0 +1,99 @@
+<div class="container mt-4">
+  <h2 class="text-primary mb-4"><i class="bi bi-table me-2"></i>Registro de Notas</h2>
+
+  <div class="card shadow-sm mb-4 p-3 bg-light">
+    <div class="row g-2">
+      
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Grado</label>
+        <select class="form-select" [(ngModel)]="selGrado" (change)="cargarPlanilla()">
+          <option [value]="0">-- Seleccionar --</option>
+          @for (g of grados; track g.id) { <option [value]="g.id">{{ g.nivel }} "{{ g.seccion }}"</option> }
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Materia</label>
+        <select class="form-select" [(ngModel)]="selMateria" (change)="onFiltroChange()">
+          <option [value]="0">-- Seleccionar --</option>
+          @for (m of materias; track m.id) { <option [value]="m.id">{{ m.nombre }}</option> }
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Trimestre</label>
+        <select class="form-select" [(ngModel)]="selTrimestre" (change)="onFiltroChange()">
+          <option [value]="0">-- Seleccionar --</option>
+          @for (t of trimestres; track t.id) { <option [value]="t.id">{{ t.nombre }}</option> }
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-bold">Actividad</label>
+        <select class="form-select" [(ngModel)]="selActividad" (change)="cargarPlanilla()" [disabled]="actividades.length === 0">
+          <option [value]="0">-- Seleccionar --</option>
+          @for (a of actividades; track a.id) { <option [value]="a.id">{{ a.nombre }} ({{a.porcentaje}}%)</option> }
+        </select>
+      </div>
+
+    </div>
+  </div>
+
+  @if (loading) {
+    <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+  }
+
+  @if (!loading && planilla.length > 0) {
+    <div class="card shadow border-0">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="m-0 text-secondary">Estudiantes: {{ planilla.length }}</h5>
+        <button class="btn btn-success" (click)="guardarCambios()" [disabled]="guardando">
+          @if (guardando) { <span class="spinner-border spinner-border-sm"></span> Guardando... } 
+          @else { <i class="bi bi-floppy-fill me-2"></i> Guardar Todo }
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover table-striped align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th style="width: 5%;">#</th>
+              <th style="width: 40%;">Estudiante</th>
+              <th style="width: 20%;">Nota (0-10)</th>
+              <th style="width: 35%;">Observación</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of planilla; track item.estudianteId; let i = $index) {
+              <tr [class.table-warning]="item.modificado"> <td class="text-center">{{ i + 1 }}</td>
+                <td class="fw-bold text-secondary">
+                  {{ item.apellidoEstudiante }}, {{ item.nombreEstudiante }}
+                </td>
+                <td>
+                  <input type="number" 
+                         class="form-control fw-bold text-center" 
+                         [(ngModel)]="item.nota" 
+                         (ngModelChange)="marcarCambio(item)"
+                         min="0" max="10" step="0.01"
+                         [class.text-danger]="item.nota !== undefined && item.nota < 6"
+                         [class.text-success]="item.nota !== undefined && item.nota >= 6">
+                </td>
+                <td>
+                  <input type="text" 
+                         class="form-control form-control-sm text-muted" 
+                         [(ngModel)]="item.observacion"
+                         (ngModelChange)="marcarCambio(item)"
+                         placeholder="Comentario...">
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  @if (!loading && planilla.length === 0 && selActividad !== 0) {
+    <div class="alert alert-info mt-3">No hay estudiantes inscritos en este grado.</div>
+  }
+</div>

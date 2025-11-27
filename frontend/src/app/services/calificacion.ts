@@ -3,6 +3,17 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { get } from 'http';
 
+export interface PlanillaItem {
+  estudianteId: number;
+  nombreEstudiante: string;
+  apellidoEstudiante: string;
+  calificacionId?: number;
+  nota?: number;
+  observacion?: string;
+  // Campo auxiliar para el frontend (saber si se modificó)
+  modificado?: boolean;
+}
+
 export interface Calificacion {
   id?: number;
   nota: number;
@@ -16,6 +27,7 @@ export interface Calificacion {
     }
   };
 }
+
 //Interfaz para enviar datos al backend
 export interface CalificacionRequest {
   estudianteId: number;
@@ -39,5 +51,11 @@ export class CalificacionService {
   //Guardar calificacion
   guardarCalificacion(request: CalificacionRequest): Observable<any> {
     return this.http.post(this.apiUrl, request);
+  }
+  //Obtener planilla de calificaciones para un grado y actividad
+  obtenerPlanilla(gradoId: number, actividadId: number): Observable<PlanillaItem[]> {
+    return this.http.get<PlanillaItem[]>(
+      `${this.apiUrl}/planilla?gradoId=${gradoId}&actividadId=${actividadId}`
+    );
   }
 }
