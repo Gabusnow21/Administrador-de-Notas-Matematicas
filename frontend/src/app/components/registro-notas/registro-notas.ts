@@ -6,6 +6,7 @@ import { Actividad } from '../../services/actividad';
 import { Materia } from '../../services/materia';
 import { Trimestre } from '../../services/trimestre';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-registro-notas',
@@ -22,6 +23,7 @@ export class RegistroNotas implements OnInit {
   private trimestreService = inject(Trimestre);
   private actividadService = inject(Actividad);
   private calificacionService = inject(CalificacionService);
+  private route = inject(ActivatedRoute);
   private cd = inject(ChangeDetectorRef);
 
   // Catálogos
@@ -43,6 +45,12 @@ export class RegistroNotas implements OnInit {
 
   ngOnInit(): void {
     this.cargarCatalogos();
+    this.route.queryParams.subscribe(params => {
+      const gradoIdParam = params['gradoId'];
+      if (gradoIdParam) {
+        this.selGrado = Number(gradoIdParam);
+      }
+    });
   }
 
   cargarCatalogos() {
