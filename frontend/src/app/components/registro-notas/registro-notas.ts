@@ -6,12 +6,12 @@ import { Actividad } from '../../services/actividad';
 import { Materia } from '../../services/materia';
 import { Trimestre } from '../../services/trimestre';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-registro-notas',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './registro-notas.html',
   styleUrl: './registro-notas.css',
 })
