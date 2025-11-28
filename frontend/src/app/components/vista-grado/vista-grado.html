@@ -3,7 +3,14 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h2 class="text-primary">Listado de Estudiantes</h2>
-      <p class="text-muted mb-0">Gestionando Grado ID=: {{ nombreGrado }}</p>
+      @if (gradoActual) {
+        <p class="text-muted mb-0 fs-5">
+          Gestionando: <strong>{{ gradoActual.nivel }} "{{ gradoActual.seccion }}"</strong> 
+          ({{ gradoActual.anioEscolar }})
+        </p>
+      } @else {
+        <p class="text-muted mb-0">Cargando información del grado...</p>
+      }
     </div>
     
     <div class="d-flex gap-2">

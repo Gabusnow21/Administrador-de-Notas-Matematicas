@@ -29,6 +29,14 @@ public class GradoController {
         return ResponseEntity.ok(gradoRepository.findAll());
     }
 
+    //Obtener grado por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Grado> getGradoById(@PathVariable Long id) {
+        return gradoRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     // Crear un nuevo grado
     @PostMapping
     public ResponseEntity<Grado> createGrado(@RequestBody Grado grado) {

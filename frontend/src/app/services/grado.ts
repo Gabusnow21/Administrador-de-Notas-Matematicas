@@ -38,5 +38,8 @@ export class GradoService {
   deleteGrado(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+  getGradoPorId(id: number): Observable<Grado> {
+    return this.http.get<Grado>(`${this.apiUrl}/${id}`);
+  }
   
 }

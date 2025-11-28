@@ -2,6 +2,7 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EstudianteService, Estudiante } from '../../services/estudiante';
 import { FormsModule } from '@angular/forms';
+import { Grado, GradoService } from '../../services/grado';
 
 @Component({
   selector: 'app-vista-grado',
@@ -16,6 +17,7 @@ export class VistaGrado implements OnInit {
   //Inyecciones de servicios
   private route = inject(ActivatedRoute)
   private estudianteService = inject(EstudianteService);
+  private gradoService = inject(GradoService); 
   private cdr = inject(ChangeDetectorRef);
 
   //Variables
@@ -23,6 +25,7 @@ export class VistaGrado implements OnInit {
   gradoId: number = 0;
   loading: boolean = true;
   nombreGrado: string = '';//Nombre del grado actual
+  gradoActual: Grado | null = null;
 
   mostrarFormulario: boolean = false;//Controla la visibilidad del formulario
   procesando: boolean = false;//Indicador de procesamiento del formulario
@@ -54,7 +57,9 @@ export class VistaGrado implements OnInit {
         this.cdr.detectChanges(); 
 
         this.loading = true;
+        this.obtenerInfoGrado();
         this.cargarEstudiantes();
+
       } else {
         // Caso Error (NaN o 0)
         console.warn('ID inválido al cargar vista grado:', idParam);
@@ -137,6 +142,18 @@ export class VistaGrado implements OnInit {
         error: (err) => this.manejarError(err)
       });
     }
+  }
+
+  obtenerInfoGrado() {
+    this.gradoService.getGradoPorId(this.gradoId).subscribe({
+      next: (grado) => {
+        this.gradoActual = grado;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al obtener info del grado:', err);
+      }
+    });
   }
 
   // Helpers
