@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalificacionService, PlanillaItem, CalificacionRequest } from '../../services/calificacion';
 import { Grado, GradoService } from '../../services/grado';
@@ -24,7 +24,6 @@ export class RegistroNotas implements OnInit {
   private actividadService = inject(Actividad);
   private calificacionService = inject(CalificacionService);
   private route = inject(ActivatedRoute);
-  private cd = inject(ChangeDetectorRef);
 
   // Catálogos
   grados: Grado[] = [];
@@ -53,7 +52,6 @@ export class RegistroNotas implements OnInit {
       if (paramId && !isNaN(idNumerico) && idNumerico > 0) {
         this.selGrado = idNumerico;
         console.log('Grado pre-seleccionado:', this.selGrado);
-        this.cd.detectChanges();        // Opcional: Cargar planilla automáticamente si ya seleccionaste materia/trimestre antes
       } else {
         this.selGrado = 0; // Si viene NaN, lo dejamos en 0 (Select vacío)
       }
@@ -65,7 +63,6 @@ export class RegistroNotas implements OnInit {
     this.gradoService.getGrados().subscribe({
       next: (d) => {
         this.grados = d;
-        this.cd.detectChanges(); // <--- ¡AVISO IMPORTANTE! Pinta las opciones
       },
       error: (e) => console.error(e)
     });
@@ -74,7 +71,6 @@ export class RegistroNotas implements OnInit {
     this.materiaService.getAll().subscribe({
       next: (d) => {
         this.materias = d;
-        this.cd.detectChanges(); // <--- ¡AVISO IMPORTANTE!
       },
       error: (e) => console.error(e)
     });
@@ -83,7 +79,6 @@ export class RegistroNotas implements OnInit {
     this.trimestreService.getAll().subscribe({
       next: (d) => {
         this.trimestres = d;
-        this.cd.detectChanges(); // <--- ¡AVISO IMPORTANTE!
       },
       error: (e) => console.error(e)
     });
@@ -109,7 +104,6 @@ export class RegistroNotas implements OnInit {
         next: (data) => {
           this.planilla = data;
           this.loading = false;
-          this.cd.detectChanges();
         },
         error: (err) => {
           console.error(err);
@@ -153,7 +147,6 @@ export class RegistroNotas implements OnInit {
           if (procesados === aGuardar.length) {
             this.guardando = false;
             alert('¡Notas guardadas correctamente!');
-            this.cd.detectChanges();
           }
         },
         error: () => {
