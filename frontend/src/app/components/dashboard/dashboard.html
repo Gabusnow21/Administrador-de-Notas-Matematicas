@@ -1,7 +1,18 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 shadow-sm">
   <div class="container-fluid">
-    <a class="navbar-brand" href="#">Gestor de Notas</a>
-    <button class="btn btn-outline-light btn-sm" (click)="logout()">Cerrar Sesión</button>
+    <a class="navbar-brand fw-bold" href="#">
+      <i class="bi bi-mortarboard-fill me-2"></i>Gestor de Notas
+    </a>
+    
+    <div class="d-flex gap-2">
+      <a routerLink="/gestion-materias" class="btn btn-outline-light btn-sm d-flex align-items-center">
+        <i class="bi bi-gear-fill me-2"></i> Config. Materias
+      </a>
+      
+      <button class="btn btn-light btn-sm text-primary fw-bold" (click)="logout()">
+        Cerrar Sesión <i class="bi bi-box-arrow-right ms-1"></i>
+      </button>
+    </div>
   </div>
 </nav>
 

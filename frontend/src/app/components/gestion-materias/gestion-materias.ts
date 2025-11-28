@@ -1,0 +1,92 @@
+import { Component, inject, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Materia } from '../../services/materia';
+
+export interface MateriaData {
+  id?: number;
+  nombre: string;
+  descripcion: string;
+}
+
+@Component({
+  selector: 'app-gestion-materias',
+  imports: [RouterLink, FormsModule],
+  templateUrl: './gestion-materias.html',
+  styleUrl: './gestion-materias.css',
+})
+export class GestionMaterias implements OnInit {
+  private materiaService = inject(Materia);
+
+  materias: Materia[] = [];
+  loading: boolean = true;
+  procesando: boolean = false;
+
+  // Estado del formulario
+  esEdicion: boolean = false;
+  materiaForm: MateriaData = { nombre: '', descripcion: '' };
+
+  ngOnInit() {
+    this.cargarMaterias();
+  }
+
+  cargarMaterias() {
+    this.loading = true;
+    this.materiaService.getAll().subscribe({
+      next: (data) => {
+        this.materias = data;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.loading = false;
+      }
+    });
+  }
+
+  // Preparar formulario para editar
+  editar(materia: Materia) {
+    this.esEdicion = true;
+    // Copiamos el objeto para no editar la tabla en vivo
+    this.materiaForm = { ...materia };
+  }
+
+  // Limpiar formulario
+  cancelarEdicion() {
+    this.esEdicion = false;
+    this.materiaForm = { nombre: '', descripcion: '' };
+  }
+
+  guardar() {
+    this.procesando = true;
+
+    if (this.esEdicion) {
+      this.materiaService.actualizar(this.materiaForm as Materia).subscribe({
+        next: () => this.finalizarOperacion(),
+        error: () => { this.procesando = false; alert('Error al actualizar'); }
+      });
+    } else {
+      this.materiaService.crear(this.materiaForm as Materia).subscribe({
+        next: () => this.finalizarOperacion(),
+        error: () => { this.procesando = false; alert('Error al crear'); }
+      });
+    }
+  }
+
+  eliminar(id: number) {
+    if(!confirm('¿Eliminar esta materia?')) return;
+    
+    this.materiaService.borrar(id).subscribe({
+      next: () => this.cargarMaterias(),
+      error: () => alert('No se puede eliminar (quizás ya tiene actividades asignadas).')
+    });
+  }
+
+  private finalizarOperacion() {
+    this.procesando = false;
+    this.cancelarEdicion();
+    this.cargarMaterias();
+  }
+
+
+}

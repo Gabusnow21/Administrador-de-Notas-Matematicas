@@ -1,0 +1,92 @@
+<div class="container mt-4">
+  
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary"><i class="bi bi-journal-bookmark-fill me-2"></i>Gestión de Materias</h2>
+    <a routerLink="/dashboard" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+  </div>
+
+  <div class="row">
+    
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title m-0 text-success">
+            @if (esEdicion) { <i class="bi bi-pencil-square"></i> Editar Materia } 
+            @else { <i class="bi bi-plus-circle"></i> Nueva Materia }
+          </h5>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="guardar()">
+            
+            <div class="mb-3">
+              <label class="form-label">Nombre de la Materia</label>
+              <input type="text" class="form-control" [(ngModel)]="materiaForm.nombre" name="nombre" placeholder="Ej. Matemáticas" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Descripción (Opcional)</label>
+              <textarea class="form-control" [(ngModel)]="materiaForm.descripcion" name="desc" rows="3"></textarea>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-success" [disabled]="procesando || !materiaForm.nombre">
+                @if (procesando) { <span class="spinner-border spinner-border-sm"></span> } 
+                @else { {{ esEdicion ? 'Actualizar' : 'Guardar' }} }
+              </button>
+              
+              @if (esEdicion) {
+                <button type="button" class="btn btn-outline-secondary" (click)="cancelarEdicion()">Cancelar</button>
+              }
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      @if (loading) {
+        <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+      }
+
+      @if (!loading && materias.length === 0) {
+        <div class="alert alert-info">No hay materias registradas.</div>
+      }
+
+      @if (!loading && materias.length > 0) {
+        <div class="card shadow-sm border-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-4">Nombre</th>
+                  <th>Descripción</th>
+                  <th class="text-end pe-4">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (mat of materias; track mat.id) {
+                  <tr>
+                    <td class="ps-4 fw-bold text-primary">{{ mat.nombre }}</td>
+                    <td class="text-muted small">{{ mat.descripcion || '-' }}</td>
+                    <td class="text-end pe-4">
+                      <button class="btn btn-sm btn-outline-warning me-2" (click)="editar(mat)">
+                        <i class="bi bi-pencil-fill"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger" (click)="eliminar(mat.id!)">
+                        <i class="bi bi-trash-fill"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </div>
+
+  </div>
+</div>
