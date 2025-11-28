@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Calificacion, CalificacionRequest, CalificacionService } from '../../services/calificacion';
 import { EstudianteService } from '../../services/estudiante';
@@ -21,7 +21,6 @@ export class VistaCalificaciones implements OnInit {
   private route = inject(ActivatedRoute);
   private calificacionService = inject(CalificacionService);
   private estudianteService = inject(EstudianteService);
-  private cd = inject(ChangeDetectorRef); // Estrategia segura para forzar actualización
   private reporteService = inject(Reporte);// Servicio de Reportes
   private materiaService = inject(Materia);
   private actividadService = inject(Actividad)
@@ -68,11 +67,9 @@ export class VistaCalificaciones implements OnInit {
     this.estudianteService.getEstudianteById(this.estudianteId).subscribe({
       next: (est) => {
         this.nombreEstudiante = `${est.nombre} ${est.apellido}`;
-        this.cd.detectChanges();
       },
       error: () => {
         this.nombreEstudiante = 'Estudiante #' + this.estudianteId;
-        this.cd.detectChanges();
       }
     });
 
@@ -81,12 +78,10 @@ export class VistaCalificaciones implements OnInit {
       next: (data) => {
         this.calificaciones = data;
         this.loading = false;
-        this.cd.detectChanges(); // 🛡️ Forzar actualización
       },
       error: (err) => {
         console.error(err);
         this.loading = false;
-        this.cd.detectChanges();
       }
     });
   }
@@ -112,7 +107,6 @@ export class VistaCalificaciones implements OnInit {
         console.error('Error guardando:', err);
         alert('Error al guardar. Verifica que el ID de Actividad exista.');
         this.procesando = false;
-        this.cd.detectChanges();
       }
     });
   }
@@ -137,13 +131,11 @@ export class VistaCalificaciones implements OnInit {
         document.body.removeChild(a);
         
         this.descargando = false;
-        this.cd.detectChanges(); // Refrescar vista (quitar spinner)
       },
       error: (err) => {
         console.error('Error descargando PDF', err);
         alert('No se pudo generar el reporte.');
         this.descargando = false;
-        this.cd.detectChanges();
       }
     });
   }
@@ -151,12 +143,10 @@ export class VistaCalificaciones implements OnInit {
   cargarCatalogos() {
     this.materiaService.getAll().subscribe(data => {
       this.materias = data;
-      this.cd.detectChanges();
     });
     
     this.trimestreService.getAll().subscribe(data => {
       this.trimestres = data;
-      this.cd.detectChanges();
     });
   }
 
@@ -169,7 +159,6 @@ export class VistaCalificaciones implements OnInit {
         .subscribe({
           next: (data) => {
             this.actividades = data;
-            this.cd.detectChanges();
           },
           error: (err) => console.error(err)
         });

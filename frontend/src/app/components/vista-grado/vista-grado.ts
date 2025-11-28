@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EstudianteService, Estudiante } from '../../services/estudiante';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +18,6 @@ export class VistaGrado implements OnInit {
   private route = inject(ActivatedRoute)
   private estudianteService = inject(EstudianteService);
   private gradoService = inject(GradoService); 
-  private cdr = inject(ChangeDetectorRef);
 
   //Variables
   estudiantes: Estudiante[] = [];
@@ -43,7 +42,7 @@ export class VistaGrado implements OnInit {
     this.route.paramMap.subscribe(params => {
       // 1. Obtener el valor crudo
       const idParam = params.get('id');
-      console.log('🔄 Navegación detectada. ID en URL:', idParam);
+      console.log(' Navegación detectada. ID en URL:', idParam);
 
       // 2. Convertir y Validar
       const idNumerico = Number(idParam);
@@ -53,9 +52,6 @@ export class VistaGrado implements OnInit {
         this.gradoId = idNumerico;
         this.nuevoEstudiante.gradoId = this.gradoId; // Sincronizar formulario de inscripción
         
-        // ¡IMPORTANTE! Forzamos a Angular a pintar el ID "1" (o el que sea) en el HTML YA.
-        this.cdr.detectChanges(); 
-
         this.loading = true;
         this.obtenerInfoGrado();
         this.cargarEstudiantes();
@@ -65,7 +61,6 @@ export class VistaGrado implements OnInit {
         console.warn('ID inválido al cargar vista grado:', idParam);
         this.gradoId = 0;
         this.loading = false;
-        this.cdr.detectChanges();
       }
     });
   }
@@ -76,12 +71,10 @@ export class VistaGrado implements OnInit {
       next: (data) => {
         this.estudiantes = data;
         this.loading = false;
-        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error al cargar estudiantes:', error);
         this.loading = false;
-        this.cdr.detectChanges();
       }
     });
   }
@@ -143,12 +136,11 @@ export class VistaGrado implements OnInit {
       });
     }
   }
-
+  // Obtener info del grado
   obtenerInfoGrado() {
     this.gradoService.getGradoPorId(this.gradoId).subscribe({
       next: (grado) => {
         this.gradoActual = grado;
-        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error al obtener info del grado:', err);
