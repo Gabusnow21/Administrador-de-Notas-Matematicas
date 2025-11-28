@@ -22,6 +22,7 @@ export class VistaGrado implements OnInit {
   estudiantes: Estudiante[] = [];
   gradoId: number = 0;
   loading: boolean = true;
+  nombreGrado: string = '';//Nombre del grado actual
 
   mostrarFormulario: boolean = false;//Controla la visibilidad del formulario
   procesando: boolean = false;//Indicador de procesamiento del formulario
@@ -37,10 +38,29 @@ export class VistaGrado implements OnInit {
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
-      this.gradoId = Number(params.get('id'));
-      if (this.gradoId) {
-        this.nuevoEstudiante.gradoId = this.gradoId; // Asignar el gradoId al nuevo estudiante
-        this.cargarEstudiantes(); // Cargar estudiantes del grado especificado 
+      // 1. Obtener el valor crudo
+      const idParam = params.get('id');
+      console.log('🔄 Navegación detectada. ID en URL:', idParam);
+
+      // 2. Convertir y Validar
+      const idNumerico = Number(idParam);
+
+      if (idParam && !isNaN(idNumerico) && idNumerico > 0) {
+        // Caso Éxito
+        this.gradoId = idNumerico;
+        this.nuevoEstudiante.gradoId = this.gradoId; // Sincronizar formulario de inscripción
+        
+        // ¡IMPORTANTE! Forzamos a Angular a pintar el ID "1" (o el que sea) en el HTML YA.
+        this.cdr.detectChanges(); 
+
+        this.loading = true;
+        this.cargarEstudiantes();
+      } else {
+        // Caso Error (NaN o 0)
+        console.warn('ID inválido al cargar vista grado:', idParam);
+        this.gradoId = 0;
+        this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -61,7 +81,6 @@ export class VistaGrado implements OnInit {
     });
   }
 
-  // ... ngOnInit y cargarEstudiantes ...
 
   // 👇 NUEVA FUNCIÓN: Preparar formulario para editar
   editarEstudiante(est: Estudiante) {

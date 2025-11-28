@@ -3,10 +3,16 @@
     <h2 class="text-primary m-0">
       <i class="bi bi-table me-2"></i>Registro de Notas
     </h2>
-    
+    <div class="d-flex flex-column gap-2 align-items-end">
     <a routerLink="/dashboard" class="btn btn-outline-secondary">
       <i class="bi bi-arrow-left"></i> Volver al Dashboard
     </a>
+    @if (selGrado && selGrado > 0 ){
+    <a [routerLink]="['/grado', selGrado]" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Regresar al Grado
+    </a>
+    }
+    </div>
   </div>
 
   <div class="card shadow-sm mb-4 p-3 bg-light">

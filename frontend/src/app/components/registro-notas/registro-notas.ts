@@ -46,17 +46,47 @@ export class RegistroNotas implements OnInit {
   ngOnInit(): void {
     this.cargarCatalogos();
     this.route.queryParams.subscribe(params => {
-      const gradoIdParam = params['gradoId'];
-      if (gradoIdParam) {
-        this.selGrado = Number(gradoIdParam);
+      const paramId = params['gradoId'];
+      const idNumerico = Number(paramId);
+      
+      // VALIDACIÓN ESTRICTA
+      if (paramId && !isNaN(idNumerico) && idNumerico > 0) {
+        this.selGrado = idNumerico;
+        console.log('Grado pre-seleccionado:', this.selGrado);
+        this.cd.detectChanges();        // Opcional: Cargar planilla automáticamente si ya seleccionaste materia/trimestre antes
+      } else {
+        this.selGrado = 0; // Si viene NaN, lo dejamos en 0 (Select vacío)
       }
     });
   }
 
   cargarCatalogos() {
-    this.gradoService.getGrados().subscribe(d => this.grados = d);
-    this.materiaService.getAll().subscribe(d => this.materias = d);
-    this.trimestreService.getAll().subscribe(d => this.trimestres = d);
+    // 1. Cargar Grados
+    this.gradoService.getGrados().subscribe({
+      next: (d) => {
+        this.grados = d;
+        this.cd.detectChanges(); // <--- ¡AVISO IMPORTANTE! Pinta las opciones
+      },
+      error: (e) => console.error(e)
+    });
+
+    // 2. Cargar Materias
+    this.materiaService.getAll().subscribe({
+      next: (d) => {
+        this.materias = d;
+        this.cd.detectChanges(); // <--- ¡AVISO IMPORTANTE!
+      },
+      error: (e) => console.error(e)
+    });
+
+    // 3. Cargar Trimestres
+    this.trimestreService.getAll().subscribe({
+      next: (d) => {
+        this.trimestres = d;
+        this.cd.detectChanges(); // <--- ¡AVISO IMPORTANTE!
+      },
+      error: (e) => console.error(e)
+    });
   }
 
   onFiltroChange() {
