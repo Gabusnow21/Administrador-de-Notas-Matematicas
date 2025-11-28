@@ -148,6 +148,18 @@ export class VistaGrado implements OnInit {
     });
   }
 
+  obtenerInfoGrado() {
+    this.gradoService.getGradoPorId(this.gradoId).subscribe({
+      next: (grado) => {
+        this.gradoActual = grado;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al obtener info del grado:', err);
+      }
+    });
+  }
+
   // Helpers
   finalizarOperacion() {
     this.procesando = false;
