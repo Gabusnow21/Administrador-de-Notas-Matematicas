@@ -83,7 +83,7 @@
             <option [value]="0">-- Elegir Actividad --</option>
             @for (act of actividades; track act.id) {
               <option [value]="act.id">
-                {{ act.nombre }} ({{ act.porcentaje }}%)
+                {{ act.nombre }} ({{ act.ponderacion }}%)
               </option>
             }
           </select>

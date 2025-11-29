@@ -46,7 +46,7 @@
         <label class="form-label small fw-bold">Actividad</label>
         <select class="form-select" [(ngModel)]="selActividad" (change)="cargarPlanilla()" [disabled]="actividades.length === 0">
           <option [value]="0">-- Seleccionar --</option>
-          @for (a of actividades; track a.id) { <option [value]="a.id">{{ a.nombre }} ({{a.porcentaje}}%)</option> }
+          @for (a of actividades; track a.id) { <option [value]="a.id">{{ a.nombre }} ({{a.ponderacion}}%)</option> }
         </select>
       </div>
 
