@@ -3,15 +3,27 @@
     <a class="navbar-brand fw-bold" href="#">
       <i class="bi bi-mortarboard-fill me-2"></i>Gestor de Notas
     </a>
-    
+
     <div class="d-flex gap-2">
-      <a routerLink="/gestion-materias" class="btn btn-outline-light btn-sm d-flex align-items-center">
-        <i class="bi bi-journal-bookmark-fill me-2"></i> Materias
-      </a>
-      <a routerLink="/gestion-actividades" class="btn btn-outline-light btn-sm d-flex align-items-center">
-        <i class="bi bi-list-check me-2"></i> Actividades
-      </a>
       
+      <!-- ZONA ADMIN: Solo visible si es Administrador -->
+      @if (isAdmin) {
+        <div class="btn-group me-2">
+          <a routerLink="/configuracion/usuarios" class="btn btn-outline-light btn-sm" title="Gestionar Usuarios">
+            <i class="bi bi-people-fill"></i> <span class="d-none d-md-inline ms-1">Usuarios</span>
+          </a>
+        </div>
+      }
+
+                <a routerLink="/configuracion/materias" class="btn btn-outline-light btn-sm" title="Gestionar Materias">
+            <i class="bi bi-journal-bookmark-fill"></i> <span class="d-none d-md-inline ms-1">Materias</span>
+          </a>
+          <a routerLink="/configuracion/actividades" class="btn btn-outline-light btn-sm" title="Gestionar Actividades">
+            <i class="bi bi-list-check"></i> <span class="d-none d-md-inline ms-1">Actividades</span>
+          </a>
+      
+
+      <!-- Botón Cerrar Sesión (Visible para todos) -->
       <button class="btn btn-light btn-sm text-primary fw-bold" (click)="logout()">
         Cerrar Sesión <i class="bi bi-box-arrow-right ms-1"></i>
       </button>
@@ -24,18 +36,23 @@
     <div class="col-12">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Mis Grados</h2>
-        <button class="btn" 
-                [class.btn-success]="!mostrarFormulario" 
-                [class.btn-danger]="mostrarFormulario"
-                (click)="iniciarCreacion()" >
-          @if (!mostrarFormulario) {
-            <i class="bi bi-plus-lg"></i> Nuevo Grado
-          } @else {
-            <i class="bi bi-x-lg"></i> Cancelar
-          }
-        </button>
+        
+        <!-- SOLO ADMIN PUEDE CREAR GRADOS -->
+        @if (isAdmin) {
+          <button class="btn" 
+                  [class.btn-success]="!mostrarFormulario" 
+                  [class.btn-danger]="mostrarFormulario"
+                  (click)="iniciarCreacion()">
+            @if (!mostrarFormulario) {
+              <i class="bi bi-plus-lg"></i> Nuevo Grado
+            } @else {
+              <i class="bi bi-x-lg"></i> Cancelar
+            }
+          </button>
+        }
       </div>
 
+      <!-- FORMULARIO (Solo se muestra si se activa la variable) -->
       @if (mostrarFormulario) {
         <div class="card mb-4 bg-light border-success animate__animated animate__fadeIn">
           <div class="card-body">
@@ -85,12 +102,14 @@
 
       @if (!loading && grados.length === 0) {
         <div class="alert alert-warning">
-          No tienes grados registrados aún. ¡Crea el primero!
+          No tienes grados registrados aún.
         </div>
       }
       
       @if (!loading && grados.length > 0) {
         <div class="row">
+          
+          <!-- TARJETA ESPECIAL: PLANILLA DE NOTAS (Visible para todos) -->
           <div class="col-md-6 col-lg-3 d-flex align-items-stretch">
             <div class="card mb-4 w-100 border-0 shadow-sm bg-success text-white hover-effect" 
                  style="aspect-ratio: 1 / 1; cursor: pointer;"
@@ -106,13 +125,16 @@
               </div>
             </div>
           </div>
+
+          <!-- TARJETAS DE GRADOS -->
           @for (grado of grados; track grado.id) {
-          <div class="col-md-6 col-lg-3 d-flex align-items-stretch">
+            <div class="col-md-6 col-lg-3 d-flex align-items-stretch">
               
               <div class="card mb-4 shadow-sm hover-effect w-100" style="aspect-ratio: 1 / 1;">
                 
                 <div class="card-body d-flex flex-column justify-content-between h-100 p-4 border-start border-4 border-primary">
                   
+                  <!-- Botón Ver Estudiantes (Arriba Derecha) -->
                   <div class="d-flex justify-content-end">
                     <button class="btn btn-primary btn-sm"
                             [routerLink]="['/grado', grado.id]"
@@ -121,6 +143,7 @@
                     </button>
                   </div>
 
+                  <!-- Centro: Info -->
                   <div class="text-center my-auto">
                     <h4 class="card-title fw-bold mb-1 text-truncate" title="{{ grado.nivel }} {{ grado.seccion }}">
                       {{ grado.nivel }} "{{ grado.seccion }}"
@@ -130,20 +153,21 @@
                     </p>
                   </div>
 
-                  <div class="d-flex justify-content-start gap-2">
-                    
-                    <button class="btn btn-outline-warning btn-sm" 
-                            (click)="editarGrado(grado)"
-                            title="Editar Grado">
-                      <i class="bi bi-pencil-fill me-1"></i> Editar
-                    </button>
+                  <!-- Pie: Acciones (SOLO ADMIN) -->
+                  <div class="d-flex justify-content-start gap-2" style="min-height: 31px;">
+                    @if (isAdmin) {
+                      <button class="btn btn-outline-warning btn-sm" 
+                              (click)="editarGrado(grado)"
+                              title="Editar Grado">
+                        <i class="bi bi-pencil-fill me-1"></i> Editar
+                      </button>
 
-                    <button class="btn btn-outline-danger btn-sm" 
-                            (click)="eliminarGrado(grado.id, grado.nivel)"
-                            title="Eliminar Grado">
-                      <i class="bi bi-trash-fill me-1"></i> Borrar
-                    </button>
-                    
+                      <button class="btn btn-outline-danger btn-sm" 
+                              (click)="eliminarGrado(grado.id, grado.nivel)"
+                              title="Eliminar Grado">
+                        <i class="bi bi-trash-fill me-1"></i> Borrar
+                      </button>
+                    }
                   </div>
 
                 </div>
@@ -151,7 +175,8 @@
             </div>
           }
 
+        </div>
+      }
     </div>
-    }
   </div>
 </div>

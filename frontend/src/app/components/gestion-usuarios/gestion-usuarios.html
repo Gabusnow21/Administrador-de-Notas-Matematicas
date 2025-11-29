@@ -1,0 +1,100 @@
+<div class="container mt-4">
+  
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary"><i class="bi bi-people-fill me-2"></i>Gestión de Usuarios</h2>
+    
+    <div class="d-flex gap-2">
+      <button class="btn" 
+              [class.btn-success]="!mostrarFormulario" 
+              [class.btn-danger]="mostrarFormulario"
+              (click)="mostrarFormulario = !mostrarFormulario">
+        @if (!mostrarFormulario) { <i class="bi bi-person-plus-fill me-1"></i> Nuevo Usuario } 
+        @else { <i class="bi bi-x-lg me-1"></i> Cancelar }
+      </button>
+
+      <a routerLink="/dashboard" class="btn btn-outline-secondary">Volver</a>
+    </div>
+  </div>
+
+  @if (mostrarFormulario) {
+    <div class="card mb-4 border-success bg-light animate__animated animate__fadeIn">
+      <div class="card-body">
+        <h5 class="card-title text-success mb-3">Registrar Nueva Cuenta</h5>
+        
+        <form (ngSubmit)="guardar()" class="row g-3">
+          
+          <div class="col-md-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-control" [(ngModel)]="nuevoUsuario.nombre" name="nombre" required>
+          </div>
+          
+          <div class="col-md-3">
+            <label class="form-label">Apellido</label>
+            <input type="text" class="form-control" [(ngModel)]="nuevoUsuario.apellido" name="apellido" required>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">Email (Username)</label>
+            <input type="email" class="form-control" [(ngModel)]="nuevoUsuario.username" name="email" placeholder="correo@ejemplo.com" required>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">Contraseña</label>
+            <input type="password" class="form-control" [(ngModel)]="nuevoUsuario.password" name="pass" required>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label fw-bold">Rol de Usuario</label>
+            <select class="form-select border-primary" [(ngModel)]="nuevoUsuario.role" name="role" required>
+              <option value="USER">Profesor</option>
+              <option value="ADMIN">Administrador</option>
+            </select>
+          </div>
+
+          <div class="col-md-9 text-end align-self-end">
+            <button type="submit" class="btn btn-success px-4" [disabled]="procesando">
+              @if (procesando) { <span class="spinner-border spinner-border-sm"></span> } 
+              @else { Guardar Usuario }
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+
+  <div class="card shadow-sm border-0">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th class="ps-4">ID</th>
+          <th>Nombre Completo</th>
+          <th>Usuario (Email)</th>
+          <th>Rol</th>
+          <th class="text-end pe-4">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of usuarios; track u.id) {
+          <tr>
+            <td class="ps-4">{{ u.id }}</td>
+            <td class="fw-bold">{{ u.nombre }} {{ u.apellido }}</td>
+            <td>{{ u.username }}</td>
+            <td>
+              @if (u.role === 'ADMIN') {
+                <span class="badge bg-danger">ADMINISTRADOR</span>
+              } @else {
+                <span class="badge bg-info text-dark">PROFESOR</span>
+              }
+            </td>
+            <td class="text-end pe-4">
+              <button class="btn btn-sm btn-outline-danger" (click)="eliminar(u.id!)" title="Eliminar cuenta">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

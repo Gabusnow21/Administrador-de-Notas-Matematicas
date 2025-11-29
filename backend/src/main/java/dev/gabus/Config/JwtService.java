@@ -1,18 +1,19 @@
 package dev.gabus.Config;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
-
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
@@ -35,6 +36,14 @@ public class JwtService {
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        //LÓGICA AGREGADA: Si no me pasaron claims, intento sacar el rol del usuario
+        if (extraClaims.isEmpty() && userDetails.getAuthorities() != null) {
+            String role = userDetails.getAuthorities().stream()
+                    .findFirst()
+                    .map(item -> item.getAuthority())
+                    .orElse("USER");
+            extraClaims.put("role", role); // <--- AQUÍ GUARDAMOS EL ROL "ADMIN" o "USER"
+        }
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())

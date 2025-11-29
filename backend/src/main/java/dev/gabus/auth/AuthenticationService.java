@@ -1,14 +1,14 @@
 package dev.gabus.auth;
 
-import dev.gabus.Config.JwtService; // Ojo con la mayúscula en Config si así lo tienes
-import dev.gabus.dto.Usuario.Role;
-import dev.gabus.dto.Usuario.Usuario;
-import dev.gabus.dto.Usuario.UsuarioRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationManager; // Ojo con la mayúscula en Config si así lo tienes
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import dev.gabus.Config.JwtService;
+import dev.gabus.dto.Usuario.Usuario;
+import dev.gabus.dto.Usuario.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +24,7 @@ public class AuthenticationService {
                 .apellido(request.getApellido())
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword())) // Encriptamos password
-                .role(Role.USER) // Por defecto creamos usuarios con rol USER (Profesor)
+                .role(request.getRole()) 
                 .build();
         
         repository.save(user);

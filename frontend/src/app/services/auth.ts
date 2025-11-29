@@ -13,6 +13,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
 
+
   private platformId = inject(PLATFORM_ID);
 
   // URL de tu Backend (Asegúrate que coincida con tu Spring Boot)
@@ -79,5 +80,33 @@ export class AuthService {
       return !!localStorage.getItem(this.tokenKey);
     }
     return false; // En el servidor retornamos false
+  }
+
+  private getDecodedToken(): any {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  }
+
+  getRole(): string {
+    const decoded: any = this.getDecodedToken();
+    if (!decoded) return '';
+    
+    // 👇 Imprime esto en consola para depurar
+    console.log('Token Decodificado:', decoded);
+
+    // Buscamos la propiedad "role" que pusimos en Java
+    return decoded.role || ''; 
+  }
+
+  isAdmin(): boolean {
+    const role = this.getRole();
+    console.log('Rol detectado:', role); // Debug
+    return role === 'ADMIN';
   }
 }

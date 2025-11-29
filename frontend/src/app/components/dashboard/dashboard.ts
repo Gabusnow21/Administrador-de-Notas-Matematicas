@@ -28,6 +28,10 @@ export class Dashboard implements OnInit {
     seccion: '',     // Ej: "B"
     anioEscolar: new Date().getFullYear() // Año actual por defecto
   };
+  
+  get isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
 
   ngOnInit(): void {
     this.cargarGrados();

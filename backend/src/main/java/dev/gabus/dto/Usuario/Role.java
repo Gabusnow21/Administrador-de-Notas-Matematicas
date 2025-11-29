@@ -2,9 +2,7 @@ package dev.gabus.dto.Usuario;
 
 public enum Role {
     ADMIN,
-    USER,
+    USER,//  PROFESOR
     ESTUDIANTE,
-    PROFESOR,
-    INVITADO
-    
+    INVITADO 
 }
