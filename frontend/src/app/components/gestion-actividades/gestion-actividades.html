@@ -47,7 +47,7 @@
               
               <div class="mb-3">
                 <label class="form-label">Ponderación (%)</label>
-                <input type="number" class="form-control" [(ngModel)]="actividadForm.porcentaje" name="porcentaje" placeholder="Ej. 20" required>
+                <input type="number" class="form-control" [(ngModel)]="actividadForm.ponderacion" name="ponderacion" placeholder="Ej. 20" required>
               </div>
 
               <div class="mb-3">
@@ -87,7 +87,7 @@
                 @for (act of actividades; track act.id) {
                   <tr>
                     <td class="ps-4 fw-bold">{{ act.nombre }}</td>
-                    <td><span class="badge bg-info text-dark">{{ act.porcentaje }}%</span></td>
+                    <td><span class="badge bg-info text-dark">{{ act.ponderacion }}%</span></td>
                     <td class="small text-muted">{{ act.descripcion || '-' }}</td>
                     <td class="text-end pe-4">
                       <button class="btn btn-sm btn-outline-warning me-2" (click)="editar(act)">

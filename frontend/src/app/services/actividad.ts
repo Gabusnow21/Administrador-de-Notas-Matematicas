@@ -9,7 +9,7 @@ export interface Actividad {
   fechaEntrega: Date;
   materiaId: number;
   trimestreId: number;
-  porcentaje: number;
+  ponderacion: number;
 }
 
 @Injectable({

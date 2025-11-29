@@ -1,6 +1,5 @@
 package dev.gabus.controller;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -44,6 +43,7 @@ public class ActividadController {
     // Crear una nueva Actividad
     @PostMapping
     public ResponseEntity<?> create(@RequestBody ActividadRequest request) {
+        System.out.println("DTO Recibido: " + request);
         var materia = materiaRepository.findById(request.getMateriaId())
                 .orElseThrow(() -> new RuntimeException("Materia no encontrada"));
         
@@ -76,12 +76,19 @@ public class ActividadController {
         return ResponseEntity.noContent().build();
     }
     @Data
+    @lombok.AllArgsConstructor
+    @lombok.NoArgsConstructor
     public static class ActividadRequest {
         private String nombre;
         private String descripcion;
-        private BigDecimal ponderacion; // Ej. 0.20
+        private java.math.BigDecimal ponderacion; // Ej. 0.20
         private Long materiaId;
         private Long trimestreId;
+    }
+
+    @Data
+    static class IdWrapper {
+        private Long id;
     }
     
 }

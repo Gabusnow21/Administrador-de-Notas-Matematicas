@@ -34,7 +34,7 @@ export class GestionActividades implements OnInit {
   actividadForm: Partial<Actividad> = {
     nombre: '',
     descripcion: '',
-    porcentaje: 0,
+    ponderacion: 0,
     materiaId: 0,
     trimestreId: 0
   };
@@ -50,48 +50,86 @@ export class GestionActividades implements OnInit {
 
   // Cargar lista cuando cambian los filtros
   cargarActividades() {
-    if (this.selMateria && this.selTrimestre) {
+    // 1. Limpiar lista anterior para evitar mezclas visuales
+    this.actividades = []; 
+    
+    // 2. VALIDACIÓN ESTRICTA: Solo llamar si ambos son mayores a 0
+    if (this.selMateria > 0 && this.selTrimestre > 0) {
+      
       this.actividadService.getByMateriaAndTrimestre(this.selMateria, this.selTrimestre)
-        .subscribe(data => this.actividades = data);
-    } else {
-      this.actividades = [];
+        .subscribe({
+          next: (data) => {
+            this.actividades = data;
+            // Opcional: Debug para ver qué llega
+            console.log('Actividades cargadas:', data); 
+          },
+          error: (err) => console.error(err)
+        });
     }
-    this.cancelarEdicion(); // Resetear formulario al cambiar de vista
+    
+    this.cancelarEdicion();
   }
 
+   // Guardar nueva o editada
   guardar() {
     this.procesando = true;
 
-    // Asignamos las relaciones (Backend espera objetos con ID)
-    this.actividadForm.materiaId = this.selMateria;
-    this.actividadForm.trimestreId = this.selTrimestre;
+    // 1. Crear el objeto PLANO que espera el Backend
+    const payload = {
+      nombre: this.actividadForm.nombre,
+      descripcion: this.actividadForm.descripcion,
+      // OJO AQUÍ: Asegúrate de usar la propiedad correcta. 
+      // Si tu interfaz tiene 'ponderacion', úsala. Si usaste 'porcentaje', cámbialo.
+      ponderacion: this.actividadForm.ponderacion, 
+      
+      // IDs directos
+      materiaId: Number(this.selMateria), 
+      trimestreId: Number(this.selTrimestre)
+    };
 
     if (this.esEdicion) {
-      this.actividadService.actualizar(this.actividadForm as Actividad).subscribe({
+      // Para editar, necesitamos agregar el ID de la actividad al payload
+      const payloadEdicion = { ...payload, id: this.actividadForm.id };
+
+      // 👇 CORRECCIÓN: Enviar 'payloadEdicion', NO 'this.actividadForm'
+      // Usamos 'as any' para evitar quejas de TypeScript por la diferencia de estructura
+      this.actividadService.actualizar(payloadEdicion as any).subscribe({
         next: () => this.finalizarOperacion(),
-        error: () => { this.procesando = false; alert('Error al actualizar'); }
+        error: (e) => { 
+            console.error(e); 
+            this.procesando = false; 
+            alert('Error al actualizar'); 
+        }
       });
     } else {
-      this.actividadService.crear(this.actividadForm as Actividad).subscribe({
+      // 👇 CORRECCIÓN: Enviar 'payload', NO 'this.actividadForm'
+      this.actividadService.crear(payload as any).subscribe({
         next: () => this.finalizarOperacion(),
-        error: () => { this.procesando = false; alert('Error al crear'); }
+        error: (e) => { 
+            console.error(e); 
+            this.procesando = false; 
+            alert('Error al crear'); 
+        }
       });
     }
   }
 
+  // Cargar datos en el formulario para editar
   editar(act: Actividad) {
     this.esEdicion = true;
     this.actividadForm = { ...act };
   }
 
+  // Eliminar una Actividad
   eliminar(id: number) {
     if(!confirm('¿Eliminar actividad? Se borrarán las notas asociadas.')) return;
     this.actividadService.borrar(id).subscribe(() => this.cargarActividades());
   }
 
+  // Cancelar edición
   cancelarEdicion() {
     this.esEdicion = false;
-    this.actividadForm = { nombre: '', descripcion: '', porcentaje: 0 };
+    this.actividadForm = { nombre: '', descripcion: '', ponderacion: 0 };
   }
 
   private finalizarOperacion() {
