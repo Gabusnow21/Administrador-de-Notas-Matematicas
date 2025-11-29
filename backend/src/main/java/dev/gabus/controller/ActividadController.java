@@ -63,7 +63,31 @@ public class ActividadController {
 
     // Actualizar una Actividad
     @PutMapping
-    public ResponseEntity<Actividad> update(@RequestBody Actividad actividad) {
+    public ResponseEntity<?> update(@RequestBody ActividadRequest request) {
+        // 1. Validar que venga el ID
+        if (request.getId() == null) {
+            return ResponseEntity.badRequest().body("El ID es obligatorio para actualizar");
+        }
+
+        // 2. Buscar la actividad existente
+        var actividad = actividadRepository.findById(request.getId())
+                .orElseThrow(() -> new RuntimeException("Actividad no encontrada"));
+
+        // 3. Buscar las relaciones (Materia y Trimestre)
+        var materia = materiaRepository.findById(request.getMateriaId())
+                .orElseThrow(() -> new RuntimeException("Materia no encontrada"));
+        
+        var trimestre = trimestreRepository.findById(request.getTrimestreId())
+                .orElseThrow(() -> new RuntimeException("Trimestre no encontrado"));
+
+        // 4. Actualizar los datos
+        actividad.setNombre(request.getNombre());
+        actividad.setDescripcion(request.getDescripcion());
+        actividad.setPonderacion(request.getPonderacion());
+        actividad.setMateria(materia);
+        actividad.setTrimestre(trimestre);
+
+        // 5. Guardar cambios
         return ResponseEntity.ok(actividadRepository.save(actividad));
     }
     // Eliminar una Actividad
@@ -79,6 +103,7 @@ public class ActividadController {
     @lombok.AllArgsConstructor
     @lombok.NoArgsConstructor
     public static class ActividadRequest {
+        private Long id;
         private String nombre;
         private String descripcion;
         private java.math.BigDecimal ponderacion; // Ej. 0.20
