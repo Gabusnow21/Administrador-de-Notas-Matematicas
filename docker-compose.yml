@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # 1. BASE DE DATOS (PostgreSQL)
+  db:
+    image: postgres:15-alpine
+    container_name: gestor_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persistencia de datos
+
+  # 2. BACKEND (Spring Boot)
+  backend:
+    build: ./backend
+    container_name: gestor_backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      # Conexión a la base de datos (usando el nombre del servicio 'db')
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      # Configuración JWT
+      JWT_SECRET_KEY: ${JWT_SECRET}
+    ports:
+      - "8080:8080"
+
+  # 3. FRONTEND (Angular + Nginx)
+  frontend:
+    build: ./frontend
+    container_name: gestor_frontend
+    restart: always
+    ports:
+      - "80:80" # Acceso por http://localhost
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
