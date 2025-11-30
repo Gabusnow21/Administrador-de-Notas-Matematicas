@@ -5,9 +5,9 @@ import { EstudianteService } from '../../services/estudiante';
 import { PercentPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Reporte } from '../../services/reporte';
-import { Materia } from '../../services/materia';
-import { Actividad } from '../../services/actividad';
-import { Trimestre } from '../../services/trimestre';
+import { Materia, MateriaService } from '../../services/materia';
+import { Actividad, ActividadService } from '../../services/actividad';
+import { Trimestre, TrimestreService } from '../../services/trimestre';
 
 @Component({
   selector: 'app-vista-calificaciones',
@@ -22,9 +22,9 @@ export class VistaCalificaciones implements OnInit {
   private calificacionService = inject(CalificacionService);
   private estudianteService = inject(EstudianteService);
   private reporteService = inject(Reporte);// Servicio de Reportes
-  private materiaService = inject(Materia);
-  private actividadService = inject(Actividad)
-  private trimestreService = inject(Trimestre);
+  private materiaService = inject(MateriaService);
+  private actividadService = inject(ActividadService);
+  private trimestreService = inject(TrimestreService);
 
   //Variables
   estudianteId: number = 0;

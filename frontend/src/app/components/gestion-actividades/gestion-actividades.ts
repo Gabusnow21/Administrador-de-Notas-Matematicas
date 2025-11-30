@@ -1,9 +1,9 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Materia } from '../../services/materia';
-import { Trimestre } from '../../services/trimestre';
-import { Actividad } from '../../services/actividad';
+import { Materia, MateriaService } from '../../services/materia';
+import { Trimestre, TrimestreService } from '../../services/trimestre';
+import { Actividad, ActividadService } from '../../services/actividad';
 
 @Component({
   selector: 'app-gestion-actividades',
@@ -13,9 +13,9 @@ import { Actividad } from '../../services/actividad';
   styleUrl: './gestion-actividades.css',
 })
 export class GestionActividades implements OnInit {
-  private materiaService = inject(Materia);
-  private trimestreService = inject(Trimestre);
-  private actividadService = inject(Actividad);
+  private materiaService = inject(MateriaService);
+  private trimestreService = inject(TrimestreService);
+  private actividadService = inject(ActividadService);
 
   // Catálogos
   materias: Materia[] = [];

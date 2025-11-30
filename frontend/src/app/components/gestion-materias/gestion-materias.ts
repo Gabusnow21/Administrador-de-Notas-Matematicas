@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Materia } from '../../services/materia';
+import { Materia, MateriaService } from '../../services/materia';
 
 export interface MateriaData {
   id?: number;
@@ -16,7 +16,7 @@ export interface MateriaData {
   styleUrl: './gestion-materias.css',
 })
 export class GestionMaterias implements OnInit {
-  private materiaService = inject(Materia);
+  private materiaService = inject(MateriaService);
 
   materias: Materia[] = [];
   loading: boolean = true;

@@ -16,7 +16,7 @@ export interface Actividad {
   providedIn: 'root',
 })
 
-export class Actividad {
+export class ActividadService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8080/api/actividades';
 

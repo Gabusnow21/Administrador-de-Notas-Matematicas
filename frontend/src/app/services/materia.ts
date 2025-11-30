@@ -12,7 +12,7 @@ export interface Materia {
   providedIn: 'root',
 })
 
-export class Materia {
+export class MateriaService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8080/api/materias';
 

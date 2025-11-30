@@ -14,7 +14,7 @@ export interface Usuario {
 @Injectable({
   providedIn: 'root',
 })
-export class usuarioService {
+export class UsuarioService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8080/api/usuarios';
 

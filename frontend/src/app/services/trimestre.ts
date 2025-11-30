@@ -14,7 +14,7 @@ export interface Trimestre {
 @Injectable({
   providedIn: 'root',
 })
-export class Trimestre {
+export class TrimestreService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8080/api/trimestres';
 

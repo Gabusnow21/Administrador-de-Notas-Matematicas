@@ -2,9 +2,9 @@ import { Component, inject, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalificacionService, PlanillaItem, CalificacionRequest } from '../../services/calificacion';
 import { Grado, GradoService } from '../../services/grado';
-import { Actividad } from '../../services/actividad';
-import { Materia } from '../../services/materia';
-import { Trimestre } from '../../services/trimestre';
+import { Actividad,ActividadService } from '../../services/actividad';
+import { Materia, MateriaService } from '../../services/materia';
+import { Trimestre, TrimestreService } from '../../services/trimestre';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -19,9 +19,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 export class RegistroNotas implements OnInit {
   // Inyecciones
   private gradoService = inject(GradoService);
-  private materiaService = inject(Materia);
-  private trimestreService = inject(Trimestre);
-  private actividadService = inject(Actividad);
+  private materiaService = inject(MateriaService);
+  private trimestreService = inject(TrimestreService);
+  private actividadService = inject(ActividadService);
   private calificacionService = inject(CalificacionService);
   private route = inject(ActivatedRoute);
 

@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { Usuario, usuarioService } from '../../services/usuario';
+import { Usuario, UsuarioService } from '../../services/usuario';
 import { RouterLink, Routes } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
@@ -14,7 +14,7 @@ import { FormsModule } from '@angular/forms';
 
 export class GestionUsuarios implements OnInit {
 
-  private usuarioService = inject(usuarioService);
+  private usuarioService = inject(UsuarioService);
 
   usuarios: Usuario[] = [];
   loading: boolean = true;
