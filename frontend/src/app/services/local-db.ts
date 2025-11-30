@@ -92,9 +92,9 @@ export class LocalDbService extends Dexie {
   constructor() {
     super('GestorNotasOfflineDB');//Nombre de base en local
   
-    this.version(1).stores({
+    this.version(2).stores({
       usuarios: '++localId, id, username, syncStatus',
-      grados: '++id, serverId, nivel, seccion, anioEscolar, syncStatus',
+      grados: '++localId, id, serverId, nivel, seccion, anioEscolar, syncStatus',
       estudiantes: '++localId, id, gradoId, syncStatus',
       materias: '++localId, id, syncStatus',
       trimestres: '++localId, id, anioEscolar, syncStatus',

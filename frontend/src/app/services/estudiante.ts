@@ -50,23 +50,41 @@ export class EstudianteService {
   
   // Crear estudiante (nos servirá pronto)
   createEstudiante(estudiante: any): Observable<Estudiante> {
+        const guardarLocalmente = () => {
+      console.log('🔌 [EstudianteService] Servidor no responde. Guardando Offline.');
+      
+      // 👇 CORRECCIÓN: Definimos el objeto local explícitamente como any
+      const estLocal: any = { 
+        ...estudiante, 
+        gradoId: estudiante.gradoId,
+        id: null, 
+        syncStatus: 'create' 
+      };
+
+      return from(this.localDb.estudiantes.add(estLocal).then(id => {
+        return { ...estudiante, localId: id, syncStatus: 'create' } as Estudiante;
+      }));
+    };
+
     if (this.isOnline) {
       return this.http.post<Estudiante>(this.apiUrl, estudiante).pipe(
         tap(e => {
-          // Guardar copia synced (asegurando formato plano para la BD local)
+          // Éxito Online: Guardamos en local marcado como 'synced'
           this.localDb.estudiantes.put({ 
             ...e, 
-            gradoId: estudiante.gradoId, // Usamos el ID que enviamos
+            gradoId: estudiante.gradoId,
             syncStatus: 'synced' 
-          });
+          } as any);
+        }),
+        catchError(err => {
+          console.warn('⚠️ Error POST API:', err);
+          return guardarLocalmente();
         })
       );
     } else {
-      console.log('🔌 [EstudianteService] Guardando offline...');
-      return from(this.localDb.addEstudianteOffline(estudiante).then(id => {
-        return { ...estudiante, localId: id, syncStatus: 'create' };
-      }));
+      return guardarLocalmente();
     }
+
   }
 
   // Obtener estudiante por ID
@@ -79,39 +97,70 @@ export class EstudianteService {
       return this.getLocalEstudiante(id);
     }
   }
+
   // Obtener estudiante local por ID
   private getLocalEstudiante(id: number): Observable<Estudiante> {
-    // Buscamos por ID de servidor primero
-    return from(this.localDb.estudiantes.where('id').equals(id).first() as unknown as Promise<Estudiante>);
+    return from(
+      this.localDb.estudiantes.where('id').equals(id).first().then(result => {
+        if (result) {
+          // Convertimos a 'any' primero para evitar conflicto de tipos entre LocalEstudiante y Estudiante
+          return result as any as Estudiante;
+        } else {
+          throw new Error('Estudiante no encontrado en BD local');
+        }
+      })
+    );
   }
 
   //Actualizar estudiante
   updateEstudiante(id: number, estudiante: any): Observable<any> {
+    const actualizarLocalmente = () => {
+        console.log('🔌 Actualizando localmente...');
+        return from(this.localDb.estudiantes.where('id').equals(id).modify({
+            ...estudiante, 
+            syncStatus: 'update'
+        } as any).then(() => estudiante));
+    };
+
     if (this.isOnline) {
       return this.http.put(`${this.apiUrl}/${id}`, estudiante).pipe(
         tap(() => {
-           // Actualizar localmente si existe por ID servidor
-           this.localDb.estudiantes.where('id').equals(id).modify({ ...estudiante, syncStatus: 'synced' });
+           this.localDb.estudiantes.where('id').equals(id).modify({ 
+             ...estudiante, 
+             syncStatus: 'synced' 
+            } as any);
+        }),
+        catchError(err => {
+            console.warn('⚠️ Error PUT API:', err);
+            return actualizarLocalmente();
         })
       );
     } else {
-      // Lógica Update Offline (Compleja: requiere buscar por ID server o localId)
-      // Por simplicidad en Fase 3, asumimos actualización sobre registro sincronizado
-      return from(this.localDb.estudiantes.where('id').equals(id).modify({
-        ...estudiante, 
-        syncStatus: 'update'
-      }));
+      return actualizarLocalmente();
     }
   }
 
   //Eliminar estudiante
   deleteEstudiante(id: number): Observable<void> {
+    const borrarLocalmente = () => {
+        console.log('🔌 Borrando localmente...');
+        return from(
+            this.localDb.estudiantes.where('id').equals(id)
+            .modify({ syncStatus: 'delete' } as any)
+            .then(() => {}) // 👇 CORRECCIÓN: Forzamos el retorno void
+        );
+    };
+
     if (this.isOnline) {
       return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
-        tap(() => this.localDb.estudiantes.where('id').equals(id).delete())
+        tap(() => this.localDb.estudiantes.where('id').equals(id).delete()), 
+        catchError(err => {
+            console.warn('⚠️ Error DELETE API:', err);
+            return borrarLocalmente();
+        })
       );
     } else {
-      return from(this.localDb.estudiantes.where('id').equals(id).modify({ syncStatus: 'delete' }).then(() => {}));
+      return borrarLocalmente();
     }
   }
 }
