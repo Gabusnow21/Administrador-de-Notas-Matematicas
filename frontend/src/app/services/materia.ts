@@ -6,8 +6,10 @@ import { tap, catchError } from 'rxjs/operators';
 
 export interface Materia {
   id: number;
+  localId?: number;
   nombre: string;
   descripcion: string;
+  syncStatus?: string;
 }
 
 @Injectable({
@@ -27,32 +29,36 @@ export class MateriaService {
     if (this.isOnline) {
       return this.http.get<Materia[]>(this.apiUrl).pipe(
         tap(data => {
-          // Guardamos catálogo fresco en local
-          // (Para catálogos pequeños, guardarCatalogos limpia y reemplaza todo, lo cual es seguro)
-          // Nota: guardarCatalogos espera (materias, trimestres), aquí solo actualizamos materias
-          // por lo que usaremos una lógica directa de bulkPut o el método genérico si lo adaptamos.
-          // Para no complicar, usaremos una transacción directa aquí:
-          this.localDb.materias.clear().then(() => {
+          // Actualizamos caché local
+          this.localDb.transaction('rw', this.localDb.materias, async () => {
+             await this.localDb.materias.clear();
              const locales = data.map(m => ({ ...m, syncStatus: 'synced' as any }));
-             this.localDb.materias.bulkAdd(locales);
+             await this.localDb.materias.bulkAdd(locales);
           });
         }),
         catchError(() => from(this.localDb.getMaterias() as Promise<Materia[]>))
       );
     } else {
       return from(this.localDb.getMaterias() as Promise<Materia[]>);
-    } 
+    }
+
   }
 
   // Crear una nueva materia
   crear(materia: Materia): Observable<Materia> {
-    const guardarLocal = () => from(this.localDb.materias.add({ 
-        ...materia, id: undefined, syncStatus: 'create' 
-    }).then(() => materia));
+    const guardarLocal = () => {
+        console.log('🔌 [MateriaService] Guardando offline...');
+        const matLocal: any = { 
+            ...materia, 
+            id: null, 
+            syncStatus: 'create' 
+        };
+        return from(this.localDb.materias.add(matLocal).then(() => matLocal));
+    };
 
     if (this.isOnline) {
       return this.http.post<Materia>(this.apiUrl, materia).pipe(
-        tap(m => this.localDb.materias.put({ ...m, syncStatus: 'synced' })),
+        tap(m => this.localDb.materias.put({ ...m, syncStatus: 'synced' } as any)),
         catchError(() => guardarLocal())
       );
     } else {
@@ -62,34 +68,73 @@ export class MateriaService {
 
   // Actualizar una materia existente
   actualizar(materia: Materia): Observable<Materia> {
-    const actualizarLocal = () => from(
-        this.localDb.materias.where('id').equals(materia.id!).modify({ ...materia, syncStatus: 'update' })
-        .then(() => materia)
-    );
+    const actualizarLocal = async () => {
+        console.log('🔌 [MateriaService] Actualizando offline...');
+        
+        let registro;
+        // Buscamos por ID servidor o por LocalID
+        if (materia.id) {
+            registro = await this.localDb.materias.where('id').equals(materia.id).first();
+        } else if (materia.localId) {
+            registro = await this.localDb.materias.get(materia.localId);
+        }
+
+        if (registro) {
+            await this.localDb.materias.update(registro.localId!, {
+                ...materia,
+                // Si era 'create', se queda 'create'. Si era 'synced', pasa a 'update'
+                syncStatus: registro.syncStatus === 'create' ? 'create' : 'update'
+            } as any);
+            return materia;
+        }
+        throw new Error('Materia no encontrada localmente');
+    };
 
     if (this.isOnline) {
       return this.http.put<Materia>(this.apiUrl, materia).pipe(
-        tap(() => this.localDb.materias.where('id').equals(materia.id!).modify({ ...materia, syncStatus: 'synced' })),
-        catchError(() => actualizarLocal())
+        tap(m => {
+           if (m.id) {
+             this.localDb.materias.where('id').equals(m.id).modify({ ...m, syncStatus: 'synced' } as any);
+           }
+        }),
+        catchError(() => from(actualizarLocal()))
       );
     } else {
-      return actualizarLocal();
+      return from(actualizarLocal());
     }
   }
 
   // Eliminar una materia por ID
   borrar(id: number): Observable<void> {
-    const borrarLocal = () => from(
-        this.localDb.materias.where('id').equals(id).modify({ syncStatus: 'delete' }).then(() => undefined)
-    );
+    const borrarLocal = async () => {
+        console.log('🔌 [MateriaService] Borrando offline...');
+        
+        // Intentar buscar por ID servidor
+        let registro = await this.localDb.materias.where('id').equals(id).first();
+        
+        // Si no, intentar asumir que el 'id' que nos pasaron es un 'localId' (caso borde)
+        if (!registro) {
+            registro = await this.localDb.materias.get(id);
+        }
+
+        if (registro) {
+            if (registro.syncStatus === 'create') {
+                // Nunca subió, borrar físico
+                await this.localDb.materias.delete(registro.localId!);
+            } else {
+                // Ya existía, borrado lógico
+                await this.localDb.materias.update(registro.localId!, { syncStatus: 'delete' } as any);
+            }
+        }
+    };
 
     if (this.isOnline) {
       return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
         tap(() => this.localDb.materias.where('id').equals(id).delete()),
-        catchError(() => borrarLocal())
+        catchError(() => from(borrarLocal()))
       );
     } else {
-      return borrarLocal();
+      return from(borrarLocal());
     }
   }
   
