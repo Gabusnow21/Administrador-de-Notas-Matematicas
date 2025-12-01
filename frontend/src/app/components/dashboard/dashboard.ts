@@ -3,6 +3,7 @@ import { AuthService } from '../../services/auth';
 import { Grado, GradoService } from '../../services/grado';
 import { RouterLink } from "@angular/router";
 import { FormsModule } from '@angular/forms';
+import { SyncService } from '../../services/sync';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,12 +15,15 @@ import { FormsModule } from '@angular/forms';
 export class Dashboard implements OnInit {
   private authService = inject(AuthService);
   private gradoService = inject(GradoService);
+  public syncService = inject(SyncService); // <--- INYECTAR PÚBLICO
+
 
   grados: Grado[] = [];//Aca se guardan los datos de los grados
   loading: boolean = true;//Indicador de carga
   mostrarFormulario: boolean = false;//Controla la visibilidad del formulario
   procesando: boolean = false;//Indicador de procesamiento del formulario
   updateEdicion: boolean = false;//Indicador de modo edicion
+  
   
   //Modelo para el nuevo grado
   nuevoGrado: any = {
@@ -35,6 +39,11 @@ export class Dashboard implements OnInit {
 
   ngOnInit(): void {
     this.cargarGrados();
+  }
+
+  // Forzar sincronización manual
+  forzarSincronizacion() {
+    this.syncService.sincronizar();
   }
 
   // editar grado

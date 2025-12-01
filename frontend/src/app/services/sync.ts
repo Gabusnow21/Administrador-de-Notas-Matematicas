@@ -22,6 +22,7 @@ export class SyncService {
   private trimestreService = inject(TrimestreService);
   private actividadService = inject(ActividadService);
   private calificacionService = inject(CalificacionService);
+  private usuarioService = inject(UsuarioService);
 
   // Estado de la conexión (Signal para usar en la UI fácilmente)
   isOnline = signal<boolean>(navigator.onLine);
@@ -29,6 +30,14 @@ export class SyncService {
 
   constructor() {
     this.initNetworkListeners();
+
+    if (this.isOnline()) {
+      console.log('🚀 Aplicación iniciada Online. Buscando pendientes...');
+      // Damos un pequeño respiro (3s) para que Angular estabilice componentes
+      setTimeout(() => {
+        this.sincronizar();
+      }, 3000);
+    }
   }
 
   private initNetworkListeners() {
@@ -54,10 +63,10 @@ export class SyncService {
     this.isSyncing.set(true);
 
     try {
-      // 1. SUBIDA (PUSH): Enviar cambios locales al servidor
-      await this.pushCambios();
+      // 1. SUBIDA (PUSH): Esperar a que termine OBLIGATORIAMENTE
+      await this.pushCambios(); 
 
-      // 2. BAJADA (PULL): Traer datos frescos del servidor
+      // 2. BAJADA (PULL): Solo bajar después de intentar subir
       await this.pullDatos();
 
       console.log('✅ Sincronización completada con éxito.');
@@ -76,12 +85,56 @@ export class SyncService {
     console.log('⬆️ Iniciando subida de cambios pendientes...');
     
     // El orden importa por las claves foráneas (Primero Grados, luego Estudiantes, etc.)
+    await this.syncUsuarios(); // Usuarios es independiente, puede ir primero o último
     await this.syncGrados();
     await this.syncEstudiantes();
     await this.syncActividades(); // Materias y Trimestres suelen ser estáticos, pero podrías agregarlos
     await this.syncCalificaciones();
   }
 
+  // 1.a Sincronizar Usuarios
+  private async syncUsuarios() {
+const pendientes = await this.localDb.getPendientes(this.localDb.usuarios);
+    console.log(`👥 Usuarios pendientes de sync: ${pendientes.length}`);
+    
+    for (const p of pendientes) {
+      try {
+        console.log(`Procesando usuario: ${p.username} (Status: ${p.syncStatus})`);
+
+        if (p.syncStatus === 'create') {
+          // Llamada al servicio con fromSync = true
+          // Usamos firstValueFrom para esperar la respuesta del Observable
+          const guardado = await firstValueFrom(this.usuarioService.crear(p, true));
+          
+          console.log('✅ Usuario creado en server:', guardado);
+
+          if (guardado && guardado.id) {
+            // Actualizar local con ID real y marcar synced
+            await this.localDb.usuarios.update(p.localId!, { 
+              id: guardado.id, 
+              syncStatus: 'synced' 
+            });
+            console.log('🔄 LocalDB actualizado a SYNCED');
+          } else {
+            console.warn('⚠️ El servidor no devolvió ID para el usuario:', p.username);
+          }
+        } 
+        else if (p.syncStatus === 'delete') {
+          if (p.id) {
+             await firstValueFrom(this.usuarioService.borrar(p, true));
+             console.log('🗑️ Usuario borrado del server');
+          }
+          await this.localDb.usuarios.delete(p.localId!);
+          console.log('🗑️ Usuario borrado de local');
+        }
+      } catch (err) {
+        console.error('❌ Error sync usuario (Reintentará luego):', p.username, err);
+      }
+    }
+
+  }
+
+  // 1.b Sincronizar Grados
   private async syncGrados() {
     const pendientes = await this.localDb.getPendientes(this.localDb.grados);
     
@@ -107,6 +160,7 @@ export class SyncService {
     }
   }
 
+  // 1.c Sincronizar Estudiantes
   private async syncEstudiantes() {
     const pendientes = await this.localDb.getPendientes(this.localDb.estudiantes);
     for (const p of pendientes) {
@@ -133,6 +187,7 @@ export class SyncService {
     }
   }
 
+  // 1.d Sincronizar Actividades
   private async syncActividades() {
     const pendientes = await this.localDb.getPendientes(this.localDb.actividades);
     for (const p of pendientes) {
@@ -162,6 +217,7 @@ export class SyncService {
     }
   }
 
+  // 1.e Sincronizar Calificaciones
   private async syncCalificaciones() {
     const pendientes = await this.localDb.getPendientes(this.localDb.calificaciones);
     for (const p of pendientes) {
@@ -193,12 +249,15 @@ export class SyncService {
     console.log('⬇️ Bajando datos frescos del servidor...');
     
     // Usamos Promise.all para bajar todo en paralelo y ahorrar tiempo
-    const [grados, materias, trimestres] = await Promise.all([
+    const [usuarios, grados, materias, trimestres] = await Promise.all([
+      firstValueFrom(this.usuarioService.getAll()),
       firstValueFrom(this.gradoService.getGrados()),
       firstValueFrom(this.materiaService.getAll()),
       firstValueFrom(this.trimestreService.getAll())
     ]);
 
+    // Guardar todo en la base local
+    await this.localDb.guardarUsuariosServer(usuarios);
     await this.localDb.guardarGradosServer(grados);
     await this.localDb.guardarCatalogos(materias, trimestres);
 

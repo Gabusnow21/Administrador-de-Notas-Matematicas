@@ -75,7 +75,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (u of usuarios; track u.id) {
+        @for (u of usuarios; track u.id || u.localId) {
           <tr>
             <td class="ps-4">{{ u.id }}</td>
             <td class="fw-bold">{{ u.nombre }} {{ u.apellido }}</td>

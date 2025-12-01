@@ -119,12 +119,18 @@ export class LocalDbService extends Dexie {
   // Guardar usuarios que vienen del servidor (para login offline)
   async guardarUsuariosServer(users: any[]) {
     return this.transaction('rw', this.usuarios, async () => {
-      await this.usuarios.clear(); // Reemplazamos la caché local de usuarios
+      // 1. Borrar SOLO los que ya estaban sincronizados (los viejos)
+      // Mantenemos los 'create', 'update', 'delete' que aún no han subido
+      await this.usuarios.where('syncStatus').equals('synced').delete(); 
+      
       const locales = users.map(u => ({
         ...u,
         syncStatus: 'synced' as SyncStatus
       }));
-      await this.usuarios.bulkAdd(locales);
+      
+      // 2. Insertar o actualizar los nuevos del servidor
+      // bulkPut sobreescribirá si hay conflicto de ID, lo cual está bien para datos synced
+      await this.usuarios.bulkPut(locales);
     });
   }
 

@@ -65,7 +65,7 @@ export class GestionUsuarios implements OnInit {
   eliminar(id: number) {
     if(!confirm('¿Estás seguro de eliminar este usuario?')) return;
     
-    this.usuarioService.borrar(id).subscribe(() => this.cargarUsuarios());
+    this.usuarioService.borrar(this.usuarios.find(u => u.id === id)!).subscribe(() => this.cargarUsuarios());
   }
 
   limpiarFormulario() {
