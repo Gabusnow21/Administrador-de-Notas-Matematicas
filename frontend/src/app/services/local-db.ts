@@ -92,13 +92,13 @@ export class LocalDbService extends Dexie {
   constructor() {
     super('GestorNotasOfflineDB');//Nombre de base en local
   
-    this.version(2).stores({
+    this.version(3).stores({
       usuarios: '++localId, id, username, syncStatus',
       grados: '++localId, id, serverId, nivel, seccion, anioEscolar, syncStatus',
       estudiantes: '++localId, id, gradoId, syncStatus',
       materias: '++localId, id, syncStatus',
       trimestres: '++localId, id, anioEscolar, syncStatus',
-      actividades: '++localId, id, materiaId, trimestreId, syncStatus',
+      actividades: '++localId, id, materiaId, trimestreId, syncStatus, [materiaId+trimestreId]',
       calificaciones: '++localId, id, estudianteId, actividadId, syncStatus'
     });
     this.on('populate', () => {
@@ -230,13 +230,30 @@ export class LocalDbService extends Dexie {
   // ==========================================
 
   async guardarActividadesServer(actividades: any[]) {
-    const locales = actividades.map(a => ({
-      ...a,
-      materiaId: a.materia.id,
-      trimestreId: a.trimestre.id,
-      syncStatus: 'synced' as SyncStatus
-    }));
-    return await this.actividades.bulkPut(locales);
+return this.transaction('rw', this.actividades, async () => {
+      // 1. Obtener los IDs reales que vienen del servidor
+      const idsServer = actividades.map(a => a.id);
+      
+      // 2. Buscar en local si ya tenemos registros con esos IDs
+      const existentes = await this.actividades.where('id').anyOf(idsServer).toArray();
+      
+      // 3. Crear un mapa para acceso rápido (ServerID -> LocalID)
+      const mapaIds = new Map(existentes.map(a => [a.id, a.localId]));
+
+      // 4. Preparar datos combinando lo nuevo con el ID local (si existe)
+      const aGuardar = actividades.map(a => ({
+        ...a,
+        // Aplanamos relaciones
+        materiaId: a.materia ? a.materia.id : a.materiaId,
+        trimestreId: a.trimestre ? a.trimestre.id : a.trimestreId,
+        syncStatus: 'synced' as SyncStatus,
+        // 👇 EL TRUCO ANTIDUPLICADOS:
+        localId: mapaIds.get(a.id) // Si existe, usa su ID local. Si no, es undefined (nuevo)
+      }));
+
+      // 5. Guardar (Put actualiza si hay llave primaria, agrega si no)
+      await this.actividades.bulkPut(aGuardar);
+    });
   }
 
   async getActividades(materiaId: number, trimestreId: number) {

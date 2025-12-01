@@ -121,9 +121,9 @@ export class GestionActividades implements OnInit {
   }
 
   // Eliminar una Actividad
-  eliminar(id: number) {
+  eliminar(actividad: Actividad) {
     if(!confirm('¿Eliminar actividad? Se borrarán las notas asociadas.')) return;
-    this.actividadService.borrar(id).subscribe(() => this.cargarActividades());
+    this.actividadService.borrar(actividad).subscribe(() => this.cargarActividades());
   }
 
   // Cancelar edición

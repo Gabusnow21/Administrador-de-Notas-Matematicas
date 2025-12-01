@@ -5,15 +5,16 @@ import { LocalDbService } from './local-db';
 import { tap, catchError } from 'rxjs/operators';
 
 export interface Actividad {
-  id: number;
+  id?: number;
+  localId?: number;
   nombre: string;
-  descripcion: string;
-  fechaEntrega: Date;
+  descripcion?: string;
+  fechaEntrega?: Date; // Mapeado de fecha_actividad
   materiaId: number;
   trimestreId: number;
   ponderacion: number;
   syncStatus?: string;
-  materia?: any; 
+  materia?: any;
   trimestre?: any;
 }
 
@@ -28,56 +29,72 @@ export class ActividadService {
 
   private get isOnline(): boolean { return navigator.onLine; }
 
-  // Obtener todas las actividades
-  getAll(): Observable<Actividad[]> {
-    return this.http.get<Actividad[]>(this.apiUrl);
-  }
-
-  // Obtener actividades por materia y trimestre
+// ==========================================
+  // 1. OBTENER FILTRADAS (Network First)
+  // ==========================================
   getByMateriaAndTrimestre(materiaId: number, trimestreId: number): Observable<Actividad[]> {
-   if (this.isOnline) {
+    if (this.isOnline) {
       return this.http.get<Actividad[]>(`${this.apiUrl}?materiaId=${materiaId}&trimestreId=${trimestreId}`).pipe(
         tap(data => {
-          // Guardamos en local para caché
-          this.localDb.guardarActividadesServer(data);
+          console.log('📡 [ActividadService] Bajando datos frescos...');
+          // Mapeamos la fecha string del backend a objeto Date si es necesario
+          const actividades = data.map(a => ({
+            ...a,
+            fechaEntrega: a.fechaEntrega ? new Date(a.fechaEntrega) : undefined
+          }));
+          this.localDb.guardarActividadesServer(actividades);
         }),
         catchError(err => {
-          console.warn('⚠️ Fallo API Actividades. Usando local.');
-          return from(this.localDb.getActividades(materiaId, trimestreId) as Promise<Actividad[]>);
+          console.warn('⚠️ [ActividadService] Fallo API. Usando local.');
+          return from(this.getLocalActividades(materiaId, trimestreId));
         })
       );
     } else {
-      console.log('🔌 Offline. Usando actividades locales.');
-      return from(this.localDb.getActividades(materiaId, trimestreId) as Promise<Actividad[]>);
+      console.log('🔌 [ActividadService] Offline. Usando local.');
+      return from(this.getLocalActividades(materiaId, trimestreId));
     }
   }
-  // Crear una nueva actividad
+
+  // Helper para obtener y convertir fechas de local
+  private async getLocalActividades(materiaId: number, trimestreId: number): Promise<Actividad[]> {
+    const data = await this.localDb.getActividades(materiaId, trimestreId);
+    // Dexie guarda las fechas bien, pero nos aseguramos de devolver el tipo correcto
+    return data as unknown as Actividad[];
+  }
+
+  // ==========================================
+  // 2. CREAR (Con Fallback y Fechas)
+  // ==========================================
   crear(actividad: any): Observable<Actividad> {
     const guardarLocal = () => {
       console.log('🔌 Guardando actividad offline...');
-      // Nos aseguramos de tener los IDs planos
+      
+      // Preparamos el objeto local (aplanando IDs y fecha)
       const actLocal: any = { 
         ...actividad, 
-        materiaId: actividad.materiaId, 
-        trimestreId: actividad.trimestreId,
+        materiaId: Number(actividad.materiaId), 
+        trimestreId: Number(actividad.trimestreId),
+        fechaEntrega: actividad.fechaEntrega, // Guardamos la fecha
         id: null,
-        syncStatus: 'create',
+        syncStatus: 'create' 
       };
+
       return from(this.localDb.actividades.add(actLocal).then(() => actLocal));
     };
 
     if (this.isOnline) {
       return this.http.post<Actividad>(this.apiUrl, actividad).pipe(
         tap(a => {
-           // Guardar copia synced. Ojo: el backend devuelve la actividad con objetos anidados.
-           // Debemos aplanarla para localDb.
-           const local = {
+           // Éxito Online: Guardamos copia 'synced'
+           const local: any = {
              ...a,
              materiaId: a.materia?.id || actividad.materiaId,
              trimestreId: a.trimestre?.id || actividad.trimestreId,
+             // Aseguramos que la fecha se guarde
+             fechaEntrega: a.fechaEntrega ? new Date(a.fechaEntrega) : actividad.fechaEntrega, 
              syncStatus: 'synced'
            };
-           this.localDb.actividades.put(local as any);
+           this.localDb.actividades.put(local);
         }),
         catchError(err => {
             console.warn('⚠️ Error POST API:', err);
@@ -88,51 +105,98 @@ export class ActividadService {
       return guardarLocal();
     }
   }
-  // Actualizar una actividad existente
-  actualizar(actividad: Actividad): Observable<Actividad> {
-    // Nota: actividad.id es el del servidor
-    const actualizarLocal = () => from(
-        this.localDb.actividades.where('id').equals(actividad.id).modify({
-            ...actividad,
-            syncStatus: 'update'
-        }).then(() => actividad)
-    );
+
+  // ==========================================
+  // 3. ACTUALIZAR (Con Fallback)
+  // ==========================================
+  actualizar(actividad: any): Observable<Actividad> {
+    const actualizarLocal = async () => {
+        console.log('🔌 Actualizando offline...', actividad);
+        
+        // Buscamos el registro robustamente
+        const registro = await this.buscarRegistroLocal(actividad);
+
+        if (registro) {
+            await this.localDb.actividades.update(registro.localId!, {
+                ...actividad,
+                materiaId: Number(actividad.materiaId),
+                trimestreId: Number(actividad.trimestreId),
+                // Mantener estado 'create' si aún no sube, sino pasar a 'update'
+                syncStatus: registro.syncStatus === 'create' ? 'create' : 'update'
+            } as any);
+            return actividad;
+        }
+        throw new Error(`Actividad no encontrada localmente (ID: ${actividad.id}, LocalID: ${actividad.localId})`);
+    };
 
     if (this.isOnline) {
       return this.http.put<Actividad>(this.apiUrl, actividad).pipe(
         tap(() => {
-           // Actualizar local como synced
+           // Actualización optimista en local
            this.localDb.actividades.where('id').equals(actividad.id).modify({ 
              ...actividad, 
              syncStatus: 'synced' 
-            });
+            } as any);
         }),
         catchError(err => {
             console.warn('⚠️ Error PUT API:', err);
-            return actualizarLocal();
+            return from(actualizarLocal());
         })
       );
     } else {
-      return actualizarLocal();
+      return from(actualizarLocal());
     }
   }
-  // Borrar una actividad por ID
-  borrar(id: number): Observable<void> {
-    const borrarLocal = () => from(
-        this.localDb.actividades.where('id').equals(id)
-        .modify({ syncStatus: 'delete' } as any).then(() => {})
-    );
+
+  // ==========================================
+  // 4. BORRAR (Con Retorno Void Corregido)
+  // ==========================================
+  borrar(actividad: Actividad): Observable<void> {
+    
+    // CASO 1: Local puro (nunca subió a la nube) -> Borrado Físico
+    if (!actividad.id) {
+      console.log('🗑️ Borrando actividad local pura...');
+      return from(this.localDb.actividades.delete(actividad.localId!).then(() => {}));
+    }
+
+    // CASO 2: Existe en nube -> Borrado Lógico (marcar para borrar luego)
+    const borrarLocalmente = () => {
+        console.log('🔌 Marcando para borrar offline...');
+        return from(
+            this.localDb.actividades.where('id').equals(actividad.id!)
+            .modify({ syncStatus: 'delete' } as any)
+            .then(() => {}) // Forzamos retorno void para calmar a TypeScript
+        );
+    };
 
     if (this.isOnline) {
-      return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
-        tap(() => this.localDb.actividades.where('id').equals(id).delete()),
+      return this.http.delete<void>(`${this.apiUrl}/${actividad.id}`).pipe(
+        tap(() => this.localDb.actividades.where('id').equals(actividad.id!).delete()),
         catchError(err => {
             console.warn('⚠️ Error DELETE API:', err);
-            return borrarLocal();
+            return borrarLocalmente();
         })
       );
     } else {
-      return borrarLocal();
+      return borrarLocalmente();
     }
+  }
+
+    // --- HELPER: BÚSQUEDA ROBUSTA ---
+  // Intenta encontrar el registro por ID servidor (numérico) o LocalID
+  private async buscarRegistroLocal(act: any): Promise<any> {
+    let registro;
+    
+    // 1. Intento por ID Servidor (Convertido a Number)
+    if (act.id) {
+        registro = await this.localDb.actividades.where('id').equals(Number(act.id)).first();
+    }
+    
+    // 2. Si falla, intento por LocalID (si existe en el objeto)
+    if (!registro && act.localId) {
+        registro = await this.localDb.actividades.get(Number(act.localId));
+    }
+
+    return registro;
   }
 }
