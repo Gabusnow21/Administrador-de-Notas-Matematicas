@@ -89,9 +89,16 @@ export class RegistroNotas implements OnInit {
     this.planilla = []; // Limpiar tabla si cambian filtros
     this.selActividad = 0;
 
-    if (this.selMateria && this.selTrimestre) {
-      this.actividadService.getByMateriaAndTrimestre(this.selMateria, this.selTrimestre)
-        .subscribe(data => this.actividades = data);
+    if (Number(this.selMateria) > 0 && Number(this.selTrimestre) > 0) {
+      
+      this.actividadService.getByMateriaAndTrimestre(
+        Number(this.selMateria), 
+        Number(this.selTrimestre)
+      ).subscribe(data => {
+          this.actividades = data;
+          // Debug para ver si llegan datos offline
+          console.log('Actividades cargadas:', data); 
+      });
     }
   }
 

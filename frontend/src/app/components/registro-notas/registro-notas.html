@@ -17,36 +17,47 @@
 
   <div class="card shadow-sm mb-4 p-3 bg-light">
     <div class="row g-2">
-      
+      <!-- Filtros de selección -->
+      <!-- Grado -->
       <div class="col-md-3">
         <label class="form-label small fw-bold">Grado</label>
         <select class="form-select" [(ngModel)]="selGrado" (change)="cargarPlanilla()">
-          <option [value]="0">-- Seleccionar --</option>
-          @for (g of grados; track g.id) { <option [value]="g.id">{{ g.nivel }} "{{ g.seccion }}"</option> }
+          <!-- Opciones de grados -->
+          <option [ngValue]="0">-- Seleccionar --</option>
+          @for (g of grados; track g.id) { 
+            <option [ngValue]="g.id">{{ g.nivel }} "{{ g.seccion }}"</option> 
+          }
         </select>
       </div>
-
+      <!-- Materia -->
       <div class="col-md-3">
         <label class="form-label small fw-bold">Materia</label>
         <select class="form-select" [(ngModel)]="selMateria" (change)="onFiltroChange()">
-          <option [value]="0">-- Seleccionar --</option>
-          @for (m of materias; track m.id) { <option [value]="m.id">{{ m.nombre }}</option> }
+          <option [ngValue]="0">-- Seleccionar --</option>
+          @for (m of materias; track m.id) { 
+            <option [ngValue]="m.id">{{ m.nombre }}</option> 
+          }
         </select>
       </div>
-
+      
+      <!-- Trimestre -->
       <div class="col-md-3">
         <label class="form-label small fw-bold">Trimestre</label>
         <select class="form-select" [(ngModel)]="selTrimestre" (change)="onFiltroChange()">
-          <option [value]="0">-- Seleccionar --</option>
-          @for (t of trimestres; track t.id) { <option [value]="t.id">{{ t.nombre }}</option> }
+          <option [ngValue]="0">-- Seleccionar --</option>
+          @for (t of trimestres; track t.id) { 
+            <option [ngValue]="t.id">{{ t.nombre }}</option> }
         </select>
       </div>
 
+      <!-- Actividad -->
       <div class="col-md-3">
         <label class="form-label small fw-bold">Actividad</label>
         <select class="form-select" [(ngModel)]="selActividad" (change)="cargarPlanilla()" [disabled]="actividades.length === 0">
-          <option [value]="0">-- Seleccionar --</option>
-          @for (a of actividades; track a.id) { <option [value]="a.id">{{ a.nombre }} ({{a.ponderacion}}%)</option> }
+          <option [ngValue]="0">-- Seleccionar --</option>
+          @for (a of actividades; track a.id) { 
+            <option [ngValue]="a.id">{{ a.nombre }} ({{a.ponderacion}}%)</option> 
+          }
         </select>
       </div>
 

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { Observable, from} from 'rxjs';
+import { tap, catchError, switchMap } from 'rxjs/operators';
 import { LocalDbService } from './local-db';
 
 export interface Usuario {
@@ -25,29 +25,28 @@ export class UsuarioService {
 
   private get isOnline(): boolean { return navigator.onLine; }
 
-  // 1. Obtener lista
+// 1. LISTAR
   getAll(): Observable<Usuario[]> {
     if (this.isOnline) {
       return this.http.get<Usuario[]>(this.apiUrl).pipe(
-        tap(data => {
-          console.log('📡 [UsuarioService] Actualizando usuarios locales...');
-          this.localDb.guardarUsuariosServer(data);
+        switchMap(async (data) => {
+          await this.localDb.guardarUsuariosServer(data);
+          return await this.localDb.usuarios.filter(u => u.syncStatus !== 'delete').toArray();
         }),
         catchError(err => {
-          console.warn('⚠️ Fallo API Usuarios. Usando local.');
-          // Filtramos los que no estén marcados como eliminados
+          console.warn('⚠️ Fallo API Usuarios. Usando local.', err);
           return from(this.localDb.usuarios.filter(u => u.syncStatus !== 'delete').toArray() as Promise<Usuario[]>);
         })
       );
     } else {
-      console.log('🔌 Offline. Leyendo usuarios locales.');
       return from(this.localDb.usuarios.filter(u => u.syncStatus !== 'delete').toArray() as Promise<Usuario[]>);
     }
-    }
+  }
 
-  // 2. Crear nuevo (Backend encriptará la password)
-crear(usuario: Usuario, fromSync = false): Observable<Usuario> {
-    // Si viene del Sync, queremos que falle si no hay red, NO que guarde local otra vez
+  // 👇 2. CREAR (¡Revisa esta parte!)
+  crear(usuario: Usuario, fromSync = false): Observable<Usuario> {
+    
+    // 🛑 SI VIENE DE SYNC, RETORNA EL HTTP PURO (Sin catchError)
     if (fromSync) {
       return this.http.post<Usuario>(this.apiUrl, usuario);
     }
@@ -60,7 +59,9 @@ crear(usuario: Usuario, fromSync = false): Observable<Usuario> {
 
     if (this.isOnline) {
       return this.http.post<Usuario>(this.apiUrl, usuario).pipe(
-        tap(u => this.localDb.usuarios.put({ ...u, syncStatus: 'synced' } as any)),
+        tap(u => {
+           this.localDb.usuarios.put({ ...u, syncStatus: 'synced' } as any);
+        }),
         catchError(err => {
             console.warn('⚠️ Error POST API:', err);
             return guardarLocal();
@@ -71,9 +72,40 @@ crear(usuario: Usuario, fromSync = false): Observable<Usuario> {
     }
   }
 
-  // 3. Borrar usuario
+  // 3. ACTUALIZAR
+  actualizar(usuario: Usuario, fromSync = false): Observable<any> {
+    // 🛑 SI VIENE DE SYNC, RETORNA EL HTTP PURO
+    if (fromSync) {
+        // Aseguramos que se use el ID del servidor
+        return this.http.put(`${this.apiUrl}/${usuario.id}`, usuario);
+    }
+    
+    // ... (resto de lógica update offline igual que antes) ...
+    const actualizarLocal = () => {
+        console.log('🔌 Actualizando usuario offline...');
+        return from(
+            this.localDb.usuarios.where('id').equals(usuario.id!)
+            .modify({ ...usuario, syncStatus: 'update' } as any)
+            .then(() => usuario)
+        );
+    };
+
+    if (this.isOnline) {
+        return this.http.put(`${this.apiUrl}/${usuario.id}`, usuario).pipe(
+            tap(() => {
+                this.localDb.usuarios.where('id').equals(usuario.id!)
+                .modify({ ...usuario, syncStatus: 'synced' } as any);
+            }),
+            catchError(() => actualizarLocal())
+        );
+    } else {
+        return actualizarLocal();
+    }
+  }
+
+  // 4. BORRAR
   borrar(usuario: Usuario, fromSync = false): Observable<void> {
-    // Si viene del Sync y falla, lanzamos error para reintentar luego
+    // 🛑 SI VIENE DE SYNC, RETORNA EL HTTP PURO
     if (fromSync) {
       return this.http.delete<void>(`${this.apiUrl}/${usuario.id}`);
     }
@@ -83,71 +115,20 @@ crear(usuario: Usuario, fromSync = false): Observable<Usuario> {
     }
 
     const borrarLocalmente = () => {
-        console.log('🔌 Marcando usuario para borrar offline...');
+        console.log('🔌 Borrando offline...');
         return from(
             this.localDb.usuarios.where('id').equals(usuario.id!)
-            .modify({ syncStatus: 'delete' } as any)
-            .then(() => {})
+            .modify({ syncStatus: 'delete' } as any).then(() => {})
         );
     };
 
     if (this.isOnline) {
       return this.http.delete<void>(`${this.apiUrl}/${usuario.id}`).pipe(
         tap(() => this.localDb.usuarios.where('id').equals(usuario.id!).delete()),
-        catchError(err => {
-            console.warn('⚠️ Error DELETE API:', err);
-            return borrarLocalmente();
-        })
+        catchError(() => borrarLocalmente())
       );
     } else {
       return borrarLocalmente();
-    }
-  }
-
-  // ACTUALIZAR (Híbrido)
-  actualizar(usuario: Usuario, fromSync = false): Observable<any> {
-    // 1. Validación de seguridad: Si no tiene ID, no podemos hacer nada.
-    if (!usuario.id) {
-      console.error('Intentando actualizar usuario sin ID');
-      return new Observable(observer => observer.error('ID requerido'));
-    }
-
-    // Guardamos el ID en una constante para que TypeScript sepa que NO es undefined
-    const idSeguro = usuario.id; 
-
-    if (fromSync) {
-      return this.http.put(`${this.apiUrl}/${idSeguro}`, usuario);
-    }
-
-    const actualizarLocalmente = () => {
-        console.log('🔌 Actualizando usuario offline...');
-        return from(
-            // Usamos 'idSeguro' que TypeScript sabe que es un número
-            this.localDb.usuarios.where('id').equals(idSeguro)
-            .modify({
-                ...usuario, 
-                syncStatus: 'update'
-            } as any)
-            .then(() => usuario)
-        );
-    };
-
-    if (this.isOnline) {
-      return this.http.put(`${this.apiUrl}/${idSeguro}`, usuario).pipe(
-        tap(() => {
-           // Actualizar copia local
-           this.localDb.usuarios.where('id').equals(idSeguro).modify({ 
-             ...usuario, 
-             syncStatus: 'synced' 
-            } as any);
-        }),
-        catchError(err => {
-            console.warn('⚠️ Error PUT API:', err);
-            return actualizarLocalmente();
-        })
-      );
-    } else {
-      return actualizarLocalmente();
     }
   }
   

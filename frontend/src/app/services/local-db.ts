@@ -92,14 +92,14 @@ export class LocalDbService extends Dexie {
   constructor() {
     super('GestorNotasOfflineDB');//Nombre de base en local
   
-    this.version(3).stores({
+    this.version(4).stores({
       usuarios: '++localId, id, username, syncStatus',
       grados: '++localId, id, serverId, nivel, seccion, anioEscolar, syncStatus',
       estudiantes: '++localId, id, gradoId, syncStatus',
       materias: '++localId, id, syncStatus',
       trimestres: '++localId, id, anioEscolar, syncStatus',
       actividades: '++localId, id, materiaId, trimestreId, syncStatus, [materiaId+trimestreId]',
-      calificaciones: '++localId, id, estudianteId, actividadId, syncStatus'
+      calificaciones: '++localId, id, estudianteId, actividadId, syncStatus, [estudianteId+actividadId]'
     });
     this.on('populate', () => {
       console.log('Base de datos local creada inicializada');
@@ -273,7 +273,7 @@ return this.transaction('rw', this.actividades, async () => {
   // CALIFICACIONES
   // ==========================================
 
-  async guardarCalificacionesServer(calificaciones: any[]) {
+  /*async guardarCalificacionesServer(calificaciones: any[]) {
     const locales = calificaciones.map(c => ({
       ...c,
       estudianteId: c.estudiante.id,
@@ -281,6 +281,48 @@ return this.transaction('rw', this.actividades, async () => {
       syncStatus: 'synced' as SyncStatus
     }));
     return await this.calificaciones.bulkPut(locales);
+  }*/
+
+  async guardarCalificacionesServerSafe(calificacionesServer: any[]) {
+    return this.transaction('rw', this.calificaciones, async () => {
+      
+      // 1. Obtener todas las notas locales actuales
+      const notasLocales = await this.calificaciones.toArray();
+      
+      // 2. Crear mapas para búsqueda rápida
+      // Mapa por ID de Servidor (si existe)
+      const mapPorId = new Map(notasLocales.filter(n => n.id).map(n => [n.id, n]));
+      // Mapa por Clave Compuesta (Estudiante + Actividad) para los que no tienen ID server
+      const mapPorClave = new Map(notasLocales.map(n => [`${n.estudianteId}-${n.actividadId}`, n]));
+
+      const aGuardar: any[] = [];
+
+      for (const calServer of calificacionesServer) {
+        // Buscamos si ya existe localmente
+        const local = mapPorId.get(calServer.id) || 
+                      mapPorClave.get(`${calServer.estudianteId}-${calServer.actividadId}`);
+
+        // 🛡️ REGLA DE ORO: 
+        // Si existe localmente Y tiene cambios pendientes ('create' o 'update'), 
+        // IGNORAMOS el dato del servidor. Nuestra versión local es más reciente.
+        if (local && (local.syncStatus === 'create' || local.syncStatus === 'update')) {
+          console.log(`🛡️ Protegiendo cambio local pendiente para ID: ${local.localId}`);
+          continue; 
+        }
+
+        // Si no existe o ya está sincronizado ('synced'), lo actualizamos con lo del server
+        aGuardar.push({
+          ...calServer,
+          localId: local?.localId, // Mantenemos el ID local para actualizar
+          syncStatus: 'synced'     // Marcamos como limpio
+        });
+      }
+
+      // 3. Guardar en lote los seguros
+      if (aGuardar.length > 0) {
+        await this.calificaciones.bulkPut(aGuardar);
+      }
+    });
   }
 
   async getCalificacionesPorEstudiante(estudianteId: number) {

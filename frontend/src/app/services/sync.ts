@@ -224,30 +224,23 @@ const pendientes = await this.localDb.getPendientes(this.localDb.usuarios);
 
   // 1.d Sincronizar Actividades
   private async syncActividades() {
-    const pendientes = await this.localDb.getPendientes(this.localDb.actividades);
+    const pendientes = await this.localDb.getPendientes(this.localDb.calificaciones);
     for (const p of pendientes) {
       try {
-        // Construir payload plano o anidado según tu backend (Usamos plano por el cambio de la Fase 2)
-        const payload = { 
-          ...p, 
-          materiaId: p.materiaId, 
-          trimestreId: p.trimestreId 
+        const payload = {
+          estudianteId: p.estudianteId,
+          actividadId: p.actividadId,
+          nota: p.nota,
+          observacion: p.observacion || ''
         };
 
-        if (p.syncStatus === 'create') {
-          const guardado = await firstValueFrom(this.actividadService.crear(payload));
-          await this.localDb.actividades.update(p.localId!, { id: guardado.id, syncStatus: 'synced' });
-        } 
-        else if (p.syncStatus === 'update') {
-          await firstValueFrom(this.actividadService.actualizar({ ...payload, id: p.id }));
-          await this.localDb.actividades.update(p.localId!, { syncStatus: 'synced' });
-        }
-        else if (p.syncStatus === 'delete') {
-          if (p.id) await firstValueFrom(this.actividadService.borrar(p.id));
-          await this.localDb.actividades.delete(p.localId!);
+        if (p.syncStatus === 'create' || p.syncStatus === 'update') {
+          // 👇 AGREGAR 'true' AQUÍ
+          await firstValueFrom(this.calificacionService.guardarCalificacion(payload, true));
+          await this.localDb.calificaciones.update(p.localId!, { syncStatus: 'synced' });
         }
       } catch (err) {
-        console.error('Error sincronizando actividad:', p, err);
+        console.error('Error sincronizando calificación:', p, err);
       }
     }
   }
