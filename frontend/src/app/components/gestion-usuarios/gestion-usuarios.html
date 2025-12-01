@@ -19,7 +19,9 @@
   @if (mostrarFormulario) {
     <div class="card mb-4 border-success bg-light animate__animated animate__fadeIn">
       <div class="card-body">
-        <h5 class="card-title text-success mb-3">Registrar Nueva Cuenta</h5>
+        <h5 class="card-title text-success mb-3">
+          {{ esEdicion ? 'Editar Usuario' : 'Crear Nuevo Usuario' }}
+        </h5>
         
         <form (ngSubmit)="guardar()" class="row g-3">
           
@@ -40,7 +42,9 @@
 
           <div class="col-md-3">
             <label class="form-label">Contraseña</label>
-            <input type="password" class="form-control" [(ngModel)]="nuevoUsuario.password" name="pass" required>
+            <input type="password" class="form-control" [(ngModel)]="nuevoUsuario.password" name="pass" 
+            [required]="!esEdicion"
+            [placeholder]="esEdicion ? 'Dejar en blanco para no cambiar' : ''">
           </div>
 
           <div class="col-md-3">
@@ -52,7 +56,9 @@
           </div>
 
           <div class="col-md-9 text-end align-self-end">
+            <button type="button" class="btn btn-outline-secondary me-2" (click)="cancelar()">Cancelar</button>
             <button type="submit" class="btn btn-success px-4" [disabled]="procesando">
+              {{ esEdicion ? 'Actualizar Usuario' : 'Guardar Usuario' }}
               @if (procesando) { <span class="spinner-border spinner-border-sm"></span> } 
               @else { Guardar Usuario }
             </button>
@@ -61,12 +67,15 @@
         </form>
       </div>
     </div>
-  }
+  }\
 
+
+  <!-- TABLA DE USUARIOS -->
   <div class="card shadow-sm border-0">
     <table class="table table-hover mb-0 align-middle">
       <thead class="table-dark">
         <tr>
+          <!-- ENCABEZADOS DE LA TABLA --> 
           <th class="ps-4">ID</th>
           <th>Nombre Completo</th>
           <th>Usuario (Email)</th>
@@ -75,9 +84,10 @@
         </tr>
       </thead>
       <tbody>
+        <!-- CELDAS -->
         @for (u of usuarios; track u.id || u.localId) {
           <tr>
-            <td class="ps-4">{{ u.id }}</td>
+            <td class="ps-4">{{ u.id || '(Pendiente)' }}</td>
             <td class="fw-bold">{{ u.nombre }} {{ u.apellido }}</td>
             <td>{{ u.username }}</td>
             <td>
@@ -88,6 +98,9 @@
               }
             </td>
             <td class="text-end pe-4">
+              <button class="btn btn-sm btn-outline-warning me-2" (click)="editar(u)" title="Editar">
+                <i class="bi bi-pencil-fill"></i>
+              </button>
               <button class="btn btn-sm btn-outline-danger" (click)="eliminar(u.id!)" title="Eliminar cuenta">
                 <i class="bi bi-trash-fill"></i>
               </button>

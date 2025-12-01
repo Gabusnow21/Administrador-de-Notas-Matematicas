@@ -8,6 +8,7 @@ import { ActividadService } from './actividad';
 import { UsuarioService } from './usuario';
 import { CalificacionService } from './calificacion';
 import { firstValueFrom } from 'rxjs';
+import { catchError, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -27,6 +28,8 @@ export class SyncService {
   // Estado de la conexión (Signal para usar en la UI fácilmente)
   isOnline = signal<boolean>(navigator.onLine);
   isSyncing = signal<boolean>(false);
+  //Validacion para backend en desarrollo o caido
+  isBackendReachable = signal<boolean>(true);
 
   constructor() {
     this.initNetworkListeners();
@@ -38,8 +41,40 @@ export class SyncService {
         this.sincronizar();
       }, 3000);
     }
+
+    this.verificarBackend();
+    // Chequear cada 30 segundos si el backend sigue vivo
+    setInterval(() => this.verificarBackend(), 30000);
+
+    
   }
 
+  // Método Ping
+  verificarBackend() {
+    // Usamos cualquier endpoint ligero, ej. GET grados
+    // Si usas Actuator en Spring Boot, mejor usar /actuator/health
+    this.gradoService.getGrados().subscribe({
+      next: () => {
+        if (!this.isBackendReachable()) {
+            console.log('🟢 Backend detectado nuevamente.');
+            this.isBackendReachable.set(true);
+            this.sincronizar(); // Auto-sync al volver
+        }
+      },
+      error: () => {
+        if (this.isBackendReachable()) {
+            console.warn('🔴 Backend inalcanzable.');
+            this.isBackendReachable.set(false);
+        }
+      }
+    });
+  }
+
+  get isFullyOnline() {
+    return this.isOnline() && this.isBackendReachable();
+  }
+
+  // Listeners para cambios en el estado de la red
   private initNetworkListeners() {
     window.addEventListener('online', () => {
       console.log('🌐 Conexión restaurada. Iniciando sincronización...');
@@ -272,5 +307,7 @@ const pendientes = await this.localDb.getPendientes(this.localDb.usuarios);
     // Estrategia: Bajarlas bajo demanda (cuando entres a la pantalla) o bajar todo aquí si no son miles.
     // Por ahora, dejamos la bajada "básica" lista.
   }
+
+
   
 }

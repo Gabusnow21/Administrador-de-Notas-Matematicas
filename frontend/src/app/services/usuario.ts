@@ -103,5 +103,52 @@ crear(usuario: Usuario, fromSync = false): Observable<Usuario> {
       return borrarLocalmente();
     }
   }
+
+  // ACTUALIZAR (Híbrido)
+  actualizar(usuario: Usuario, fromSync = false): Observable<any> {
+    // 1. Validación de seguridad: Si no tiene ID, no podemos hacer nada.
+    if (!usuario.id) {
+      console.error('Intentando actualizar usuario sin ID');
+      return new Observable(observer => observer.error('ID requerido'));
+    }
+
+    // Guardamos el ID en una constante para que TypeScript sepa que NO es undefined
+    const idSeguro = usuario.id; 
+
+    if (fromSync) {
+      return this.http.put(`${this.apiUrl}/${idSeguro}`, usuario);
+    }
+
+    const actualizarLocalmente = () => {
+        console.log('🔌 Actualizando usuario offline...');
+        return from(
+            // Usamos 'idSeguro' que TypeScript sabe que es un número
+            this.localDb.usuarios.where('id').equals(idSeguro)
+            .modify({
+                ...usuario, 
+                syncStatus: 'update'
+            } as any)
+            .then(() => usuario)
+        );
+    };
+
+    if (this.isOnline) {
+      return this.http.put(`${this.apiUrl}/${idSeguro}`, usuario).pipe(
+        tap(() => {
+           // Actualizar copia local
+           this.localDb.usuarios.where('id').equals(idSeguro).modify({ 
+             ...usuario, 
+             syncStatus: 'synced' 
+            } as any);
+        }),
+        catchError(err => {
+            console.warn('⚠️ Error PUT API:', err);
+            return actualizarLocalmente();
+        })
+      );
+    } else {
+      return actualizarLocalmente();
+    }
+  }
   
 }

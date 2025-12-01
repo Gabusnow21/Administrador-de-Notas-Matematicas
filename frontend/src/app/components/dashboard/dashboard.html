@@ -24,12 +24,12 @@
           
       <!-- INDICADOR DE ESTADO DE RED / SYNC -->
       <button class="btn btn-sm me-2" 
-              [class.btn-success]="syncService.isOnline()" 
-              [class.btn-warning]="!syncService.isOnline()"
+              [class.btn-success]="syncService.isFullyOnline" 
+              [class.btn-warning]="!syncService.isFullyOnline && syncService.isOnline"
               (click)="forzarSincronizacion()"
               title="Clic para sincronizar ahora">
         
-        @if (!syncService.isOnline()) {
+        @if (!syncService.isFullyOnline) {
           <i class="bi bi-wifi-off"></i> Offline
         } 
         @else if (syncService.isSyncing()) {
