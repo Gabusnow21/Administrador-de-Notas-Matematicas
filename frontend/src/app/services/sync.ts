@@ -123,7 +123,6 @@ export class SyncService {
     await this.syncUsuarios(); // Usuarios es independiente, puede ir primero o último
     await this.syncGrados();
     await this.syncEstudiantes();
-    await this.syncActividades(); // Materias y Trimestres suelen ser estáticos, pero podrías agregarlos
     await this.syncCalificaciones();
   }
 
@@ -222,30 +221,7 @@ const pendientes = await this.localDb.getPendientes(this.localDb.usuarios);
     }
   }
 
-  // 1.d Sincronizar Actividades
-  private async syncActividades() {
-    const pendientes = await this.localDb.getPendientes(this.localDb.calificaciones);
-    for (const p of pendientes) {
-      try {
-        const payload = {
-          estudianteId: p.estudianteId,
-          actividadId: p.actividadId,
-          nota: p.nota,
-          observacion: p.observacion || ''
-        };
-
-        if (p.syncStatus === 'create' || p.syncStatus === 'update') {
-          // 👇 AGREGAR 'true' AQUÍ
-          await firstValueFrom(this.calificacionService.guardarCalificacion(payload, true));
-          await this.localDb.calificaciones.update(p.localId!, { syncStatus: 'synced' });
-        }
-      } catch (err) {
-        console.error('Error sincronizando calificación:', p, err);
-      }
-    }
-  }
-
-  // 1.e Sincronizar Calificaciones
+  // 1.d Sincronizar Calificaciones
   private async syncCalificaciones() {
     const pendientes = await this.localDb.getPendientes(this.localDb.calificaciones);
     for (const p of pendientes) {
@@ -257,12 +233,27 @@ const pendientes = await this.localDb.getPendientes(this.localDb.usuarios);
           observacion: p.observacion || ''
         };
 
-        // Calificaciones siempre es un "Upsert" en tu backend, así que usamos el mismo método
-        if (p.syncStatus === 'create' || p.syncStatus === 'update') {
-          await firstValueFrom(this.calificacionService.guardarCalificacion(payload));
+        if (p.syncStatus === 'create') {
+          const guardado = await firstValueFrom(this.calificacionService.guardarCalificacion(payload, true));
+          
+          if (guardado && guardado.id) {
+            await this.localDb.calificaciones.update(p.localId!, { 
+              id: guardado.id, 
+              syncStatus: 'synced' 
+            });
+          } else {
+             // Si no viene ID, al menos lo marcamos como synced para no reintentar,
+             // pero alertamos que algo anda mal.
+            console.warn("La calificación se guardó en el server pero no devolvió ID. Puede duplicarse.", guardado);
+            await this.localDb.calificaciones.update(p.localId!, { syncStatus: 'synced' });
+          }
+        }
+        else if (p.syncStatus === 'update') {
+          // El backend debe soportar un PUT/POST en la misma URL para actualizar
+          await firstValueFrom(this.calificacionService.guardarCalificacion(payload, true));
           await this.localDb.calificaciones.update(p.localId!, { syncStatus: 'synced' });
         }
-        // Delete de calificaciones no implementamos en Fase 2, pero iría aquí
+        
       } catch (err) {
         console.error('Error sincronizando calificación:', p, err);
       }
@@ -274,31 +265,37 @@ const pendientes = await this.localDb.getPendientes(this.localDb.usuarios);
   // ==========================================
 
   private async pullDatos() {
-    console.log('⬇️ Bajando datos frescos del servidor...');
+console.log('⬇️ INICIANDO SINCRONIZACIÓN COMPLETA (FULL SYNC)...');
     
-    // Usamos Promise.all para bajar todo en paralelo y ahorrar tiempo
-    const [usuarios, grados, materias, trimestres] = await Promise.all([
-      firstValueFrom(this.usuarioService.getAll()),
-      firstValueFrom(this.gradoService.getGrados()),
-      firstValueFrom(this.materiaService.getAll()),
-      firstValueFrom(this.trimestreService.getAll())
-    ]);
+    try {
+      // 1. Catálogos Básicos
+      const [usuarios, grados, materias, trimestres] = await Promise.all([
+        firstValueFrom(this.usuarioService.getAll()),
+        firstValueFrom(this.gradoService.getGrados()),
+        firstValueFrom(this.materiaService.getAll()),
+        firstValueFrom(this.trimestreService.getAll())
+      ]);
 
-    // Guardar todo en la base local
-    await this.localDb.guardarUsuariosServer(usuarios);
-    await this.localDb.guardarGradosServer(grados);
-    await this.localDb.guardarCatalogos(materias, trimestres);
+      await this.localDb.guardarUsuariosServer(usuarios);
+      await this.localDb.guardarGradosServer(grados);
+      await this.localDb.guardarCatalogos(materias, trimestres);
 
-    // Para estudiantes y actividades, la estrategia ideal es bajar SOLO lo necesario
-    // Pero para simplificar (Full Sync), bajaremos los estudiantes de los grados activos.
-    for (const grado of grados) {
-      const estudiantes = await firstValueFrom(this.estudianteService.getEstudiantesPorGrado(grado.id));
-      await this.localDb.guardarEstudiantesServer(estudiantes);
-    }
+      // 2. Estudiantes (Iterando grados activos)
+      const promesasEstudiantes = grados.map(g => 
+        firstValueFrom(this.estudianteService.getEstudiantesPorGrado(g.id!))
+      );
+      await Promise.all(promesasEstudiantes);
 
-    // Nota: Actividades y Calificaciones pueden ser muchos datos. 
-    // Estrategia: Bajarlas bajo demanda (cuando entres a la pantalla) o bajar todo aquí si no son miles.
-    // Por ahora, dejamos la bajada "básica" lista.
+      // 3. DATOS MASIVOS (Actividades y Calificaciones)
+      // Ahora descargamos TODO de una vez
+      await firstValueFrom(this.actividadService.sincronizarTodo());
+      await firstValueFrom(this.calificacionService.sincronizarTodo());
+
+      console.log('✅ FULL SYNC TERMINADO: Aplicación lista para Offline total.');
+      
+    } catch (error) {
+      console.error('⚠️ Error en Pull de datos:', error);
+    } 
   }
 
 

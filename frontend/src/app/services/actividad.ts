@@ -33,33 +33,62 @@ export class ActividadService {
   // 1. OBTENER FILTRADAS (Network First)
   // ==========================================
   getByMateriaAndTrimestre(materiaId: number, trimestreId: number): Observable<Actividad[]> {
+    const mId = Number(materiaId);
+    const tId = Number(trimestreId);
+
     if (this.isOnline) {
-      return this.http.get<Actividad[]>(`${this.apiUrl}?materiaId=${materiaId}&trimestreId=${trimestreId}`).pipe(
+      return this.http.get<Actividad[]>(`${this.apiUrl}?materiaId=${mId}&trimestreId=${tId}`).pipe(
         tap(data => {
-          console.log('📡 [ActividadService] Bajando datos frescos...');
-          // Mapeamos la fecha string del backend a objeto Date si es necesario
-          const actividades = data.map(a => ({
-            ...a,
-            fechaEntrega: a.fechaEntrega ? new Date(a.fechaEntrega) : undefined
-          }));
-          this.localDb.guardarActividadesServer(actividades);
+          // Guardamos en local asegurando el formato plano
+          this.guardarEnLocalBatch(data);
         }),
         catchError(err => {
-          console.warn('⚠️ [ActividadService] Fallo API. Usando local.');
-          return from(this.getLocalActividades(materiaId, trimestreId));
+          console.warn('⚠️ Fallo API Actividades. Usando local.');
+          return from(this.getLocalActividades(mId, tId));
         })
       );
     } else {
-      console.log('🔌 [ActividadService] Offline. Usando local.');
-      return from(this.getLocalActividades(materiaId, trimestreId));
+      console.log(`🔌 [ActividadService] Offline. Buscando Mat:${mId}, Tri:${tId}`);
+      return from(this.getLocalActividades(mId, tId));
     }
   }
 
-  // Helper para obtener y convertir fechas de local
-  private async getLocalActividades(materiaId: number, trimestreId: number): Promise<Actividad[]> {
-    const data = await this.localDb.getActividades(materiaId, trimestreId);
-    // Dexie guarda las fechas bien, pero nos aseguramos de devolver el tipo correcto
-    return data as unknown as Actividad[];
+  // Helper para búsqueda local robusta
+  private async getLocalActividades(mId: number, tId: number): Promise<Actividad[]> {
+    // Usamos el filtro manual siempre, es más robusto ante inconsistencias de tipos (string/number)
+    const todos = await this.localDb.actividades.toArray();
+    const resultados = todos.filter(a => 
+        Number(a.materiaId) === mId && 
+        Number(a.trimestreId) === tId && 
+        a.syncStatus !== 'delete'
+    );
+
+    console.log(`✅ Encontradas ${resultados.length} actividades locales (filtro manual).`);
+    return resultados as any[];
+  }
+
+  sincronizarTodo(): Observable<any> {
+    if (!this.isOnline) return from([]);
+
+    return this.http.get<Actividad[]>(`${this.apiUrl}/all`).pipe(
+      tap(data => {
+        console.log(`📡 [Sync Actividades] Bajadas: ${data.length}`);
+        this.guardarEnLocalBatch(data);
+      })
+    );
+  }
+
+  // Helper para guardar array de actividades (aplanando objetos)
+  private guardarEnLocalBatch(data: any[]) {
+    const actividadesPlanas = data.map(a => ({
+        ...a,
+        // Extraer IDs si vienen anidados en objetos
+        materiaId: Number(a.materia?.id || a.materiaId),
+        trimestreId: Number(a.trimestre?.id || a.trimestreId),
+        // Manejo de fecha
+        fechaEntrega: a.fechaEntrega ? new Date(a.fechaEntrega) : undefined,
+    }));
+    this.localDb.guardarActividadesServer(actividadesPlanas);
   }
 
   // ==========================================
@@ -152,33 +181,24 @@ export class ActividadService {
   // 4. BORRAR (Con Retorno Void Corregido)
   // ==========================================
   borrar(actividad: Actividad): Observable<void> {
-    
-    // CASO 1: Local puro (nunca subió a la nube) -> Borrado Físico
-    if (!actividad.id) {
-      console.log('🗑️ Borrando actividad local pura...');
-      return from(this.localDb.actividades.delete(actividad.localId!).then(() => {}));
-    }
-
-    // CASO 2: Existe en nube -> Borrado Lógico (marcar para borrar luego)
-    const borrarLocalmente = () => {
-        console.log('🔌 Marcando para borrar offline...');
-        return from(
-            this.localDb.actividades.where('id').equals(actividad.id!)
-            .modify({ syncStatus: 'delete' } as any)
-            .then(() => {}) // Forzamos retorno void para calmar a TypeScript
-        );
+    const borrarLocal = async () => {
+        const registro = await this.buscarRegistroLocal(actividad);
+        if (registro) {
+            if (registro.syncStatus === 'create') {
+                await this.localDb.actividades.delete(registro.localId!);
+            } else {
+                await this.localDb.actividades.update(registro.localId!, { syncStatus: 'delete' } as any);
+            }
+        }
     };
 
     if (this.isOnline) {
       return this.http.delete<void>(`${this.apiUrl}/${actividad.id}`).pipe(
         tap(() => this.localDb.actividades.where('id').equals(actividad.id!).delete()),
-        catchError(err => {
-            console.warn('⚠️ Error DELETE API:', err);
-            return borrarLocalmente();
-        })
+        catchError(() => from(borrarLocal()))
       );
     } else {
-      return borrarLocalmente();
+      return from(borrarLocal());
     }
   }
 
@@ -199,4 +219,6 @@ export class ActividadService {
 
     return registro;
   }
+
+
 }

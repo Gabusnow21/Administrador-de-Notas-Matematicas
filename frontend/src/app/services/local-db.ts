@@ -92,7 +92,7 @@ export class LocalDbService extends Dexie {
   constructor() {
     super('GestorNotasOfflineDB');//Nombre de base en local
   
-    this.version(5).stores({
+    this.version(6).stores({
       usuarios: '++localId, id, username, syncStatus',
       grados: '++localId, id, serverId, nivel, seccion, anioEscolar, syncStatus',
       estudiantes: '++localId, id, gradoId, syncStatus',
@@ -236,7 +236,7 @@ export class LocalDbService extends Dexie {
   // ==========================================
 
   async guardarActividadesServer(actividades: any[]) {
-return this.transaction('rw', this.actividades, async () => {
+  return this.transaction('rw', this.actividades, async () => {
       // 1. Obtener los IDs reales que vienen del servidor
       const idsServer = actividades.map(a => a.id);
       
@@ -247,18 +247,25 @@ return this.transaction('rw', this.actividades, async () => {
       const mapaIds = new Map(existentes.map(a => [a.id, a.localId]));
 
       // 4. Preparar datos combinando lo nuevo con el ID local (si existe)
-      const aGuardar = actividades.map(a => ({
-        ...a,
-        // Aplanamos relaciones
-        materiaId: a.materia ? a.materia.id : a.materiaId,
-        trimestreId: a.trimestre ? a.trimestre.id : a.trimestreId,
-        syncStatus: 'synced' as SyncStatus,
-        // 👇 EL TRUCO ANTIDUPLICADOS:
-        localId: mapaIds.get(a.id) // Si existe, usa su ID local. Si no, es undefined (nuevo)
-      }));
+      const locales = actividades.map(a => {
+        // Lógica robusta para extraer el ID, venga como objeto o plano
+        const mId = a.materia ? a.materia.id : a.materiaId;
+        const tId = a.trimestre ? a.trimestre.id : a.trimestreId;
+
+        return {
+          ...a,
+          // 👇 LA SOLUCIÓN: Number() obligatorio
+          materiaId: Number(mId),
+          trimestreId: Number(tId),
+          
+          // Preservar localId si existe
+          localId: mapaIds.get(a.id), 
+          syncStatus: 'synced' as SyncStatus
+        };
+      });
 
       // 5. Guardar (Put actualiza si hay llave primaria, agrega si no)
-      await this.actividades.bulkPut(aGuardar);
+      await this.actividades.bulkPut(locales);
     });
   }
 
@@ -274,49 +281,46 @@ return this.transaction('rw', this.actividades, async () => {
   // ==========================================
 
   async guardarCalificacionesServerSafe(calificacionesServer: any[]) {
+    if (!calificacionesServer || calificacionesServer.length === 0) return;
+
     return this.transaction('rw', this.calificaciones, async () => {
       
       const notasLocales = await this.calificaciones.toArray();
       
-      // Mapa clave compuesta: "estudianteId-actividadId"
+      // Mapa clave compuesta para búsqueda rápida
+      // Usamos String() para asegurar que coincida aunque uno sea número y otro texto
       const mapPorClave = new Map();
       notasLocales.forEach(n => {
-        mapPorClave.set(`${n.estudianteId}-${n.actividadId}`, n);
+        const clave = `${n.estudianteId}-${n.actividadId}`;
+        mapPorClave.set(clave, n);
       });
 
       const aGuardar: any[] = [];
-      const aBorrarIds: number[] = [];
 
       for (const calServer of calificacionesServer) {
-        // Generamos la clave única
         const clave = `${calServer.estudianteId}-${calServer.actividadId}`;
         const local = mapPorClave.get(clave);
 
         // 🛡️ PROTECCIÓN:
-        // Si existe localmente Y tiene cambios pendientes, IGNORAMOS al servidor.
-        if (local && (local.syncStatus === 'create' || local.syncStatus === 'update')) {
+        // Si existe localmente y tiene cambios pendientes, lo respetamos.
+        // Usamos optional chaining (?.) para evitar el error 'cannot read properties of undefined'
+        if (local?.syncStatus === 'create' || local?.syncStatus === 'update') {
+          console.log(`🛡️ Protegiendo nota local pendiente. Estudiante: ${calServer.estudianteId}`);
           continue; 
         }
 
-        // Si existe y es 'synced' (o es duplicado viejo), preparamos para sobreescribir
-        if (local) {
-            // Truco: Usamos el localId del registro existente para reemplazarlo
-            aGuardar.push({
-                ...calServer,
-                localId: local.localId, // Mantenemos el ID primario
-                syncStatus: 'synced'
-            });
-        } else {
-            // Si no existe, es nuevo
-            aGuardar.push({
-                ...calServer,
-                localId: undefined,
-                syncStatus: 'synced'
-            });
-        }
+        // Preparamos para guardar
+        const nuevaNota = {
+            ...calServer,
+            // Convertimos IDs a número por si acaso vienen como string
+            estudianteId: Number(calServer.estudianteId),
+            actividadId: Number(calServer.actividadId),
+            localId: local?.localId, // Si existía, usamos su ID para actualizar
+            syncStatus: 'synced'
+        };
+        aGuardar.push(nuevaNota);
       }
 
-      // Guardamos los datos limpios
       if (aGuardar.length > 0) {
         await this.calificaciones.bulkPut(aGuardar);
       }
@@ -337,20 +341,35 @@ return this.transaction('rw', this.actividades, async () => {
 
   async guardarNotaOffline(nota: any) {
     // Lógica Upsert Local
-    const existente = await this.calificaciones
-      .where({ estudianteId: nota.estudianteId, actividadId: nota.actividadId })
-      .first();
+    const notasExistentes = await this.calificaciones
+      .where('actividadId').equals(Number(nota.actividadId))
+      .toArray();
+
+    const existente = notasExistentes.find(n => 
+        Number(n.estudianteId) === Number(nota.estudianteId)
+    );
 
     if (existente) {
+      // ACTUALIZAR (Update)
+      console.log('🔄 Actualizando nota local existente:', existente.localId);
       return await this.calificaciones.update(existente.localId!, {
         ...nota,
-        syncStatus: 'update' // Marcar para actualizar en nube
+        estudianteId: Number(nota.estudianteId),
+        actividadId: Number(nota.actividadId),
+        // Si la nota que llega tiene un estado, lo respetamos.
+        // Si no, aplicamos la lógica de 'update' (a menos que fuera 'create').
+        syncStatus: nota.syncStatus || (existente.syncStatus === 'create' ? 'create' : 'update')
       });
     } else {
+      // CREAR (Insert)
+      console.log('➕ Creando nueva nota local');
       return await this.calificaciones.add({
         ...nota,
-        id: null,
-        syncStatus: 'create' // Marcar para crear en nube
+        estudianteId: Number(nota.estudianteId),
+        actividadId: Number(nota.actividadId),
+        // Si la nota que llega no tiene 'id' o 'syncStatus', asignamos los de por defecto para una nueva.
+        id: nota.id || null,
+        syncStatus: nota.syncStatus || 'create'
       });
     }
   }

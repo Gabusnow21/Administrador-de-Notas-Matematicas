@@ -154,15 +154,19 @@ export class VistaCalificaciones implements OnInit {
     this.actividades = []; // Limpiar anteriores
     this.nuevaCalificacion.actividadId = 0; // Resetear selección
 
-    if (this.materiaIDSeleccionada && this.trimestreIDSeleccionado) {
-      this.actividadService.getByMateriaAndTrimestre(this.materiaIDSeleccionada, this.trimestreIDSeleccionado)
+    const mId = Number(this.materiaIDSeleccionada);
+    const tId = Number(this.trimestreIDSeleccionado);
+
+if (mId > 0 && tId > 0) {
+      this.actividadService.getByMateriaAndTrimestre(mId, tId)
         .subscribe({
           next: (data) => {
             this.actividades = data;
+            // this.cd.detectChanges(); // (Si ya lo borraste, ignora esta línea)
           },
           error: (err) => console.error(err)
         });
     }
-  }
 
+}
 }
