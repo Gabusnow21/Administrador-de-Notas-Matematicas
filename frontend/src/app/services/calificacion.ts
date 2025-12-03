@@ -59,41 +59,55 @@ export class CalificacionService {
 
   // Este método es el "Join" complejo.
   obtenerPlanilla(gradoId: number, actividadId: number): Observable<PlanillaItem[]> {
-    // Esta función lee la "Verdad" desde Dexie
+    
     const leerDesdeLocal = () => from(this.construirPlanillaOffline(gradoId, actividadId));
 
     if (this.isOnline) {
-      return this.http.get<PlanillaItem[]>(
-        `${this.apiUrl}/planilla?gradoId=${gradoId}&actividadId=${actividadId}`
+      // 1. Antes de llamar a la API, verificamos si hay cosas pendientes en local
+      return from(this.localDb.calificaciones
+        .where('actividadId').equals(actividadId)
+        .filter(c => c.syncStatus !== 'synced')
+        .count()
       ).pipe(
-        // Usamos switchMap para encadenar el proceso
-        switchMap(async (planillaServer) => {
-          console.log('📡 [CalificacionService] Bajando planilla. Sincronizando caché...');
-          
-          // 1. Preparamos los datos del servidor
-          const notasParaGuardar = planillaServer
-            .filter(item => item.calificacionId != null)
-            .map(item => ({
-               id: item.calificacionId,
-               nota: item.nota,
-               observacion: item.observacion,
-               estudianteId: item.estudianteId,
-               actividadId: actividadId,
-               // No ponemos syncStatus, el método Safe decide
-            }));
+        switchMap(pendientesCount => {
+           
+           // 🛡️ ESTRATEGIA DE PROTECCIÓN:
+           // Si hay notas pendientes de subir, NO confiamos en el servidor todavía.
+           // Mostramos los datos locales (que son los más recientes) y dejamos que el SyncService trabaje en background.
+           if (pendientesCount > 0) {
+             console.log('⏳ [CalificacionService] Hay notas pendientes. Usando local para evitar conflictos.');
+             return leerDesdeLocal();
+           }
 
-          // 2. Guardamos en local usando el método SEGURO (que respeta tus pendientes)
-          if (notasParaGuardar.length > 0) {
-            await this.localDb.guardarCalificacionesServerSafe(notasParaGuardar);
-          }
+           // Si no hay pendientes, hacemos el flujo normal (API -> Local -> Vista)
+           return this.http.get<PlanillaItem[]>(
+             `${this.apiUrl}/planilla?gradoId=${gradoId}&actividadId=${actividadId}`
+           ).pipe(
+             switchMap(async (planillaServer) => {
+                console.log('📡 [CalificacionService] Bajando planilla...');
+                
+                const notasParaGuardar = planillaServer
+                    .filter(item => item.calificacionId != null)
+                    .map(item => ({
+                        id: item.calificacionId,
+                        nota: item.nota,
+                        observacion: item.observacion,
+                        estudianteId: item.estudianteId,
+                        actividadId: actividadId
+                        // Sin syncStatus, el método Safe decide
+                    }));
 
-          // 3. IMPORTANTE: No devolvemos 'planillaServer'.
-          // Devolvemos lo que hay en LocalDB, que ahora contiene la mezcla correcta.
-          return await this.construirPlanillaOffline(gradoId, actividadId);
-        }),
-        catchError(err => {
-          console.warn('⚠️ Fallo API Planilla. Usando local.', err);
-          return leerDesdeLocal();
+                if (notasParaGuardar.length > 0) {
+                    await this.localDb.guardarCalificacionesServerSafe(notasParaGuardar);
+                }
+                
+                return await this.construirPlanillaOffline(gradoId, actividadId);
+             }),
+             catchError(err => {
+               console.warn('⚠️ Fallo API Planilla. Usando local.', err);
+               return leerDesdeLocal();
+             })
+           );
         })
       );
     } else {
@@ -188,10 +202,33 @@ export class CalificacionService {
      const notasLocales = await this.localDb.calificaciones
         .where('estudianteId').equals(estudianteId).toArray();
      
-     const resultado: Calificacion[] = [];
+     // 🧹 FILTRO DE DUPLICADOS EN MEMORIA
+     // Usamos un Map para quedarnos solo con UNA nota por actividad
+     const notasUnicas = new Map();
 
      for (const n of notasLocales) {
-       // Necesitamos datos de la actividad para mostrar el nombre
+        const existente = notasUnicas.get(n.actividadId);
+        
+        if (!existente) {
+            // Si es la primera que vemos, la guardamos
+            notasUnicas.set(n.actividadId, n);
+        } else {
+            // Si ya hay una, ¿cuál gana?
+            // Gana la que tenga cambios pendientes ('create'/'update') sobre la 'synced'
+            if (n.syncStatus !== 'synced' && existente.syncStatus === 'synced') {
+                notasUnicas.set(n.actividadId, n);
+            }
+            // Si ambas son iguales, gana la que tenga el ID local más alto (la última editada)
+            else if (n.localId! > existente.localId!) {
+                notasUnicas.set(n.actividadId, n);
+            }
+        }
+     }
+
+     const resultado: Calificacion[] = [];
+
+     // Iteramos sobre las notas ya filtradas
+     for (const n of notasUnicas.values()) {
        const actividad = await this.localDb.actividades.get(n.actividadId);
        
        if (actividad) {
@@ -205,7 +242,7 @@ export class CalificacionService {
              id: actividad.id || actividad.localId!,
              nombre: actividad.nombre,
              ponderacion: actividad.ponderacion,
-             trimestre: { nombre: 'Offline' } // Simplificación visual
+             trimestre: { nombre: 'Offline' }
            }
          });
        }
