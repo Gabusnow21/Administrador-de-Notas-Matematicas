@@ -70,11 +70,11 @@ export class EstudianteService {
       return this.http.post<Estudiante>(this.apiUrl, estudiante).pipe(
         tap(e => {
           // Éxito Online: Guardamos en local marcado como 'synced'
-          this.localDb.estudiantes.put({ 
-            ...e, 
+          this.localDb.estudiantes.put({
+            ...e,
             gradoId: estudiante.gradoId,
-            syncStatus: 'synced' 
-          } as any);
+            syncStatus: 'synced' as const
+          });
         }),
         catchError(err => {
           console.warn('⚠️ Error POST API:', err);
@@ -103,8 +103,7 @@ export class EstudianteService {
     return from(
       this.localDb.estudiantes.where('id').equals(id).first().then(result => {
         if (result) {
-          // Convertimos a 'any' primero para evitar conflicto de tipos entre LocalEstudiante y Estudiante
-          return result as any as Estudiante;
+          return result as Estudiante;
         } else {
           throw new Error('Estudiante no encontrado en BD local');
         }
@@ -117,18 +116,18 @@ export class EstudianteService {
     const actualizarLocalmente = () => {
         console.log('🔌 Actualizando localmente...');
         return from(this.localDb.estudiantes.where('id').equals(id).modify({
-            ...estudiante, 
-            syncStatus: 'update'
-        } as any).then(() => estudiante));
+            ...estudiante,
+            syncStatus: 'update' as const
+        }).then(() => estudiante));
     };
 
     if (this.isOnline) {
       return this.http.put(`${this.apiUrl}/${id}`, estudiante).pipe(
         tap(() => {
-           this.localDb.estudiantes.where('id').equals(id).modify({ 
-             ...estudiante, 
-             syncStatus: 'synced' 
-            } as any);
+           this.localDb.estudiantes.where('id').equals(id).modify({
+             ...estudiante,
+             syncStatus: 'synced' as const
+            });
         }),
         catchError(err => {
             console.warn('⚠️ Error PUT API:', err);
@@ -146,7 +145,7 @@ export class EstudianteService {
         console.log('🔌 Borrando localmente...');
         return from(
             this.localDb.estudiantes.where('id').equals(id)
-            .modify({ syncStatus: 'delete' } as any)
+            .modify({ syncStatus: 'delete' as const })
             .then(() => {}) // 👇 CORRECCIÓN: Forzamos el retorno void
         );
     };

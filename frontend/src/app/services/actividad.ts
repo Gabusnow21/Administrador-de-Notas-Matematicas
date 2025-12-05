@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
-import { LocalDbService } from './local-db';
+import { LocalDbService, SyncStatus } from './local-db';
 import { tap, catchError } from 'rxjs/operators';
 
 export interface Actividad {
@@ -57,14 +57,14 @@ export class ActividadService {
   private async getLocalActividades(mId: number, tId: number): Promise<Actividad[]> {
     // Usamos el filtro manual siempre, es más robusto ante inconsistencias de tipos (string/number)
     const todos = await this.localDb.actividades.toArray();
-    const resultados = todos.filter(a => 
-        Number(a.materiaId) === mId && 
-        Number(a.trimestreId) === tId && 
+    const resultados = todos.filter(a =>
+        Number(a.materiaId) === mId &&
+        Number(a.trimestreId) === tId &&
         a.syncStatus !== 'delete'
     );
 
     console.log(`✅ Encontradas ${resultados.length} actividades locales (filtro manual).`);
-    return resultados as any[];
+    return resultados as Actividad[];
   }
 
   sincronizarTodo(): Observable<any> {
@@ -146,13 +146,14 @@ export class ActividadService {
         const registro = await this.buscarRegistroLocal(actividad);
 
         if (registro) {
+            const newSyncStatus: SyncStatus = registro.syncStatus === 'create' ? 'create' : 'update';
             await this.localDb.actividades.update(registro.localId!, {
                 ...actividad,
                 materiaId: Number(actividad.materiaId),
                 trimestreId: Number(actividad.trimestreId),
                 // Mantener estado 'create' si aún no sube, sino pasar a 'update'
-                syncStatus: registro.syncStatus === 'create' ? 'create' : 'update'
-            } as any);
+                syncStatus: newSyncStatus
+            });
             return actividad;
         }
         throw new Error(`Actividad no encontrada localmente (ID: ${actividad.id}, LocalID: ${actividad.localId})`);
@@ -162,10 +163,10 @@ export class ActividadService {
       return this.http.put<Actividad>(this.apiUrl, actividad).pipe(
         tap(() => {
            // Actualización optimista en local
-           this.localDb.actividades.where('id').equals(actividad.id).modify({ 
-             ...actividad, 
-             syncStatus: 'synced' 
-            } as any);
+           this.localDb.actividades.where('id').equals(actividad.id).modify({
+             ...actividad,
+             syncStatus: 'synced' as const
+            });
         }),
         catchError(err => {
             console.warn('⚠️ Error PUT API:', err);
@@ -187,7 +188,7 @@ export class ActividadService {
             if (registro.syncStatus === 'create') {
                 await this.localDb.actividades.delete(registro.localId!);
             } else {
-                await this.localDb.actividades.update(registro.localId!, { syncStatus: 'delete' } as any);
+                await this.localDb.actividades.update(registro.localId!, { syncStatus: 'delete' as const });
             }
         }
     };

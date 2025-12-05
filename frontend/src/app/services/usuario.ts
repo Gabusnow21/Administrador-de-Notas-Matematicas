@@ -60,7 +60,7 @@ export class UsuarioService {
     if (this.isOnline) {
       return this.http.post<Usuario>(this.apiUrl, usuario).pipe(
         tap(u => {
-           this.localDb.usuarios.put({ ...u, syncStatus: 'synced' } as any);
+           this.localDb.usuarios.put({ ...u, syncStatus: 'synced' as const });
         }),
         catchError(err => {
             console.warn('⚠️ Error POST API:', err);
@@ -85,7 +85,7 @@ export class UsuarioService {
         console.log('🔌 Actualizando usuario offline...');
         return from(
             this.localDb.usuarios.where('id').equals(usuario.id!)
-            .modify({ ...usuario, syncStatus: 'update' } as any)
+            .modify({ ...usuario, syncStatus: 'update' as const })
             .then(() => usuario)
         );
     };
@@ -94,7 +94,7 @@ export class UsuarioService {
         return this.http.put(`${this.apiUrl}/${usuario.id}`, usuario).pipe(
             tap(() => {
                 this.localDb.usuarios.where('id').equals(usuario.id!)
-                .modify({ ...usuario, syncStatus: 'synced' } as any);
+                .modify({ ...usuario, syncStatus: 'synced' as const });
             }),
             catchError(() => actualizarLocal())
         );
@@ -118,7 +118,7 @@ export class UsuarioService {
         console.log('🔌 Borrando offline...');
         return from(
             this.localDb.usuarios.where('id').equals(usuario.id!)
-            .modify({ syncStatus: 'delete' } as any).then(() => {})
+            .modify({ syncStatus: 'delete' as const }).then(() => {})
         );
     };
 
