@@ -27,16 +27,36 @@ export class AuthService {
 
   private get isOnline(): boolean { return navigator.onLine; }
 
-  
+  // --- FUNCIÓN AUXILIAR PARA GENERAR HASH SHA-256 ---
+  private async hashPassword(password: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+  }
+
   // --- LOGIN HIBRIDO---
   login(credentials: {username: string, password: string}): Observable<any> {
-    
+
     if (this.isOnline) {
       // Intento Online
       return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
-        tap(response => {
+        tap(async response => {
           if (response.token) {
             this.setToken(response.token);
+
+            // 🔒 GUARDAR HASH DE CONTRASEÑA PARA VALIDACIÓN OFFLINE FUTURA
+            const passwordHash = await this.hashPassword(credentials.password);
+            const user = await this.localDb.getUsuarioByUsername(credentials.username);
+
+            if (user) {
+              // Actualizar usuario existente con el hash
+              await this.localDb.usuarios.where('username').equals(credentials.username)
+                .modify({ passwordHash: passwordHash });
+            }
+
             // Limpiamos sesión offline si existía
             if (isPlatformBrowser(this.platformId)) {
               localStorage.removeItem(this.offlineUserKey);
@@ -56,25 +76,29 @@ export class AuthService {
 
   // --- LÓGICA LOGIN OFFLINE ---
   private loginOffline(credentials: {username: string, password: string}): Observable<any> {
-    return from(this.localDb.getUsuarioByUsername(credentials.username).then(user => {
-      
+    return from(this.hashPassword(credentials.password).then(async inputHash => {
+      const user = await this.localDb.getUsuarioByUsername(credentials.username);
+
       if (!user) {
         throw new Error('Usuario no encontrado localmente (Debes iniciar sesión online al menos una vez)');
       }
 
-      // 🚨 ADVERTENCIA DE SEGURIDAD: 
-      // En un entorno real, aquí deberíamos comparar hashes de contraseñas (bcryptjs).
-      // Como el backend manda la password encriptada, no podemos desencriptarla.
-      // ESTRATEGIA SIMPLE FASE 3: 
-      // Si el usuario existe en local, permitimos el acceso asumiendo que es la misma persona.
-      // O guardamos un hash local simple al hacer login exitoso online.
-      
-      // Por ahora, validaremos solo que el usuario exista para permitir trabajo offline
-      // (Idealmente, guardaríamos un hash local en el login exitoso online)
-      
+      // 🔒 VALIDACIÓN DE CONTRASEÑA CON HASH
+      if (!user.passwordHash) {
+        throw new Error('Sin credenciales offline. Debes iniciar sesión online al menos una vez para habilitar modo offline.');
+      }
+
+      // Comparar el hash de la contraseña ingresada con el hash guardado
+      if (inputHash !== user.passwordHash) {
+        throw new Error('Contraseña incorrecta');
+      }
+
+      // ✅ Contraseña válida - Permitir acceso offline
+      console.log('✅ Login offline exitoso para:', user.username);
+
       const fakeToken = this.createFakeToken(user);
       this.setToken(fakeToken);
-      
+
       // Guardamos flag de sesión offline
       if (isPlatformBrowser(this.platformId)) {
         localStorage.setItem(this.offlineUserKey, JSON.stringify(user));
