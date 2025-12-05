@@ -30,14 +30,16 @@ export class TrimestreService {
     if (this.isOnline) {
       return this.http.get<Trimestre[]>(this.apiUrl).pipe(
         tap(data => {
-          this.localDb.trimestres.clear().then(() => {
-             const locales = data.map(t => ({
-               ...t,
-               fechaInicio: (t.fechaInicio as any)?.toString(),
-               fechaFin: (t.fechaFin as any)?.toString(),
-               syncStatus: 'synced' as any
-             }));
-             this.localDb.trimestres.bulkAdd(locales);
+          // ✅ Usar transacción atómica para integridad de datos
+          this.localDb.transaction('rw', this.localDb.trimestres, async () => {
+            await this.localDb.trimestres.clear();
+            const locales = data.map(t => ({
+              ...t,
+              fechaInicio: (t.fechaInicio as any)?.toString(),
+              fechaFin: (t.fechaFin as any)?.toString(),
+              syncStatus: 'synced' as any
+            }));
+            await this.localDb.trimestres.bulkAdd(locales);
           });
         }),
         catchError(() => from(this.localDb.getTrimestres().then(locales =>
@@ -47,7 +49,7 @@ export class TrimestreService {
             fechaInicio: new Date(local.fechaInicio ?? ''),
             fechaFin: new Date(local.fechaFin ?? ''),
             anioEscolar: local.anioEscolar,
-            estado: 'estado' in local ? (local as any).estado ?? false : false, // handle missing property
+            estado: 'estado' in local ? (local as any).estado ?? false : false,
             localId: typeof local.localId === 'number' ? local.localId : undefined,
             syncStatus: local.syncStatus
           })) as Trimestre[]
@@ -61,7 +63,7 @@ export class TrimestreService {
           fechaInicio: new Date(local.fechaInicio ?? ''),
           fechaFin: new Date(local.fechaFin ?? ''),
           anioEscolar: local.anioEscolar,
-          estado: 'estado' in local ? (local as any).estado ?? false : false, // handle missing property
+          estado: 'estado' in local ? (local as any).estado ?? false : false,
           localId: typeof local.localId === 'number' ? local.localId : undefined,
           syncStatus: local.syncStatus
         }))
