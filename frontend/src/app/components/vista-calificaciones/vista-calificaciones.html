@@ -75,10 +75,11 @@
 
         <div class="col-md-3">
           <label class="form-label">Actividad</label>
-          <select class="form-select" 
-                  [(ngModel)]="nuevaCalificacion.actividadId" 
-                  name="actividadId" 
-                  [disabled]="actividades.length === 0" 
+          <select class="form-select"
+                  [(ngModel)]="nuevaCalificacion.actividadId"
+                  (change)="onActividadSeleccionada()"
+                  name="actividadId"
+                  [disabled]="actividades.length === 0"
                   required>
             <option [ngValue]="0">-- Elegir Actividad --</option>
             @for (act of actividades; track act.id) {
