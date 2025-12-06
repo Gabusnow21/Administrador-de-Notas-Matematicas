@@ -21,6 +21,7 @@ export interface Usuario {
 export class UsuarioService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8080/api/usuarios';
+  private registerUrl = 'http://localhost:8080/api/auth/register'; // URL de registro
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean { return navigator.onLine; }
@@ -48,7 +49,7 @@ export class UsuarioService {
     
     // 🛑 SI VIENE DE SYNC, RETORNA EL HTTP PURO (Sin catchError)
     if (fromSync) {
-      return this.http.post<Usuario>(this.apiUrl, usuario);
+      return this.http.post<Usuario>(this.registerUrl, usuario);
     }
 
     const guardarLocal = () => {
@@ -58,7 +59,7 @@ export class UsuarioService {
     };
 
     if (this.isOnline) {
-      return this.http.post<Usuario>(this.apiUrl, usuario).pipe(
+      return this.http.post<Usuario>(this.registerUrl, usuario).pipe(
         tap(u => {
            this.localDb.usuarios.put({ ...u, syncStatus: 'synced' as const });
         }),
