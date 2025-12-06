@@ -39,9 +39,10 @@ export class VistaCalificaciones implements OnInit {
   materiaIDSeleccionada: number = 0;
   trimestreIDSeleccionado: number = 0;
 
-  
   // Variable para botón de carga
   procesando: boolean = false;
+
+  private get isOnline(): boolean { return navigator.onLine; }
 
   //Objeto para el formulario
   nuevaCalificacion: CalificacionRequest = {
@@ -157,19 +158,38 @@ export class VistaCalificaciones implements OnInit {
     const mId = Number(this.materiaIDSeleccionada);
     const tId = Number(this.trimestreIDSeleccionado);
 
-    if (mId > 0 && tId > 0) {
-      this.actividadService.getByMateriaAndTrimestre(mId, tId)
+    if (this.isOnline) {
+      if (mId > 0 && tId > 0) {
+        this.actividadService.getByMateriaAndTrimestre(mId, tId)
+          .subscribe({
+            next: (data) => {
+              this.actividades = data;
+              console.log(`Actividades cargadas (Materia: ${mId}, Trimestre: ${tId}):`, data);
+
+              if (data.length === 0) {
+                console.warn('No se encontraron actividades para los filtros seleccionados');
+              }
+            },
+            error: (err) => {
+              console.error('Error cargando actividades:', err);
+            }
+          });
+      }
+    } else {
+      // Si estamos offline, cargamos todas las actividades locales disponibles
+      this.materiaIDSeleccionada = 0; // Resetear para que el dropdown no muestre un filtro activo
+      this.trimestreIDSeleccionado = 0; // Resetear
+      this.actividadService.getAllLocalActivities()
         .subscribe({
           next: (data) => {
             this.actividades = data;
-            console.log(`Actividades cargadas (Materia: ${mId}, Trimestre: ${tId}):`, data);
-
+            console.log('Actividades cargadas desde local (offline):', data);
             if (data.length === 0) {
-              console.warn('No se encontraron actividades para los filtros seleccionados');
+              console.warn('No se encontraron actividades locales.');
             }
           },
           error: (err) => {
-            console.error('Error cargando actividades:', err);
+            console.error('Error cargando actividades locales:', err);
           }
         });
     }

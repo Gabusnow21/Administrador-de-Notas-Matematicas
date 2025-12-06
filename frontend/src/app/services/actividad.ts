@@ -67,6 +67,11 @@ export class ActividadService {
     return resultados as Actividad[];
   }
 
+  // Nuevo método para obtener TODAS las actividades locales (offline)
+  getAllLocalActivities(): Observable<Actividad[]> {
+    return from(this.localDb.actividades.where('syncStatus').notEqual('delete').toArray());
+  }
+
   sincronizarTodo(): Observable<any> {
     if (!this.isOnline) return from([]);
 
