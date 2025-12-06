@@ -41,6 +41,7 @@ export class VistaCalificaciones implements OnInit {
 
   // Variable para botón de carga
   procesando: boolean = false;
+  showModal: boolean = false; // Visibilidad del modal
 
   private get isOnline(): boolean { return navigator.onLine; }
 
@@ -102,7 +103,8 @@ export class VistaCalificaciones implements OnInit {
         this.nuevaCalificacion.observacion = '';
         
         // Recargar la tabla para ver el cambio
-        this.cargarDatos(); 
+        this.cargarDatos();
+        this.cerrarModal(); // Cerrar modal al guardar con éxito
       },
       error: (err) => {
         console.error('Error guardando:', err);
@@ -202,5 +204,13 @@ export class VistaCalificaciones implements OnInit {
       // Recargar calificaciones para actualizar la vista con los datos más recientes
       this.cargarDatos();
     }
+  }
+
+  abrirModal() {
+    this.showModal = true;
+  }
+
+  cerrarModal() {
+    this.showModal = false;
   }
 }

@@ -1,3 +1,72 @@
+<!-- Modal para Asignar Calificación -->
+<div class="modal-overlay" [class.show]="showModal">
+  <div class="modal-dialog modal-lg" [class.show]="showModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Asignar o Editar Calificación</h5>
+        <button type="button" class="btn-close" (click)="cerrarModal()"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Formulario para asignar o editar calificación -->
+        <form (ngSubmit)="guardarNota()" class="row g-3 align-items-end">
+          <!-- Filtros para materia y trimestre -->
+          <div class="col-md-6">
+            <label class="form-label">Materia</label>
+            <select class="form-select" [(ngModel)]="materiaIDSeleccionada" (change)="onFiltroChange()" name="materia">
+              <option [ngValue]="0">-- Seleccionar --</option>
+              @for (mat of materias; track mat.id) {
+                <option [ngValue]="mat.id">{{ mat.nombre }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Trimestre</label>
+            <select class="form-select" [(ngModel)]="trimestreIDSeleccionado" (change)="onFiltroChange()" name="trimestre">
+              <option [ngValue]="0">-- Seleccionar --</option>
+              @for (tri of trimestres; track tri.id) {
+                <option [ngValue]="tri.id">{{ tri.nombre }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="col-md-12">
+            <label class="form-label">Actividad</label>
+            <select class="form-select" [(ngModel)]="nuevaCalificacion.actividadId" (change)="onActividadSeleccionada()" name="actividadId" [disabled]="actividades.length === 0" required>
+              <option [ngValue]="0">-- Elegir Actividad --</option>
+              @for (act of actividades; track act.id) {
+                <option [ngValue]="act.id">
+                  {{ act.nombre }} ({{ act.ponderacion }}%)
+                </option>
+              }
+            </select>
+          </div>
+          <!-- Campo para la nota y observación -->
+          <div class="col-md-4">
+            <label class="form-label">Nota</label>
+            <input type="number" class="form-control" [(ngModel)]="nuevaCalificacion.nota" name="nota" step="0.01" max="10" min="0" placeholder="0 - 10" required>
+          </div>
+
+          <div class="col-md-8">
+            <label class="form-label">Observación</label>
+            <input type="text" class="form-control" [(ngModel)]="nuevaCalificacion.observacion" name="observacion" placeholder="Comentarios sobre el desempeño...">
+          </div>
+        </form>
+      </div>
+      <div class="modal-actions d-flex justify-content-end gap-2 p-3">
+        <button type="button" class="btn btn-secondary" (click)="cerrarModal()">Cancelar</button>
+        <button type="submit" class="btn btn-success" (click)="guardarNota()" [disabled]="procesando || nuevaCalificacion.actividadId === 0">
+          @if (procesando) {
+            <span class="spinner-border spinner-border-sm"></span> Guardando...
+          } @else {
+            Guardar Nota
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="container mt-4">
 
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -17,6 +86,13 @@
       <i class="bi bi-arrow-left"></i> Volver
     </a>
     </div>
+  </div>
+
+  <!-- Botón para abrir el modal -->
+  <div class="mb-3">
+    <button class="btn btn-primary" (click)="abrirModal()">
+      <i class="bi bi-plus-circle-fill me-2"></i> Asignar Calificación
+    </button>
   </div>
 
   @if (loading) {
@@ -45,75 +121,6 @@
               <th scope="col">Observación</th>
             </tr>
           </thead>
-  <div class="card mb-4 border-primary">
-    <div class="card-header bg-primary text-white">
-      <i class="bi bi-pencil-square me-2"></i> Asignar o Editar Calificación
-    </div>
-    <div class="card-body">
-      <!-- Formulario para asignar o editar calificación -->
-       <form (ngSubmit)="guardarNota()" class="row g-3 align-items-end">
-      <!-- Filtros para materia y trimestre -->
-        <div class="col-md-3">
-          <label class="form-label">Materia</label>
-          <select class="form-select" [(ngModel)]="materiaIDSeleccionada" (change)="onFiltroChange()" name="materia">
-            <option [ngValue]="0">-- Seleccionar --</option>
-            @for (mat of materias; track mat.id) {
-              <option [ngValue]="mat.id">{{ mat.nombre }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="col-md-3">
-          <label class="form-label">Trimestre</label>
-          <select class="form-select" [(ngModel)]="trimestreIDSeleccionado" (change)="onFiltroChange()" name="trimestre">
-            <option [ngValue]="0">-- Seleccionar --</option>
-            @for (tri of trimestres; track tri.id) {
-              <option [ngValue]="tri.id">{{ tri.nombre }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="col-md-3">
-          <label class="form-label">Actividad</label>
-          <select class="form-select"
-                  [(ngModel)]="nuevaCalificacion.actividadId"
-                  (change)="onActividadSeleccionada()"
-                  name="actividadId"
-                  [disabled]="actividades.length === 0"
-                  required>
-            <option [ngValue]="0">-- Elegir Actividad --</option>
-            @for (act of actividades; track act.id) {
-              <option [ngValue]="act.id">
-                {{ act.nombre }} ({{ act.ponderacion }}%)
-              </option>
-            }
-          </select>
-        </div>
-        <!-- Campo para la nota y observación -->
-        <div class="col-md-3">
-          <label class="form-label">Nota</label>
-          <input type="number" class="form-control" [(ngModel)]="nuevaCalificacion.nota" name="nota" step="0.01" max="10" min="0" placeholder="0 - 10" required>
-        </div>
-
-        <div class="col-md-9">
-          <label class="form-label">Observación</label>
-          <input type="text" class="form-control" [(ngModel)]="nuevaCalificacion.observacion" name="observacion" placeholder="Comentarios sobre el desempeño...">
-        </div>
-        <!-- Botón para guardar la calificación -->
-        <div class="col-md-3">
-          <button type="submit" class="btn btn-success w-100" 
-                  [disabled]="procesando || nuevaCalificacion.actividadId === 0">
-            @if (procesando) {
-              <span class="spinner-border spinner-border-sm"></span>
-            } @else {
-              Guardar Nota
-            }
-          </button>
-        </div>
-      </form>
-    </div>
-
-    </div>
           <tbody>
             @for (cal of calificaciones; track cal.id) {
               <tr>
