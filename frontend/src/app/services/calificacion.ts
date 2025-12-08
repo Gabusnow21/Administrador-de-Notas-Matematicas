@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, from } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
-import { LocalDbService } from './local-db';
+import { LocalCalificacion, LocalDbService, LocalEstudiante } from './local-db';
 
 export interface PlanillaItem {
   estudianteId: number;
@@ -89,7 +89,7 @@ export class CalificacionService {
     const todasLasNotas = await this.localDb.calificaciones.toArray();
     
     // Filtrar manualmente asegurando tipos numéricos
-    const notasRaw = todasLasNotas.filter(n => 
+    const notasRaw = todasLasNotas.filter((n: LocalCalificacion) => 
         Number(n.actividadId) === Number(actividadId)
     );
 
@@ -100,7 +100,7 @@ export class CalificacionService {
     // 3. Mapa para filtrar la "Mejor Nota"
     const mapaNotas = new Map<number, any>();
 
-    notasRaw.forEach(nota => {
+    notasRaw.forEach((nota: LocalCalificacion) => {
       const idEst = Number(nota.estudianteId);
       
       if (mapaNotas.has(idEst)) {
@@ -122,7 +122,7 @@ export class CalificacionService {
     });
 
     // 4. Cruzar
-    return estudiantes.map(est => {
+    return estudiantes.map((est: LocalEstudiante) => {
       const idReal = est.id ? Number(est.id) : -1;
       const idLocal = est.localId ? Number(est.localId) : -1;
 
@@ -211,7 +211,7 @@ export class CalificacionService {
 
   private async getLocalBoletin(estudianteId: number): Promise<Calificacion[]> {
      const todasLasNotas = await this.localDb.calificaciones.toArray();
-     const notasFiltradas = todasLasNotas.filter(n => Number(n.estudianteId) === Number(estudianteId));
+     const notasFiltradas = todasLasNotas.filter((n: LocalCalificacion) => Number(n.estudianteId) === Number(estudianteId));
 
      const resultado: Calificacion[] = [];
      for (const n of notasFiltradas) {

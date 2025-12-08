@@ -8,6 +8,7 @@ import { Reporte } from '../../services/reporte';
 import { Materia, MateriaService } from '../../services/materia';
 import { Actividad, ActividadService } from '../../services/actividad';
 import { Trimestre, TrimestreService } from '../../services/trimestre';
+import { SyncService } from '../../services/sync';
 
 @Component({
   selector: 'app-vista-calificaciones',
@@ -25,6 +26,8 @@ export class VistaCalificaciones implements OnInit {
   private materiaService = inject(MateriaService);
   private actividadService = inject(ActividadService);
   private trimestreService = inject(TrimestreService);
+  private syncService = inject(SyncService);
+
 
   //Variables
   estudianteId: number = 0;
@@ -43,7 +46,7 @@ export class VistaCalificaciones implements OnInit {
   procesando: boolean = false;
   showModal: boolean = false; // Visibilidad del modal
 
-  private get isOnline(): boolean { return navigator.onLine; }
+  get isOnline(): boolean { return this.syncService.isOnline(); }
 
   //Objeto para el formulario
   nuevaCalificacion: CalificacionRequest = {

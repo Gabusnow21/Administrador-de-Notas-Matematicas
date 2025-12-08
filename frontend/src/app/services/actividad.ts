@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
-import { LocalDbService, SyncStatus } from './local-db';
+import { LocalActividad, LocalDbService, SyncStatus } from './local-db';
 import { tap, catchError } from 'rxjs/operators';
 
 export interface Actividad {
@@ -57,7 +57,7 @@ export class ActividadService {
   private async getLocalActividades(mId: number, tId: number): Promise<Actividad[]> {
     // Usamos el filtro manual siempre, es más robusto ante inconsistencias de tipos (string/number)
     const todos = await this.localDb.actividades.toArray();
-    const resultados = todos.filter(a =>
+    const resultados = todos.filter((a: LocalActividad) =>
         Number(a.materiaId) === mId &&
         Number(a.trimestreId) === tId &&
         a.syncStatus !== 'delete'

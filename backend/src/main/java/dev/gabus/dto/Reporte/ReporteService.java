@@ -51,7 +51,7 @@ public class ReporteService {
 
             // Totales
             BigDecimal total = t1.add(t2).add(t3);
-            BigDecimal promedio = total.divide(BigDecimal.valueOf(3), 0, RoundingMode.HALF_UP); // Redondeo entero como la imagen
+            BigDecimal promedio = total.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP); // Redondeo a 2 decimales
 
             filasReporte.add(new ReporteCalificacionDTO(
                     materia.getNombre(),
@@ -72,18 +72,37 @@ public class ReporteService {
         return JasperExportManager.exportReportToPdf(jasperPrint);
     }
 
-    // Helper para calcular promedio
+    // Helper para calcular promedio ponderado
     private BigDecimal calcularPromedioTrimestre(List<Calificacion> notas, String nombreTrimestre) {
-        List<BigDecimal> notasDelTrimestre = notas.stream()
-                .filter(n -> n.getActividad().getTrimestre().getNombre().equalsIgnoreCase(nombreTrimestre))
-                .map(Calificacion::getNota)
-                .collect(Collectors.toList());
-
-        if (notasDelTrimestre.isEmpty()) return BigDecimal.ZERO;
-
-        BigDecimal suma = notasDelTrimestre.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-        // Retornamos promedio redondeado a entero (como en la imagen: 9, 10, 8)
-        return suma.divide(BigDecimal.valueOf(notasDelTrimestre.size()), 0, RoundingMode.HALF_UP);
+        // 1. Filtrar las calificaciones que pertenecen al trimestre especificado
+        List<Calificacion> notasDelTrimestre = notas.stream()
+            .filter(n -> n.getActividad().getTrimestre().getNombre().equalsIgnoreCase(nombreTrimestre))
+            .collect(Collectors.toList());
+    
+        // Si no hay notas, el promedio es 0
+        if (notasDelTrimestre.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+    
+        BigDecimal sumaPonderada = BigDecimal.ZERO;
+        BigDecimal sumaDePonderaciones = BigDecimal.ZERO;
+    
+        // 2. Calcular la suma de las notas multiplicadas por su ponderación
+        for (Calificacion calificacion : notasDelTrimestre) {
+            BigDecimal nota = calificacion.getNota();
+            BigDecimal ponderacion = calificacion.getActividad().getPonderacion();
+            
+            sumaPonderada = sumaPonderada.add(nota.multiply(ponderacion));
+            sumaDePonderaciones = sumaDePonderaciones.add(ponderacion);
+        }
+    
+        // 3. Evitar división por cero si la suma de ponderaciones es 0
+        if (sumaDePonderaciones.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+    
+        // 4. Calcular el promedio ponderado y redondear a 2 decimales
+        return sumaPonderada.divide(sumaDePonderaciones, 2, RoundingMode.HALF_UP);
     }
     
 }

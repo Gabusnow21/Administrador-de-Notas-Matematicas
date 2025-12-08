@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { LocalDbService } from './local-db';
+import { LocalDbService, LocalGrado } from './local-db';
 
 export interface Grado {
   id: number;
@@ -66,7 +66,7 @@ export class GradoService {
     // Obtener grado local por ID
   private getLocalGrado(id: number): Observable<Grado> {
     return from(
-      this.localDb.grados.where('id').equals(id).first().then(result => {
+      this.localDb.grados.where('id').equals(id).first().then((result: LocalGrado | undefined) => {
         if (result) return result as Grado;
         throw new Error('Grado no encontrado en local');
       })

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { LocalDbService } from './local-db';
+import { LocalDbService, LocalEstudiante } from './local-db';
 
 export interface Estudiante {
   id: number;
@@ -61,7 +61,7 @@ export class EstudianteService {
         syncStatus: 'create' 
       };
 
-      return from(this.localDb.estudiantes.add(estLocal).then(id => {
+      return from(this.localDb.estudiantes.add(estLocal).then((id: number) => {
         return { ...estudiante, localId: id, syncStatus: 'create' } as Estudiante;
       }));
     };
@@ -101,7 +101,7 @@ export class EstudianteService {
   // Obtener estudiante local por ID
   private getLocalEstudiante(id: number): Observable<Estudiante> {
     return from(
-      this.localDb.estudiantes.where('id').equals(id).first().then(result => {
+      this.localDb.estudiantes.where('id').equals(id).first().then((result: LocalEstudiante | undefined) => {
         if (result) {
           return result as Estudiante;
         } else {
