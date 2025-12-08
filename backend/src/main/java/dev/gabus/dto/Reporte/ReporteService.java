@@ -12,6 +12,7 @@ import org.springframework.util.ResourceUtils;
 import javax.imageio.ImageIO;
 import java.awt.Image;
 import java.io.File;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -28,6 +29,8 @@ public class ReporteService {
 
     public byte[] generarBoletin(Long estudianteId) throws Exception {
         
+        System.setProperty("java.awt.headless", "true");
+
         var estudiante = estudianteRepository.findById(estudianteId)
                 .orElseThrow(() -> new RuntimeException("Estudiante no encontrado"));
 
@@ -64,13 +67,13 @@ public class ReporteService {
         File file = ResourceUtils.getFile("classpath:reports/boletin.jrxml");
         JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
 
-        Image leftLogo = ImageIO.read(getClass().getResourceAsStream("/images/logoizquierda.png"));
-        Image rightLogo = ImageIO.read(getClass().getResourceAsStream("/images/logoderecha.png"));
+        InputStream leftLogoStream = getClass().getResourceAsStream("/images/logoizquierda.png");
+        InputStream rightLogoStream = getClass().getResourceAsStream("/images/logoderecha.png");
 
         Map<String, Object> parametros = new HashMap<>();
         parametros.put("nombreEstudiante", estudiante.getApellido() + " " + estudiante.getNombre()); // Formato: Apellido Nombre
-        parametros.put("paramLeftLogo", leftLogo);
-        parametros.put("paramRightLogo", rightLogo);
+        parametros.put("paramLeftLogo", leftLogoStream);
+        parametros.put("paramRightLogo", rightLogoStream);
 
 
         JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(filasReporte);
