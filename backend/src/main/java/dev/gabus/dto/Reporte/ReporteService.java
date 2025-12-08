@@ -4,6 +4,7 @@ import dev.gabus.dto.Calificacion.Calificacion;
 import dev.gabus.dto.Calificacion.CalificacionRepository;
 import dev.gabus.dto.Estudiante.EstudianteRepository;
 import dev.gabus.dto.Materia.Materia;
+import dev.gabus.dto.Reporte.ReporteCalificacionDTO;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.springframework.stereotype.Service;
@@ -64,16 +65,44 @@ public class ReporteService {
         }
 
         // 4. Cargar imágenes y compilar reporte
-        File file = ResourceUtils.getFile("classpath:reports/boletin.jrxml");
-        JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
+        InputStream reportStream = ReporteService.class.getClassLoader().getResourceAsStream("reports/boletin.jrxml");
+        if (reportStream == null) {
+            throw new IllegalStateException("No se pudo encontrar la plantilla del reporte: reports/boletin.jrxml");
+        }
+        JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
 
-        InputStream leftLogoStream = getClass().getResourceAsStream("/images/logoizquierda.png");
-        InputStream rightLogoStream = getClass().getResourceAsStream("/images/logoderecha.png");
+        Image leftLogo = null;
+        try (InputStream leftLogoStream = ReporteService.class.getClassLoader().getResourceAsStream("images/logoizquierda.png")) {
+            if (leftLogoStream == null) {
+                System.out.println("ADVERTENCIA DE DIAGNÓSTICO: No se pudo encontrar el recurso 'images/logoizquierda.png' en el classpath.");
+            } else {
+                leftLogo = ImageIO.read(leftLogoStream);
+                if (leftLogo == null) {
+                    System.out.println("ADVERTENCIA DE DIAGNÓSTICO: Se encontró 'images/logoizquierda.png', pero no se pudo leer (formato inválido o archivo corrupto).");
+                }
+            }
+        } catch (java.io.IOException e) {
+            System.err.println("ERROR DE DIAGNÓSTICO al leer el logo izquierdo: " + e.getMessage());
+        }
+
+        Image rightLogo = null;
+        try (InputStream rightLogoStream = ReporteService.class.getClassLoader().getResourceAsStream("images/logoderecha.png")) {
+            if (rightLogoStream == null) {
+                System.out.println("ADVERTENCIA DE DIAGNÓSTICO: No se pudo encontrar el recurso 'images/logoderecha.png' en el classpath.");
+            } else {
+                rightLogo = ImageIO.read(rightLogoStream);
+                if (rightLogo == null) {
+                    System.out.println("ADVERTENCIA DE DIAGNÓSTICO: Se encontró 'images/logoderecha.png', pero no se pudo leer (formato inválido o archivo corrupto).");
+                }
+            }
+        } catch (java.io.IOException e) {
+            System.err.println("ERROR DE DIAGNÓSTICO al leer el logo derecho: " + e.getMessage());
+        }
 
         Map<String, Object> parametros = new HashMap<>();
         parametros.put("nombreEstudiante", estudiante.getApellido() + " " + estudiante.getNombre()); // Formato: Apellido Nombre
-        parametros.put("paramLeftLogo", leftLogoStream);
-        parametros.put("paramRightLogo", rightLogoStream);
+        parametros.put("paramLeftLogo", leftLogo);
+        parametros.put("paramRightLogo", rightLogo);
 
 
         JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(filasReporte);
