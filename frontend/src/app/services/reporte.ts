@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, from } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { LocalDbService } from './local-db';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 @Injectable({
   providedIn: 'root',
@@ -14,20 +15,15 @@ export class Reporte {
   private apiUrl = 'http://localhost:8080/api/reportes';
 
   descargarBoletin(estudianteId: number): Observable<Blob> {
-    if (navigator.onLine) {
-      return this.http.get(`${this.apiUrl}/boletin/${estudianteId}`, {
-        responseType: 'blob'
-      });
-    } else {
-      return new Observable(observer => {
-        this.generarBoletinOffline(estudianteId).then(blob => {
-          observer.next(blob);
-          observer.complete();
-        }).catch(err => {
-          observer.error(err);
-        });
-      });
-    }
+    // Intentar siempre la descarga online. Si falla, se activa el fallback a offline.
+    return this.http.get(`${this.apiUrl}/boletin/${estudianteId}`, {
+      responseType: 'blob'
+    }).pipe(
+      catchError(err => {
+        console.warn('API de reportes no disponible. Generando boletín en modo offline.', err);
+        return from(this.generarBoletinOffline(estudianteId));
+      })
+    );
   }
 
   async generarBoletinOffline(estudianteId: number): Promise<Blob> {
@@ -52,9 +48,37 @@ export class Reporte {
     const trimestres = allTrimestres.filter(t => t.id && trimestresIds.includes(t.id));
   
     const doc = new jsPDF();
-    doc.text(`Boletín de Calificaciones`, 14, 20);
-    doc.text(`Estudiante: ${estudiante.nombre} ${estudiante.apellido}`, 14, 30);
-  
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // --- Inicio de la Cabecera ---
+    doc.setFont('sans-serif');
+    doc.setFontSize(12);
+    doc.text('CENTRO ESCOLAR CATÓLICO "MADRE CLARA QUIRÓS"', pageWidth / 2, 20, { align: 'center' });
+    
+    doc.setFont('sans-serif', 'normal');
+    doc.setFontSize(10);
+    doc.text('cecmadreclaraquiros@yahoo.com', pageWidth / 2, 27, { align: 'center' });
+    doc.text('Final barrio la Cruz, La Palma Chalatenango.', pageWidth / 2, 34, { align: 'center' });
+    
+    doc.setFont('sans-serif', 'bold');
+    doc.text('Tel. 2305- 8432, 7187-7141', pageWidth / 2, 41, { align: 'center' });
+
+    doc.setFont('sans-serif');
+    doc.setFontSize(12);
+    doc.text('CENTRO ESCOLAR CATÓLICO "MADRE CLARA QUIRÓS"', pageWidth / 2, 53, { align: 'center' });
+    doc.text('Código: 21276', pageWidth / 2, 60, { align: 'center' });
+
+
+    doc.setFontSize(11);
+    doc.text('REGISTRO ACADÉMICO DE MATERIAS COMPLEMENTARIAS', pageWidth / 2, 70, { align: 'center' });
+    doc.text('I, II, III CICLO', pageWidth / 2, 80, { align: 'center' });
+
+    doc.setFontSize(11);
+    doc.setTextColor('#000000'); 
+    doc.text(`Estudiante: ${estudiante.nombre} ${estudiante.apellido}`, 14, 95);
+    doc.setTextColor('#000000'); // Reset color
+    // --- Fin de la Cabecera ---
+
     const tableData: any[] = [];
     const materiasMap = new Map<number, any>();
   
@@ -99,16 +123,40 @@ export class Reporte {
   
       tableData.push([materia.nombre, t1.toFixed(2), t2.toFixed(2), t3.toFixed(2), total.toFixed(2), promedio]);
     });
-  
-    (doc as any).autoTable({
-      head: [['Materia', 'Trimestre 1', 'Trimestre 2', 'Trimestre 3', 'Total', 'Promedio']],
+
+    autoTable(doc, {
+      head: [['ASIGNATURAS', 'I TRIMESTRE', 'II TRIMESTRE', 'III TRIMESTRE', 'TOTAL', 'PROMEDIO']],
       body: tableData,
-      startY: 40
+      startY: 105,
+      headStyles: {
+        fontStyle: 'bold',
+        halign: 'center',
+        valign: 'middle',
+        lineWidth: 0.5,
+        lineColor: [0, 0, 0],
+        textColor: [0, 0, 0],
+        fillColor: [255, 255, 255]
+      },
+      bodyStyles: {
+        fontStyle: 'bold',
+        valign: 'middle',
+        lineWidth: 0.5,
+        lineColor: [0, 0, 0]
+      },
+      columnStyles: {
+        0: { halign: 'left' }, // Asignaturas
+        1: { halign: 'center' }, // T1
+        2: { halign: 'center' }, // T2
+        3: { halign: 'center' }, // T3
+        4: { halign: 'center' }, // Total
+        5: { halign: 'center' }  // Promedio
+      }
     });
   
     if (subjectCount > 0) {
       const overallAverage = (finalAverage / subjectCount).toFixed(2);
-      doc.text(`Promedio Final General: ${overallAverage}`, 14, (doc as any).autoTable.previous.finalY + 10);
+      const finalY = (doc as any).lastAutoTable.finalY;
+      doc.text(`Promedio Final General: ${overallAverage}`, 14, finalY + 10);
     }
   
     return doc.output('blob');
