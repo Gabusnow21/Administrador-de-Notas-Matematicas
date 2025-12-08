@@ -3,13 +3,14 @@ package dev.gabus.dto.Reporte;
 import dev.gabus.dto.Calificacion.Calificacion;
 import dev.gabus.dto.Calificacion.CalificacionRepository;
 import dev.gabus.dto.Estudiante.EstudianteRepository;
-import dev.gabus.dto.Reporte.ReporteCalificacionDTO;
 import dev.gabus.dto.Materia.Materia;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
+import javax.imageio.ImageIO;
+import java.awt.Image;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -59,12 +60,18 @@ public class ReporteService {
             ));
         }
 
-        // 4. Compilar Reporte
+        // 4. Cargar imágenes y compilar reporte
         File file = ResourceUtils.getFile("classpath:reports/boletin.jrxml");
         JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
 
+        Image leftLogo = ImageIO.read(getClass().getResourceAsStream("/images/logoizquierda.png"));
+        Image rightLogo = ImageIO.read(getClass().getResourceAsStream("/images/logoderecha.png"));
+
         Map<String, Object> parametros = new HashMap<>();
         parametros.put("nombreEstudiante", estudiante.getApellido() + " " + estudiante.getNombre()); // Formato: Apellido Nombre
+        parametros.put("paramLeftLogo", leftLogo);
+        parametros.put("paramRightLogo", rightLogo);
+
 
         JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(filasReporte);
         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parametros, dataSource);
