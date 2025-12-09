@@ -6,6 +6,35 @@
   /* El borde izquierdo ya lo define Bootstrap, pero aquí aseguramos la transición */
 }
 
+ /* Cursor pointer para indicar que toda la card es un link */
+.clickable-card {
+  cursor: pointer;
+  text-decoration: none; /* Quita subrayados de links por defecto */
+}
+
+/* Efecto Hover */
+.clickable-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.12) !important;
+  border-color: var(--bs-primary); /* Opcional: pinta todo el borde del color primario al pasar mouse */
+}
+
+/* Pequeño truco para mostrar el texto "Click para ver" solo al hacer hover (opcional) */
+.clickable-card:hover .d-hover-block {
+  display: block !important;
+  animation: fadeIn 0.3s;
+}
+
+/* Admin buttons: aseguramos que estén por encima visualmente */
+.z-3 {
+  z-index: 3;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* Efecto al pasar el mouse (Hover) */
 .hover-effect:hover {
   transform: translateY(-10px); /* Mueve la tarjeta hacia arriba */
@@ -25,4 +54,15 @@
   transform: scale(1.2);
   display: inline-block; /* Necesario para transformar iconos */
   transition: all 0.3s ease;
+}
+
+.btn-square {
+  width: 50px;           /* Ancho fijo */
+  height: 50px;          /* Alto fijo igual al ancho */
+  padding: 0;            /* Quitamos padding para centrar bien */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;    /* Un poco de borde redondeado (opcional) */
+  font-size: 1.5rem;     /* Tamaño del ícono */
 }

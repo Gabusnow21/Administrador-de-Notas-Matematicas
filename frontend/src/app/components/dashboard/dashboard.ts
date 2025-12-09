@@ -1,9 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { AuthService } from '../../services/auth';
 import { Grado, GradoService } from '../../services/grado';
 import { RouterLink } from "@angular/router";
 import { FormsModule } from '@angular/forms';
 import { SyncService } from '../../services/sync';
+declare var bootstrap: any;
 
 @Component({
   selector: 'app-dashboard',
@@ -12,27 +13,26 @@ import { SyncService } from '../../services/sync';
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
-export class Dashboard implements OnInit {
+export class Dashboard implements OnInit, AfterViewInit {
   private authService = inject(AuthService);
   private gradoService = inject(GradoService);
-  public syncService = inject(SyncService); // <--- INYECTAR PÚBLICO
+  public syncService = inject(SyncService);
 
+  grados: Grado[] = [];
+  loading: boolean = true;
+  procesando: boolean = false;
+  updateEdicion: boolean = false;
 
-  grados: Grado[] = [];//Aca se guardan los datos de los grados
-  loading: boolean = true;//Indicador de carga
-  mostrarFormulario: boolean = false;//Controla la visibilidad del formulario
-  procesando: boolean = false;//Indicador de procesamiento del formulario
-  updateEdicion: boolean = false;//Indicador de modo edicion
-  
-  
-  //Modelo para el nuevo grado
   nuevoGrado: any = {
     id: null,
-    nivel: '',       // Ej: "7mo Grado"
-    seccion: '',     // Ej: "B"
-    anioEscolar: new Date().getFullYear() // Año actual por defecto
+    nivel: '',
+    seccion: '',
+    anioEscolar: new Date().getFullYear()
   };
-  
+
+  @ViewChild('modalGrado') private modalElement!: ElementRef;
+  private modalInstance: any;
+
   get isAdmin(): boolean {
     return this.authService.isAdmin();
   }
@@ -41,81 +41,72 @@ export class Dashboard implements OnInit {
     this.cargarGrados();
   }
 
-  // Forzar sincronización manual
+  ngAfterViewInit(): void {
+    if (this.modalElement) {
+      this.modalInstance = new bootstrap.Modal(this.modalElement.nativeElement);
+    }
+  }
+
   forzarSincronizacion() {
     this.syncService.sincronizar();
   }
 
-  // editar grado
   editarGrado(grado: Grado) {
     this.updateEdicion = true;
-    this.mostrarFormulario = true;
-    // Copiamos los datos para no modificar la tarjeta en vivo mientras escribimos
-    this.nuevoGrado = { ...grado }; 
+    this.nuevoGrado = { ...grado };
+    if (this.modalInstance) {
+      this.modalInstance.show();
+    }
   }
 
-  // iniciar creacion de grado
   iniciarCreacion() {
     this.updateEdicion = false;
-    this.mostrarFormulario = !this.mostrarFormulario;
     this.nuevoGrado = {
       id: null,
       nivel: '',
       seccion: '',
       anioEscolar: new Date().getFullYear()
     };
+    if (this.modalInstance) {
+      this.modalInstance.show();
+    }
   }
 
-  //Cargar los grados desde el servicio
   cargarGrados() {
     this.gradoService.getGrados().subscribe({
       next: (data) => {
         this.grados = data;
         this.loading = false;
-        // ¡Ya no hace falta nada más!
       },
-      error: (err) => { 
-        console.error(err); 
-        this.loading = false; 
+      error: (err) => {
+        console.error(err);
+        this.loading = false;
       }
     });
-
   }
 
-  //Guardar nuevo grado
   guardarGrado() {
     this.procesando = true;
 
     if (this.updateEdicion) {
-      // --- MODO EDICIÓN (PUT) ---
       this.gradoService.actualizarGrado(this.nuevoGrado).subscribe({
-        next: () => {
-          this.finalizarOperacion('Grado actualizado correctamente');
-        },
+        next: () => this.finalizarOperacion('Grado actualizado correctamente'),
         error: (err) => this.manejarError(err)
       });
     } else {
-      // --- MODO CREACIÓN (POST) ---
       this.gradoService.crearGrado(this.nuevoGrado).subscribe({
-        next: () => {
-          this.finalizarOperacion('Grado creado correctamente');
-        },
+        next: () => this.finalizarOperacion('Grado creado correctamente'),
         error: (err) => this.manejarError(err)
-      })
-  }
+      });
+    }
   }
 
-  //Eliminar grado con confirmación
-  eliminarGrado(grado: Grado) { // <--- Ahora recibe el objeto Grado
+  eliminarGrado(grado: Grado) {
     const confirmacion = confirm(`¿Estás seguro de eliminar el ${grado.nivel}?`);
-    
     if (!confirmacion) return;
 
-    // Llamamos al servicio con el objeto completo
     this.gradoService.deleteGrado(grado).subscribe({
-      next: () => {
-        this.cargarGrados(); // Recargar lista
-      },
+      next: () => this.cargarGrados(),
       error: (err) => {
         console.error(err);
         alert('No se pudo eliminar el grado.');
@@ -123,12 +114,13 @@ export class Dashboard implements OnInit {
     });
   }
 
-  // Helpers para no repetir código
   finalizarOperacion(mensaje: string) {
     console.log(mensaje);
     this.procesando = false;
-    this.mostrarFormulario = false;
-    this.cargarGrados(); // Recargar lista
+    this.cargarGrados();
+    if (this.modalInstance) {
+      this.modalInstance.hide();
+    }
   }
 
   manejarError(err: any) {
@@ -137,9 +129,7 @@ export class Dashboard implements OnInit {
     this.procesando = false;
   }
 
-  //Cerrar sesión
   logout() {
     this.authService.logout();
   }
-
 }

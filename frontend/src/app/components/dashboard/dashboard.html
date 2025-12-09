@@ -56,58 +56,62 @@
         
         <!-- SOLO ADMIN PUEDE CREAR GRADOS -->
         @if (isAdmin) {
-          <button class="btn" 
-                  [class.btn-success]="!mostrarFormulario" 
-                  [class.btn-danger]="mostrarFormulario"
-                  (click)="iniciarCreacion()">
-            @if (!mostrarFormulario) {
-              <i class="bi bi-plus-lg"></i> Nuevo Grado
-            } @else {
-              <i class="bi bi-x-lg"></i> Cancelar
-            }
+          <button class="btn btn-success btn-square shadow" 
+                  (click)="iniciarCreacion()"
+                  title="Nuevo Grado">
+                  <i class="bi bi-plus-lg"></i>
           </button>
         }
       </div>
-
-      <!-- FORMULARIO (Solo se muestra si se activa la variable) -->
-      @if (mostrarFormulario) {
-        <div class="card mb-4 bg-light border-success animate__animated animate__fadeIn">
-          <div class="card-body">
-            <h5 class="card-title text-success mb-3">
-              {{ updateEdicion ? 'Editar Grado' : 'Crear Nuevo Grado' }}
-            </h5>
+<div class="modal fade" #modalGrado id="modalGrado" tabindex="-1" aria-labelledby="modalGradoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content">
             
-            <form (ngSubmit)="guardarGrado()" class="row g-3">
+            <div class="modal-header bg-success text-white">
+              <h5 class="modal-title" id="modalGradoLabel">
+                {{ updateEdicion ? 'Editar Grado' : 'Crear Nuevo Grado' }}
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+              <form (ngSubmit)="guardarGrado()" id="formGrado" class="row g-3">
+                
+                <div class="col-md-6">
+                  <label class="form-label">Nivel / Grado</label>
+                  <input type="text" class="form-control" [(ngModel)]="nuevoGrado.nivel" name="nivel" placeholder="Ej. 9no Grado" required>
+                </div>
+
+                <div class="col-md-3">
+                  <label class="form-label">Sección</label>
+                  <input type="text" class="form-control" [(ngModel)]="nuevoGrado.seccion" name="seccion" placeholder="Ej. A" required>
+                </div>
+
+                <div class="col-md-3">
+                  <label class="form-label">Año</label>
+                  <input type="number" class="form-control" [(ngModel)]="nuevoGrado.anioEscolar" name="anio" required>
+                </div>
+
+                <button type="button" #btnCerrarModal class="d-none" data-bs-dismiss="modal"></button>
+
+              </form>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
               
-              <div class="col-md-5">
-                <label class="form-label">Nivel / Grado</label>
-                <input type="text" class="form-control" [(ngModel)]="nuevoGrado.nivel" name="nivel" placeholder="Ej. 9no Grado" required>
-              </div>
+              <button type="submit" form="formGrado" class="btn btn-success" [disabled]="procesando">
+                @if (procesando) {
+                  <span class="spinner-border spinner-border-sm me-2"></span> Guardando...
+                } @else {
+                  <i class="bi bi-save me-1"></i> Guardar
+                }
+              </button>
+            </div>
 
-              <div class="col-md-3">
-                <label class="form-label">Sección</label>
-                <input type="text" class="form-control" [(ngModel)]="nuevoGrado.seccion" name="seccion" placeholder="Ej. A" required>
-              </div>
-
-              <div class="col-md-2">
-                <label class="form-label">Año</label>
-                <input type="number" class="form-control" [(ngModel)]="nuevoGrado.anioEscolar" name="anio" required>
-              </div>
-
-              <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-success w-100" [disabled]="procesando">
-                  @if (procesando) {
-                    <span class="spinner-border spinner-border-sm"></span>
-                  } @else {
-                    Guardar
-                  }
-                </button>
-              </div>
-
-            </form>
           </div>
         </div>
-      }
+      </div>
 
       @if (loading) {
         <div class="text-center py-5">
@@ -118,10 +122,14 @@
       }
 
       @if (!loading && grados.length === 0) {
-        <div class="alert alert-warning">
+        <div class="alert alert-warning mt-4">
           No tienes grados registrados aún.
         </div>
       }
+      
+
+      <!-- FORMULARIO (Solo se muestra si se activa la variable) -->
+
       
       @if (!loading && grados.length > 0) {
         <div class="row">
