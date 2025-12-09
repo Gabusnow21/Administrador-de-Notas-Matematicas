@@ -1,0 +1,28 @@
+/* Estilos para la tarjeta de grados */
+.hover-effect {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Transición suave */
+  background-color: #fff;
+  border: 1px solid rgba(0,0,0,0.08); /* Borde sutil base */
+  /* El borde izquierdo ya lo define Bootstrap, pero aquí aseguramos la transición */
+}
+
+/* Efecto al pasar el mouse (Hover) */
+.hover-effect:hover {
+  transform: translateY(-10px); /* Mueve la tarjeta hacia arriba */
+  box-shadow: 0 14px 28px rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.12) !important; /* Sombra profunda */
+  border-color: transparent; /* Opcional: limpia bordes grises para resaltar la sombra */
+}
+
+/* MICRO-INTERACCIÓN EXTRA: Mover la flecha del botón "Ver Estudiantes" */
+.hover-effect:hover .btn-primary i.bi-arrow-right {
+  transform: translateX(4px); /* Mueve la flechita a la derecha */
+  transition: transform 0.2s ease-in-out;
+}
+
+/* MICRO-INTERACCIÓN EXTRA: Resaltar el icono del calendario */
+.hover-effect:hover .bi-calendar-event {
+  color: var(--bs-primary); /* Cambia a color primario al hacer hover */
+  transform: scale(1.2);
+  display: inline-block; /* Necesario para transformar iconos */
+  transition: all 0.3s ease;
+}

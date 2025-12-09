@@ -144,54 +144,53 @@
           </div>
 
           <!-- TARJETAS DE GRADOS -->
-          @for (grado of grados; track grado.id) {
+          @for (grado of grados; track grado.id) { 
             <div class="col-md-6 col-lg-3 d-flex align-items-stretch">
-              
-              <div class="card mb-4 shadow-sm hover-effect w-100" style="aspect-ratio: 1 / 1;">
-                
-                <div class="card-body d-flex flex-column justify-content-between h-100 p-4 border-start border-4 border-primary">
-                  
-                  <!-- Botón Ver Estudiantes (Arriba Derecha) -->
-                  <div class="d-flex justify-content-end">
-                    <button class="btn btn-primary btn-sm"
-                            [routerLink]="['/grado', grado.id]"
-                            title="Ver Estudiantes">
-                      Ver Estudiantes <i class="bi bi-arrow-right"></i>
-                    </button>
-                  </div>
-
-                  <!-- Centro: Info -->
-                  <div class="text-center my-auto">
-                    <h4 class="card-title fw-bold mb-1 text-truncate" title="{{ grado.nivel }} {{ grado.seccion }}">
-                      {{ grado.nivel }} "{{ grado.seccion }}"
-                    </h4>
-                    <p class="card-text text-muted fs-5">
-                      <i class="bi bi-calendar-event"></i> {{ grado.anioEscolar }}
-                    </p>
-                  </div>
-
-                  <!-- Pie: Acciones (SOLO ADMIN) -->
-                  <div class="d-flex justify-content-start gap-2" style="min-height: 31px;">
-                    @if (isAdmin) {
-                      <button class="btn btn-outline-warning btn-sm" 
-                              (click)="editarGrado(grado)"
-                              title="Editar Grado">
-                        <i class="bi bi-pencil-fill me-1"></i> Editar
-                      </button>
-
-                      <button class="btn btn-outline-danger btn-sm" 
-                              (click)="eliminarGrado(grado)"
-                              title="Eliminar Grado">
-                        <i class="bi bi-trash-fill me-1"></i> Borrar
-                      </button>
-                    }
-                  </div>
-
+          
+            <div class="card mb-4 shadow-sm hover-effect w-100 position-relative clickable-card" 
+            [routerLink]="['/grado', grado.id]"
+            title="Ver Estudiantes"
+            style="aspect-ratio: 1 / 1;">
+          
+              <div
+                class="card-body d-flex flex-column justify-content-between h-100 p-4 border-start border-4 border-primary bg-white rounded-end position-relative">
+        
+          
+                <!-- Centro: Info -->
+                <div class="text-center flex-grow-1 d-flex flex-column justify-content-center">
+                  <h4 class="card-title fw-bold mb-2 text-truncate text-dark" title="{{ grado.nivel }} {{ grado.seccion }}">
+                    {{ grado.nivel }} "{{ grado.seccion }}"
+                  </h4>
+                  <p class="card-text text-muted fs-5">
+                    <i class="bi bi-calendar-event me-2"></i> {{ grado.anioEscolar }}
+                  </p>
+                  <small class="text-primary mt-2 d-none d-hover-block fst-italic">
+                    Haga clic para ver estudiantes
+                  </small>
                 </div>
+          
+                <!-- Pie: Acciones (SOLO ADMIN) -->
+                <div class="d-flex justify-content-start gap-2 position-absolute bottom-0 start-0 p-3"
+                (click)="$event.stopPropagation()">
+                  @if (isAdmin) {
+                  <button class="btn btn-outline-warning btn-sm border-0 z-3" 
+                  (click)="editarGrado(grado)" 
+                  title="Editar Grado">
+                    <i class="bi bi-pencil-fill"></i> Editar
+                  </button>
+          
+                  <button class="btn btn-outline-danger btn-sm border-0 z-3" 
+                  (click)="eliminarGrado(grado)" 
+                  title="Eliminar Grado">
+                    <i class="bi bi-trash-fill"></i> Borrar
+                  </button>
+                  }
+                </div>
+          
               </div>
             </div>
-          }
-
+            </div>
+            } 
         </div>
       }
     </div>
