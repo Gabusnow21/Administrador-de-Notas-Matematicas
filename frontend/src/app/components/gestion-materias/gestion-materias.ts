@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Materia } from '../../services/materia';
+import { Materia, MateriaService } from '../../services/materia';
 
 export interface MateriaData {
   id?: number;
@@ -16,7 +16,7 @@ export interface MateriaData {
   styleUrl: './gestion-materias.css',
 })
 export class GestionMaterias implements OnInit {
-  private materiaService = inject(Materia);
+  private materiaService = inject(MateriaService);
 
   materias: Materia[] = [];
   loading: boolean = true;
@@ -56,7 +56,7 @@ export class GestionMaterias implements OnInit {
     this.esEdicion = false;
     this.materiaForm = { nombre: '', descripcion: '' };
   }
-
+  // Guardar cambios (crear o actualizar)
   guardar() {
     this.procesando = true;
 
@@ -72,14 +72,18 @@ export class GestionMaterias implements OnInit {
       });
     }
   }
-
-  eliminar(id: number) {
+  // Eliminar materia
+eliminar(materia: Materia) { 
     if(!confirm('¿Eliminar esta materia?')) return;
-    
-    this.materiaService.borrar(id).subscribe({
-      next: () => this.cargarMaterias(),
-      error: () => alert('No se puede eliminar (quizás ya tiene actividades asignadas).')
-    });
+  
+    const idParaBorrar = materia.id || materia.localId;
+
+    if (idParaBorrar) {
+        this.materiaService.borrar(idParaBorrar).subscribe({
+          next: () => this.cargarMaterias(),
+          error: () => alert('No se pudo eliminar offline.')
+        });
+    }
   }
 
   private finalizarOperacion() {

@@ -112,6 +112,13 @@ public class CalificacionController {
         return ResponseEntity.ok(planilla);
     }
 
+    // Endpoint para Sincronización Total
+    @GetMapping("/all")
+    public ResponseEntity<List<Calificacion>> getAll() {
+        return ResponseEntity.ok(calificacionRepository.findAll());
+    }
+
+
     // DTO Interno para recibir los datos
     @Data
     public static class CalificacionRequest {

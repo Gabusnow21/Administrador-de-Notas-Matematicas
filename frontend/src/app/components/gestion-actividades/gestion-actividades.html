@@ -13,15 +13,17 @@
         <div class="col-md-6">
           <label class="form-label fw-bold">Selecciona Materia:</label>
           <select class="form-select" [(ngModel)]="selMateria" (change)="cargarActividades()">
-            <option [value]="0">-- Seleccionar --</option>
-            @for (m of materias; track m.id) { <option [value]="m.id">{{ m.nombre }}</option> }
+            <option [ngValue]="0">-- Seleccionar --</option>
+            @for (m of materias; track m.id) 
+            { <option [ngValue]="m.id">{{ m.nombre }}</option> }
           </select>
         </div>
         <div class="col-md-6">
           <label class="form-label fw-bold">Selecciona Trimestre:</label>
           <select class="form-select" [(ngModel)]="selTrimestre" (change)="cargarActividades()">
-            <option [value]="0">-- Seleccionar --</option>
-            @for (t of trimestres; track t.id) { <option [value]="t.id">{{ t.nombre }}</option> }
+            <option [ngValue]="0">-- Seleccionar --</option>
+            @for (t of trimestres; track t.id)
+             { <option [ngValue]="t.id">{{ t.nombre }}</option> }
           </select>
         </div>
       </div>
@@ -93,7 +95,7 @@
                       <button class="btn btn-sm btn-outline-warning me-2" (click)="editar(act)">
                         <i class="bi bi-pencil-fill"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-danger" (click)="eliminar(act.id!)">
+                      <button class="btn btn-sm btn-outline-danger" (click)="eliminar(act)">
                         <i class="bi bi-trash-fill"></i>
                       </button>
                     </td>

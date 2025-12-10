@@ -99,6 +99,12 @@ public class ActividadController {
         actividadRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    // Endpoint para Sincronización Total
+    @GetMapping("/all")
+    public ResponseEntity<List<Actividad>> getAll() {
+        return ResponseEntity.ok(actividadRepository.findAll());
+    }
     @Data
     @lombok.AllArgsConstructor
     @lombok.NoArgsConstructor

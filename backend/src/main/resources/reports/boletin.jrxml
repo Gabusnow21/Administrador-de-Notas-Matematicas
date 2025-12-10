@@ -5,6 +5,8 @@
               name="boletin_escolar" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="42c36e45-7510-4c73-897b-953527099212">
 
     <parameter name="nombreEstudiante" class="java.lang.String"/>
+    <parameter name="paramLeftLogo" class="java.awt.Image"/>
+    <parameter name="paramRightLogo" class="java.awt.Image"/>
 
     <field name="asignatura" class="java.lang.String"/>
     <field name="notaT1" class="java.math.BigDecimal"/>
@@ -19,6 +21,14 @@
 
     <title>
         <band height="180" splitType="Stretch">
+            <image>
+                <reportElement x="24" y="15" width="75" height="75"/>
+                <imageExpression><![CDATA[$P{paramLeftLogo}]]></imageExpression>
+            </image>
+            <image>
+                <reportElement x="471" y="15" width="75" height="75"/>
+                <imageExpression><![CDATA[$P{paramRightLogo}]]></imageExpression>
+            </image>
             <staticText>
                 <reportElement x="80" y="0" width="400" height="20" uuid="a1b2c3d4-e5f6-4789-a1b2-c3d4e5f60001"/>
                 <textElement textAlignment="Center">

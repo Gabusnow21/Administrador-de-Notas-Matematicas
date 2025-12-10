@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,17 +36,21 @@ public class UsuarioController {
     // 2. Crear un usuario nuevo (Desde el panel de Admin)
     @PostMapping
     public ResponseEntity<?> create(@RequestBody RegisterRequest request) {
-        // Validar si el email ya existe
-        if (usuarioRepository.findByUsername(request.getUsername()).isPresent()) {
-            return ResponseEntity.badRequest().body("El nombre de usuario (email) ya existe.");
+        // 1. Verificar si ya existe
+        var existente = usuarioRepository.findByUsername(request.getUsername());
+        
+        if (existente.isPresent()) {
+            // ESTRATEGIA DE SYNC: Si ya existe, lo devolvemos como si lo acabáramos de crear.
+            // Esto permite que el frontend actualice su ID local y marque como 'synced'.
+            return ResponseEntity.ok(existente.get());
         }
 
+        // 2. Si no existe, lo creamos
         var user = Usuario.builder()
                 .nombre(request.getNombre())
                 .apellido(request.getApellido())
                 .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword())) // ¡Importante encriptar!
-                // Usamos el rol que viene del formulario, o USER por defecto
+                .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole() != null ? request.getRole() : Role.USER)
                 .build();
         
@@ -60,6 +65,28 @@ public class UsuarioController {
         }
         usuarioRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody RegisterRequest request) {
+        return usuarioRepository.findById(id).map(usuario -> {
+            
+            usuario.setNombre(request.getNombre());
+            usuario.setApellido(request.getApellido());
+            usuario.setUsername(request.getUsername());
+            
+            // Actualizar Rol
+            if (request.getRole() != null) {
+                usuario.setRole(request.getRole());
+            }
+
+            // Actualizar Password SOLO si viene texto (no vacío)
+            if (request.getPassword() != null && !request.getPassword().isBlank()) {
+                usuario.setPassword(passwordEncoder.encode(request.getPassword()));
+            }
+
+            return ResponseEntity.ok(usuarioRepository.save(usuario));
+        }).orElse(ResponseEntity.notFound().build());
     }
     
 }

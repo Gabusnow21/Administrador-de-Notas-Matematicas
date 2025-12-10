@@ -2,9 +2,9 @@ import { Component, inject, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalificacionService, PlanillaItem, CalificacionRequest } from '../../services/calificacion';
 import { Grado, GradoService } from '../../services/grado';
-import { Actividad } from '../../services/actividad';
-import { Materia } from '../../services/materia';
-import { Trimestre } from '../../services/trimestre';
+import { Actividad,ActividadService } from '../../services/actividad';
+import { Materia, MateriaService } from '../../services/materia';
+import { Trimestre, TrimestreService } from '../../services/trimestre';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -19,9 +19,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 export class RegistroNotas implements OnInit {
   // Inyecciones
   private gradoService = inject(GradoService);
-  private materiaService = inject(Materia);
-  private trimestreService = inject(Trimestre);
-  private actividadService = inject(Actividad);
+  private materiaService = inject(MateriaService);
+  private trimestreService = inject(TrimestreService);
+  private actividadService = inject(ActividadService);
   private calificacionService = inject(CalificacionService);
   private route = inject(ActivatedRoute);
 
@@ -89,9 +89,16 @@ export class RegistroNotas implements OnInit {
     this.planilla = []; // Limpiar tabla si cambian filtros
     this.selActividad = 0;
 
-    if (this.selMateria && this.selTrimestre) {
-      this.actividadService.getByMateriaAndTrimestre(this.selMateria, this.selTrimestre)
-        .subscribe(data => this.actividades = data);
+    if (Number(this.selMateria) > 0 && Number(this.selTrimestre) > 0) {
+      
+      this.actividadService.getByMateriaAndTrimestre(
+        Number(this.selMateria), 
+        Number(this.selTrimestre)
+      ).subscribe(data => {
+          this.actividades = data;
+          // Debug para ver si llegan datos offline
+          console.log('Actividades cargadas:', data); 
+      });
     }
   }
 
