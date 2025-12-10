@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, from } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
-import { LocalDbService } from './local-db';
+import { LocalCalificacion, LocalDbService, LocalEstudiante } from './local-db';
 
 export interface PlanillaItem {
   estudianteId: number;
@@ -21,7 +21,7 @@ export interface Calificacion {
   observacion?: string;
   estudianteId?: number;
   actividadId?: number;
-  actividad?: any; // Usamos any para evitar errores de tipos anidados
+  actividad?: any;
   estudiante?: any;
   syncStatus?: string;
 }
@@ -33,9 +33,7 @@ export interface CalificacionRequest {
   observacion: string;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class CalificacionService {
   private http = inject(HttpClient);
   private localDb = inject(LocalDbService);
@@ -47,7 +45,6 @@ export class CalificacionService {
   // 1. OBTENER PLANILLA (Fusión de Datos)
   // ==========================================
   obtenerPlanilla(gradoId: number, actividadId: number): Observable<PlanillaItem[]> {
-    
     const leerDesdeLocal = () => from(this.construirPlanillaOffline(gradoId, actividadId));
 
     if (this.isOnline) {
@@ -55,7 +52,7 @@ export class CalificacionService {
         `${this.apiUrl}/planilla?gradoId=${gradoId}&actividadId=${actividadId}`
       ).pipe(
         switchMap(async (planillaServer) => {
-          // Guardar en local lo que bajamos del servidor
+          // Guardamos lo que bajamos del servidor
           const notasParaGuardar = planillaServer
             .filter(item => item.calificacionId != null)
             .map(item => ({
@@ -69,7 +66,6 @@ export class CalificacionService {
           if (notasParaGuardar.length > 0) {
             await this.localDb.guardarCalificacionesServerSafe(notasParaGuardar);
           }
-          // Devolver siempre desde local (Single Source of Truth)
           return await this.construirPlanillaOffline(gradoId, actividadId);
         }),
         catchError(err => {
@@ -82,19 +78,29 @@ export class CalificacionService {
     }
   }
 
+  // 👇 LÓGICA BLINDADA DE BÚSQUEDA 👇
   private async construirPlanillaOffline(gradoId: number, actividadId: number): Promise<PlanillaItem[]> {
-    // 1. Obtener estudiantes
+    console.log(`🔍 [Offline] Generando Planilla. Grado: ${gradoId}, Actividad: ${actividadId}`);
+    
+    // 1. Estudiantes
     const estudiantes = await this.localDb.getEstudiantesPorGrado(Number(gradoId));
     
-    // 2. Obtener notas: Intentamos búsqueda numérica estricta
-    // Si esto falla, es porque se guardaron como strings. 
-    // Dexie no permite 'OR' en la query fácil, así que traemos todo si es necesario o confiamos en el Number()
-    const notasRaw = await this.localDb.getCalificacionesPorActividad(Number(actividadId));
+    // 2. Notas (FUERZA BRUTA: Traer todo y filtrar en RAM)
+    const todasLasNotas = await this.localDb.calificaciones.toArray();
+    
+    // Filtrar manualmente asegurando tipos numéricos
+    const notasRaw = todasLasNotas.filter((n: LocalCalificacion) => 
+        Number(n.actividadId) === Number(actividadId)
+    );
 
-    // 3. Filtrado Inteligente (Gana el cambio pendiente)
-    const mapaNotas = new Map<(number), any>();
+    console.log(`   -> Estudiantes: ${estudiantes.length}`);
+    console.log(`   -> Total Notas en BD: ${todasLasNotas.length}`);
+    console.log(`   -> Notas para esta actividad: ${notasRaw.length}`);
 
-    notasRaw.forEach(nota => {
+    // 3. Mapa para filtrar la "Mejor Nota"
+    const mapaNotas = new Map<number, any>();
+
+    notasRaw.forEach((nota: LocalCalificacion) => {
       const idEst = Number(nota.estudianteId);
       
       if (mapaNotas.has(idEst)) {
@@ -114,12 +120,12 @@ export class CalificacionService {
         mapaNotas.set(idEst, nota);
       }
     });
-    
+
     // 4. Cruzar
-    return estudiantes.map(est => {
+    return estudiantes.map((est: LocalEstudiante) => {
       const idReal = est.id ? Number(est.id) : -1;
       const idLocal = est.localId ? Number(est.localId) : -1;
-      
+
       const nota = mapaNotas.get(idReal) || mapaNotas.get(idLocal);
 
       return {
@@ -135,53 +141,39 @@ export class CalificacionService {
   }
 
   // ==========================================
-  // 2. GUARDAR NOTA (Upsert con Seguridad de Tipos)
+  // 2. GUARDAR NOTA
   // ==========================================
   guardarCalificacion(request: CalificacionRequest, fromSync = false): Observable<any> {
-    const requestSeguro = {
-      ...request,
-      estudianteId: Number(request.estudianteId),
-      actividadId: Number(request.actividadId),
-      nota: Number(request.nota)
-    };
-
     if (fromSync) {
-      // Si viene del SyncService, solo hacemos la petición HTTP y devolvemos.
-      // El SyncService se encargará de actualizar el estado local.
-      return this.http.post(this.apiUrl, requestSeguro);
+      return this.http.post(this.apiUrl, request);
     }
 
-    const guardarLocal = () => {
-      console.log('🔌 Guardando nota offline...');
-      return from(this.localDb.guardarNotaOffline(requestSeguro));
+    const requestSeguro = {
+        ...request,
+        estudianteId: Number(request.estudianteId),
+        actividadId: Number(request.actividadId),
+        nota: Number(request.nota)
     };
+
+    const guardarLocal = () => from(this.localDb.guardarNotaOffline(requestSeguro));
 
     if (this.isOnline) {
       return this.http.post(this.apiUrl, requestSeguro).pipe(
-        tap((calificacionGuardada: any) => {
-           // Después de guardar en el server, actualizamos el registro local
-           // con el ID del servidor y lo marcamos como 'synced'.
-           this.localDb.guardarNotaOffline({
-             ...requestSeguro,
-             id: calificacionGuardada.id, // <-- Usamos el ID devuelto por el servidor
-             syncStatus: 'synced'
-          });
+        tap(() => {
+           this.localDb.guardarNotaOffline({ ...requestSeguro, syncStatus: 'synced' });
         }),
         catchError(err => {
             console.warn('⚠️ Error POST Nota API:', err);
-            // Si falla el guardado en el servidor, guardamos localmente
-            // para sincronizar después.
             return guardarLocal();
         })
       );
     } else {
-      // Si estamos offline, guardamos directamente en local.
       return guardarLocal();
     }
   }
 
   // ==========================================
-  // 3. SINCRONIZAR TODO (Corrección de Compilación)
+  // 3. SINCRONIZAR TODO
   // ==========================================
   sincronizarTodo(): Observable<any> {
     if (!this.isOnline) return from([]);
@@ -189,19 +181,16 @@ export class CalificacionService {
     return this.http.get<Calificacion[]>(`${this.apiUrl}/all`).pipe(
       tap(async (data) => {
         console.log(`📡 [Sync] Bajadas ${data.length} calificaciones.`);
-        
         const notasPlanas = data.map(c => {
-           // 👇 CORRECCIÓN: Casting a 'any' para evitar error TS2339
            const obj = c as any; 
            return {
              id: obj.id,
              nota: obj.nota,
              observacion: obj.observacion,
-             estudianteId: obj.estudiante ? obj.estudiante.id : obj.estudianteId,
-             actividadId: obj.actividad ? obj.actividad.id : obj.actividadId,
+             estudianteId: Number(obj.estudiante ? obj.estudiante.id : obj.estudianteId),
+             actividadId: Number(obj.actividad ? obj.actividad.id : obj.actividadId),
            };
         });
-
         await this.localDb.guardarCalificacionesServerSafe(notasPlanas);
       })
     );
@@ -221,13 +210,14 @@ export class CalificacionService {
   }
 
   private async getLocalBoletin(estudianteId: number): Promise<Calificacion[]> {
-     const notasLocales = await this.localDb.calificaciones
-        .filter(n => n.estudianteId === Number(estudianteId))
-        .toArray();
-     
+     const todasLasNotas = await this.localDb.calificaciones.toArray();
+     const notasFiltradas = todasLasNotas.filter((n: LocalCalificacion) => Number(n.estudianteId) === Number(estudianteId));
+
      const resultado: Calificacion[] = [];
-     for (const n of notasLocales) {
-       const actividad = await this.localDb.actividades.get(n.actividadId);
+     for (const n of notasFiltradas) {
+       let actividad = await this.localDb.actividades.where('id').equals(n.actividadId).first();
+       if (!actividad) actividad = await this.localDb.actividades.get(n.actividadId);
+       
        if (actividad) {
          resultado.push({
            id: n.id,
@@ -242,8 +232,6 @@ export class CalificacionService {
              trimestre: { nombre: 'Offline' }
            }
          });
-       }else{
-          console.warn(`⚠️ Actividad ID ${n.actividadId} no encontrada en local para estudiante ID ${estudianteId}.`);
        }
      }
      return resultado;

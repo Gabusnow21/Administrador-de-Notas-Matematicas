@@ -8,6 +8,7 @@ import { Reporte } from '../../services/reporte';
 import { Materia, MateriaService } from '../../services/materia';
 import { Actividad, ActividadService } from '../../services/actividad';
 import { Trimestre, TrimestreService } from '../../services/trimestre';
+import { SyncService } from '../../services/sync';
 
 @Component({
   selector: 'app-vista-calificaciones',
@@ -25,6 +26,8 @@ export class VistaCalificaciones implements OnInit {
   private materiaService = inject(MateriaService);
   private actividadService = inject(ActividadService);
   private trimestreService = inject(TrimestreService);
+  private syncService = inject(SyncService);
+
 
   //Variables
   estudianteId: number = 0;
@@ -39,9 +42,11 @@ export class VistaCalificaciones implements OnInit {
   materiaIDSeleccionada: number = 0;
   trimestreIDSeleccionado: number = 0;
 
-  
   // Variable para botón de carga
   procesando: boolean = false;
+  showModal: boolean = false; // Visibilidad del modal
+
+  get isOnline(): boolean { return this.syncService.isOnline(); }
 
   //Objeto para el formulario
   nuevaCalificacion: CalificacionRequest = {
@@ -101,7 +106,8 @@ export class VistaCalificaciones implements OnInit {
         this.nuevaCalificacion.observacion = '';
         
         // Recargar la tabla para ver el cambio
-        this.cargarDatos(); 
+        this.cargarDatos();
+        this.cerrarModal(); // Cerrar modal al guardar con éxito
       },
       error: (err) => {
         console.error('Error guardando:', err);
@@ -157,16 +163,57 @@ export class VistaCalificaciones implements OnInit {
     const mId = Number(this.materiaIDSeleccionada);
     const tId = Number(this.trimestreIDSeleccionado);
 
-if (mId > 0 && tId > 0) {
-      this.actividadService.getByMateriaAndTrimestre(mId, tId)
+    if (this.isOnline) {
+      if (mId > 0 && tId > 0) {
+        this.actividadService.getByMateriaAndTrimestre(mId, tId)
+          .subscribe({
+            next: (data) => {
+              this.actividades = data;
+              console.log(`Actividades cargadas (Materia: ${mId}, Trimestre: ${tId}):`, data);
+
+              if (data.length === 0) {
+                console.warn('No se encontraron actividades para los filtros seleccionados');
+              }
+            },
+            error: (err) => {
+              console.error('Error cargando actividades:', err);
+            }
+          });
+      }
+    } else {
+      // Si estamos offline, cargamos todas las actividades locales disponibles
+      this.materiaIDSeleccionada = 0; // Resetear para que el dropdown no muestre un filtro activo
+      this.trimestreIDSeleccionado = 0; // Resetear
+      this.actividadService.getAllLocalActivities()
         .subscribe({
           next: (data) => {
             this.actividades = data;
-            // this.cd.detectChanges(); // (Si ya lo borraste, ignora esta línea)
+            console.log('Actividades cargadas desde local (offline):', data);
+            if (data.length === 0) {
+              console.warn('No se encontraron actividades locales.');
+            }
           },
-          error: (err) => console.error(err)
+          error: (err) => {
+            console.error('Error cargando actividades locales:', err);
+          }
         });
     }
+  }
 
-}
+  // Método que se ejecuta cuando el usuario selecciona una actividad del dropdown
+  onActividadSeleccionada() {
+    if (this.nuevaCalificacion.actividadId > 0) {
+      console.log('Actividad seleccionada:', this.nuevaCalificacion.actividadId);
+      // Recargar calificaciones para actualizar la vista con los datos más recientes
+      this.cargarDatos();
+    }
+  }
+
+  abrirModal() {
+    this.showModal = true;
+  }
+
+  cerrarModal() {
+    this.showModal = false;
+  }
 }

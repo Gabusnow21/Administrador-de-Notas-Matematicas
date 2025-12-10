@@ -18,7 +18,7 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthenticationResponse register(RegisterRequest request) {
+    public Usuario register(RegisterRequest request) {
         var user = Usuario.builder()
                 .nombre(request.getNombre())
                 .apellido(request.getApellido())
@@ -27,12 +27,7 @@ public class AuthenticationService {
                 .role(request.getRole()) 
                 .build();
         
-        repository.save(user);
-        
-        var jwtToken = jwtService.generateToken(user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
+        return repository.save(user);
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {

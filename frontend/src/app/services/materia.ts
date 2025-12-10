@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
-import { LocalDbService } from './local-db';
+import { LocalDbService, SyncStatus } from './local-db';
 import { tap, catchError } from 'rxjs/operators';
 
 export interface Materia {
@@ -32,7 +32,7 @@ export class MateriaService {
           // Actualizamos caché local
           this.localDb.transaction('rw', this.localDb.materias, async () => {
              await this.localDb.materias.clear();
-             const locales = data.map(m => ({ ...m, syncStatus: 'synced' as any }));
+             const locales = data.map(m => ({ ...m, syncStatus: 'synced' as const }));
              await this.localDb.materias.bulkAdd(locales);
           });
         }),
@@ -48,17 +48,19 @@ export class MateriaService {
   crear(materia: Materia): Observable<Materia> {
     const guardarLocal = () => {
         console.log('🔌 [MateriaService] Guardando offline...');
-        const matLocal: any = { 
-            ...materia, 
-            id: null, 
-            syncStatus: 'create' 
+        const matLocal = {
+            ...materia,
+            syncStatus: 'create' as const
         };
-        return from(this.localDb.materias.add(matLocal).then(() => matLocal));
+        return from(this.localDb.materias.add(matLocal).then((localId) => ({
+            ...matLocal,
+            localId
+        } as Materia)));
     };
 
     if (this.isOnline) {
       return this.http.post<Materia>(this.apiUrl, materia).pipe(
-        tap(m => this.localDb.materias.put({ ...m, syncStatus: 'synced' } as any)),
+        tap(m => this.localDb.materias.put({ ...m, syncStatus: 'synced' as const })),
         catchError(() => guardarLocal())
       );
     } else {
@@ -70,7 +72,7 @@ export class MateriaService {
   actualizar(materia: Materia): Observable<Materia> {
     const actualizarLocal = async () => {
         console.log('🔌 [MateriaService] Actualizando offline...');
-        
+
         let registro;
         // Buscamos por ID servidor o por LocalID
         if (materia.id) {
@@ -80,11 +82,12 @@ export class MateriaService {
         }
 
         if (registro) {
+            const newSyncStatus: SyncStatus = registro.syncStatus === 'create' ? 'create' : 'update';
             await this.localDb.materias.update(registro.localId!, {
                 ...materia,
                 // Si era 'create', se queda 'create'. Si era 'synced', pasa a 'update'
-                syncStatus: registro.syncStatus === 'create' ? 'create' : 'update'
-            } as any);
+                syncStatus: newSyncStatus
+            });
             return materia;
         }
         throw new Error('Materia no encontrada localmente');
@@ -94,7 +97,7 @@ export class MateriaService {
       return this.http.put<Materia>(this.apiUrl, materia).pipe(
         tap(m => {
            if (m.id) {
-             this.localDb.materias.where('id').equals(m.id).modify({ ...m, syncStatus: 'synced' } as any);
+             this.localDb.materias.where('id').equals(m.id).modify({ ...m, syncStatus: 'synced' as const });
            }
         }),
         catchError(() => from(actualizarLocal()))
@@ -108,10 +111,10 @@ export class MateriaService {
   borrar(id: number): Observable<void> {
     const borrarLocal = async () => {
         console.log('🔌 [MateriaService] Borrando offline...');
-        
+
         // Intentar buscar por ID servidor
         let registro = await this.localDb.materias.where('id').equals(id).first();
-        
+
         // Si no, intentar asumir que el 'id' que nos pasaron es un 'localId' (caso borde)
         if (!registro) {
             registro = await this.localDb.materias.get(id);
@@ -123,7 +126,7 @@ export class MateriaService {
                 await this.localDb.materias.delete(registro.localId!);
             } else {
                 // Ya existía, borrado lógico
-                await this.localDb.materias.update(registro.localId!, { syncStatus: 'delete' } as any);
+                await this.localDb.materias.update(registro.localId!, { syncStatus: 'delete' as const });
             }
         }
     };

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { LocalDbService } from './local-db';
+import { LocalDbService, LocalGrado } from './local-db';
 
 export interface Grado {
   id: number;
@@ -66,8 +66,8 @@ export class GradoService {
     // Obtener grado local por ID
   private getLocalGrado(id: number): Observable<Grado> {
     return from(
-      this.localDb.grados.where('id').equals(id).first().then(result => {
-        if (result) return result as any as Grado;
+      this.localDb.grados.where('id').equals(id).first().then((result: LocalGrado | undefined) => {
+        if (result) return result as Grado;
         throw new Error('Grado no encontrado en local');
       })
     );
@@ -77,12 +77,11 @@ export class GradoService {
       crearGrado(grado: Grado): Observable<Grado> {
     const guardarLocalmente = () => {
       console.log('🔌 [GradoService] Guardando offline...');
-      
-      // 👇 CORRECCIÓN: Usamos 'any' para evitar conflicto de tipos
-      const gLocal: any = { 
-        ...grado, 
-        id: null, 
-        syncStatus: 'create' 
+
+      const gLocal = {
+        ...grado,
+        id: undefined,
+        syncStatus: 'create' as const
       };
 
       return from(this.localDb.addGradoOffline(gLocal).then(localId => {
@@ -94,7 +93,7 @@ export class GradoService {
       return this.http.post<Grado>(this.apiUrl, grado).pipe(
         tap(g => {
           // Guardar copia synced
-          this.localDb.grados.put({ ...g, syncStatus: 'synced' } as any);
+          this.localDb.grados.put({ ...g, syncStatus: 'synced' as const });
         }),
         catchError(err => {
           console.warn('⚠️ Error POST API:', err);
@@ -112,16 +111,16 @@ export class GradoService {
         console.log('🔌 Actualizando offline...');
         // Intentamos actualizar buscando por ID de servidor
         return from(this.localDb.grados.where('id').equals(grado.id!).modify({
-            ...grado, 
-            syncStatus: 'update'
-        } as any).then(() => grado));
+            ...grado,
+            syncStatus: 'update' as const
+        }).then(() => grado));
     };
 
     if (this.isOnline) {
       return this.http.put<Grado>(this.apiUrl, grado).pipe(
         tap(g => {
            if (g.id) {
-             this.localDb.grados.where('id').equals(g.id).modify({ ...g, syncStatus: 'synced' } as any);
+             this.localDb.grados.where('id').equals(g.id).modify({ ...g, syncStatus: 'synced' as const });
            }
         }),
         catchError(err => {
@@ -157,7 +156,7 @@ export class GradoService {
 
   //Eliminar un grado por ID
   deleteGrado(grado: Grado): Observable<void> {
-    
+
     // CASO 1: Es un grado local nuevo que nunca se subió (No tiene ID de servidor)
     // Simplemente lo borramos de la DB local y listo.
     if (!grado.id) {
@@ -170,7 +169,7 @@ export class GradoService {
         console.log('🔌 [GradoService] Marcando para borrar offline...');
         return from(
             this.localDb.grados.where('id').equals(grado.id!)
-            .modify({ syncStatus: 'delete' } as any)
+            .modify({ syncStatus: 'delete' as const })
             .then(() => {})
         );
     };

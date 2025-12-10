@@ -10,7 +10,8 @@ export interface LocalUsuario {
   nombre: string;
   apellido: string;
   username: string;
-  password?: string;    
+  password?: string;
+  passwordHash?: string; // Hash SHA-256 para validación offline
   role: string;
   syncStatus: SyncStatus;
 }
