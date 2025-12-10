@@ -1,0 +1,45 @@
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); 
+  backdrop-filter: blur(3px); 
+  display: none;
+  z-index: 1050;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.modal-overlay.show {
+  display: block;
+  opacity: 1;
+}
+
+.modal-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); 
+  z-index: 1051;
+  
+  background-color: #ffffff;
+  border-radius: 15px;       
+  padding: 25px;            
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+  
+  width: 90%;                
+  max-width: 600px;         
+
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.modal-dialog.show {
+  display: block;
+  opacity: 1;
+  transform: translate(-50%, -50%); 
+}

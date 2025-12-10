@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { Usuario, usuarioService } from '../../services/usuario';
+import { Usuario, UsuarioService } from '../../services/usuario';
 import { RouterLink, Routes } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
@@ -14,12 +14,13 @@ import { FormsModule } from '@angular/forms';
 
 export class GestionUsuarios implements OnInit {
 
-  private usuarioService = inject(usuarioService);
+  private usuarioService = inject(UsuarioService);
 
   usuarios: Usuario[] = [];
   loading: boolean = true;
   procesando: boolean = false; // Para el spinner del botón guardar
   mostrarFormulario: boolean = false; // Toggle para mostrar/ocultar
+  esEdicion: boolean = false; // Indica si el formulario está en modo edición
 
   // Objeto para el formulario (Por defecto Rol PROFESOR)
   nuevoUsuario: Usuario = {
@@ -46,32 +47,57 @@ export class GestionUsuarios implements OnInit {
 
   guardar() {
     this.procesando = true;
-    this.usuarioService.crear(this.nuevoUsuario).subscribe({
-      next: () => {
-        alert('Usuario creado correctamente');
-        this.procesando = false;
-        this.mostrarFormulario = false;
-        this.limpiarFormulario();
-        this.cargarUsuarios(); // Recargar la tabla
-      },
-      error: (err) => {
-        console.error(err);
-        this.procesando = false;
-        alert('Error al crear usuario. Verifica que el correo no esté repetido.');
-      }
-    });
+
+    if (this.esEdicion) {
+      // MODO EDICIÓN
+      this.usuarioService.actualizar(this.nuevoUsuario).subscribe({
+        next: () => {
+          this.finalizarOperacion('Usuario actualizado');
+        },
+        error: () => { this.procesando = false; alert('Error al actualizar'); }
+      });
+    } else {
+      // MODO CREACIÓN
+      this.usuarioService.crear(this.nuevoUsuario).subscribe({
+        next: () => {
+          this.finalizarOperacion('Usuario creado');
+        },
+        error: () => { this.procesando = false; alert('Error al crear'); }
+      });
+    }
   }
 
   eliminar(id: number) {
     if(!confirm('¿Estás seguro de eliminar este usuario?')) return;
     
-    this.usuarioService.borrar(id).subscribe(() => this.cargarUsuarios());
+    this.usuarioService.borrar(this.usuarios.find(u => u.id === id)!).subscribe(() => this.cargarUsuarios());
+  }
+
+  // Al editar
+  editar(usuario: Usuario) {
+    this.mostrarFormulario = true;
+    this.esEdicion = true;
+    // Copiamos datos, pero limpiamos password para no enviarla hasheada
+    this.nuevoUsuario = { ...usuario, password: '' }; 
+  }
+
+  cancelar() {
+    this.mostrarFormulario = false;
+    this.esEdicion = false;
+    this.nuevoUsuario = { nombre: '', apellido: '', username: '', password: '', role: 'USER' };
   }
 
   limpiarFormulario() {
     this.nuevoUsuario = { 
       nombre: '', apellido: '', username: '', password: '', role: 'USER' 
     };
+  }
+
+    private finalizarOperacion(msg: string) {
+    this.procesando = false;
+    alert(msg);
+    this.cancelar();
+    this.cargarUsuarios();
   }
 
 }
