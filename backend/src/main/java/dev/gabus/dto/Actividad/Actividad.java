@@ -2,11 +2,16 @@ package dev.gabus.dto.Actividad;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import dev.gabus.dto.Materia.Materia;
 import dev.gabus.dto.Trimestre.Trimestre;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,6 +20,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -65,4 +71,29 @@ public class Actividad {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Trimestre trimestre;
     
+    // --- Relación Padre-Hijo (Auto-referencia) ---
+
+    // Muchas sub-actividades pueden pertenecer a una actividad padre
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    @JsonBackReference // Evita recursión infinita al serializar a JSON
+    private Actividad parent;
+
+    // Una actividad padre puede tener muchas sub-actividades
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // Evita recursión infinita
+    private Set<Actividad> subActividades;
+
+    // Campo para indicar si esta actividad promedia las notas de sus hijas
+    @Column(name = "promedia", nullable = false, columnDefinition = "boolean default false")
+    private boolean promedia;
+
+
+    @JsonProperty("parentId")
+    public Long getParentId() {
+        if (parent != null) {
+            return parent.getId();
+        }
+        return null;
+    }
 }

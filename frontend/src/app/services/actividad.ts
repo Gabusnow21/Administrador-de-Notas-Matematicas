@@ -16,6 +16,10 @@ export interface Actividad {
   syncStatus?: string;
   materia?: any;
   trimestre?: any;
+  // Nuevos campos para jerarquía
+  subActividades?: Actividad[];
+  parentId?: number;
+  promedia?: boolean;
 }
 
 @Injectable({

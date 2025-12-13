@@ -1,5 +1,5 @@
 <div class="container mt-4">
-  
+
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="text-primary"><i class="bi bi-list-check me-2"></i>Gestión de Actividades</h2>
     <a routerLink="/dashboard" class="btn btn-outline-secondary">
@@ -14,7 +14,7 @@
           <label class="form-label fw-bold">Selecciona Materia:</label>
           <select class="form-select" [(ngModel)]="selMateria" (change)="cargarActividades()">
             <option [ngValue]="0">-- Seleccionar --</option>
-            @for (m of materias; track m.id) 
+            @for (m of materias; track m.id)
             { <option [ngValue]="m.id">{{ m.nombre }}</option> }
           </select>
         </div>
@@ -23,7 +23,7 @@
           <select class="form-select" [(ngModel)]="selTrimestre" (change)="cargarActividades()">
             <option [ngValue]="0">-- Seleccionar --</option>
             @for (t of trimestres; track t.id)
-             { <option [ngValue]="t.id">{{ t.nombre }}</option> }
+            { <option [ngValue]="t.id">{{ t.nombre }}</option> }
           </select>
         </div>
       </div>
@@ -31,91 +31,196 @@
   </div>
 
   @if (selMateria && selTrimestre) {
-    <div class="row">
-      
-      <div class="col-md-4 mb-4">
-        <div class="card shadow-sm sticky-top" style="top: 20px;">
-          <div class="card-header bg-white py-3">
-            <h5 class="card-title m-0 text-success">
-              {{ esEdicion ? 'Editar Actividad' : 'Nueva Actividad' }}
-            </h5>
-          </div>
-          <div class="card-body">
-            <form (ngSubmit)="guardar()">
-              <div class="mb-3">
-                <label class="form-label">Nombre</label>
-                <input type="text" class="form-control" [(ngModel)]="actividadForm.nombre" name="nombre" placeholder="Ej. Examen 1" required>
-              </div>
-              
-              <div class="mb-3">
-                <label class="form-label">Ponderación (%)</label>
-                <input type="number" class="form-control" [(ngModel)]="actividadForm.ponderacion" name="ponderacion" placeholder="Ej. 20" required>
-              </div>
+  <div class="row">
 
-              <div class="mb-3">
-                <label class="form-label">Descripción</label>
-                <textarea class="form-control" [(ngModel)]="actividadForm.descripcion" name="desc" rows="2"></textarea>
-              </div>
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm sticky-top" style="top: 20px;">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title m-0 text-success">
+            <span>{{ esEdicion ? 'Editar Actividad' : 'Nueva Actividad Principal' }}</span>
+          </h5>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="guardar()">
+            <div class="mb-3">
+              <label class="form-label">Nombre</label>
+              <input type="text" class="form-control" [(ngModel)]="actividadForm.nombre" name="nombre"
+                placeholder="Ej. Examen 1" required>
+            </div>
 
-              <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-success" [disabled]="procesando">
-                  {{ esEdicion ? 'Actualizar' : 'Guardar' }}
-                </button>
-                @if (esEdicion) {
-                  <button type="button" class="btn btn-outline-secondary" (click)="cancelarEdicion()">Cancelar</button>
-                }
-              </div>
-            </form>
-          </div>
+            <div class="mb-3">
+              <label class="form-label">Ponderación (%)</label>
+              <input type="number" class="form-control" [(ngModel)]="actividadForm.ponderacion" name="ponderacion"
+                placeholder="Ej. 20" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Descripción</label>
+              <textarea class="form-control" [(ngModel)]="actividadForm.descripcion" name="desc" rows="2"></textarea>
+            </div>
+
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" [(ngModel)]="actividadForm.promedia" name="promedia"
+                id="promediaCheck">
+              <label class="form-check-label" for="promediaCheck">
+                Promediar notas de sub-actividades
+              </label>
+            </div>
+
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-success" [disabled]="procesando">
+                {{ esEdicion ? 'Actualizar' : 'Guardar' }}
+              </button>
+              @if (esEdicion) {
+              <button type="button" class="btn btn-outline-secondary" (click)="cancelarEdicion()">Cancelar</button>
+              }
+            </div>
+          </form>
         </div>
       </div>
-
-      <div class="col-md-8">
-        <div class="card shadow-sm">
-          <div class="card-header bg-white">
-            Actividades Registradas
-          </div>
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th class="ps-4">Nombre</th>
-                  <th>Pond.</th>
-                  <th>Descripción</th>
-                  <th class="text-end pe-4">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (act of actividades; track act.id) {
-                  <tr>
-                    <td class="ps-4 fw-bold">{{ act.nombre }}</td>
-                    <td><span class="badge bg-info text-dark">{{ act.ponderacion }}%</span></td>
-                    <td class="small text-muted">{{ act.descripcion || '-' }}</td>
-                    <td class="text-end pe-4">
-                      <button class="btn btn-sm btn-outline-warning me-2" (click)="editar(act)">
-                        <i class="bi bi-pencil-fill"></i>
-                      </button>
-                      <button class="btn btn-sm btn-outline-danger" (click)="eliminar(act)">
-                        <i class="bi bi-trash-fill"></i>
-                      </button>
-                    </td>
-                  </tr>
-                }
-                @if (actividades.length === 0) {
-                  <tr><td colspan="4" class="text-center py-4 text-muted">No hay actividades creadas para este filtro.</td></tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
     </div>
+
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span>Actividades Registradas</span>
+          <span class="badge bg-primary">Ponderación Total: {{ ponderacionTotal }}%</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Nombre</th>
+                <th>Pond.</th>
+                <th>Descripción</th>
+                <th class="text-end pe-4">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (act of actividades; track act.id) {
+              <tr class="table-light">
+                <td class="ps-4 fw-bold">{{ act.nombre }}</td>
+                <td><span class="badge bg-info text-dark">{{ act.ponderacion }}%</span></td>
+                <td class="small text-muted">{{ act.descripcion || '-' }}</td>
+                <td class="text-end pe-4">
+                  <button class="btn btn-sm btn-outline-primary me-2" (click)="verSubActividades(act)"
+                    title="Ver sub-actividades">
+                    <i class="bi bi-eye-fill"></i> ({{ act.subActividades?.length || 0 }})
+                  </button>
+                  <button class="btn btn-sm btn-outline-warning me-2" (click)="editar(act)" title="Editar">
+                    <i class="bi bi-pencil-fill"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="eliminar(act)" title="Eliminar">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </td>
+              </tr>
+              }
+              @if (actividades.length === 0) {
+              <tr>
+                <td colspan="4" class="text-center py-4 text-muted">No hay actividades creadas para este filtro.</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
   } @else {
-    <div class="alert alert-info text-center py-5">
-      <h4><i class="bi bi-arrow-up-circle me-2"></i>Selecciona Materia y Trimestre</h4>
-      <p class="mb-0">Para gestionar actividades, primero debes indicar el contexto académico arriba.</p>
-    </div>
+  <div class="alert alert-info text-center py-5">
+    <h4><i class="bi bi-arrow-up-circle me-2"></i>Selecciona Materia y Trimestre</h4>
+    <p class="mb-0">Para gestionar actividades, primero debes indicar el contexto académico arriba.</p>
+  </div>
   }
 
 </div>
+
+<!-- Modal para Sub-actividades -->
+@if (selectedActividad) {
+<div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          @if(modoEdicionSubactividad) {
+          <span>{{ subActividadForm.id ? 'Editar' : 'Nueva' }} Sub-actividad</span>
+          } @else {
+          <span>Sub-actividades de: {{ selectedActividad.nombre }}</span>
+          }
+        </h5>
+        <button type="button" class="btn-close" (click)="cerrarModal()" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        @if (modoEdicionSubactividad) {
+        <form (ngSubmit)="guardarSubactividad()">
+          <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-control" [(ngModel)]="subActividadForm.nombre" name="nombre" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Ponderación (%)</label>
+            <input type="number" class="form-control" [(ngModel)]="subActividadForm.ponderacion" name="ponderacion"
+              required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea class="form-control" [(ngModel)]="subActividadForm.descripcion" name="desc" rows="2"></textarea>
+          </div>
+          <div class="d-grid gap-2 mt-4">
+            <button type="submit" class="btn btn-success" [disabled]="procesando">Guardar Sub-actividad</button>
+            <button type="button" class="btn btn-outline-secondary" (click)="cancelarEdicionSubactividad()">
+              Cancelar
+            </button>
+          </div>
+        </form>
+        } @else {
+        @if (selectedActividad.subActividades && selectedActividad.subActividades.length > 0) {
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Ponderación</th>
+              <th>Descripción</th>
+              <th class="text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (sub of selectedActividad.subActividades; track sub.id) {
+            <tr>
+              <td>{{ sub.nombre }}</td>
+              <td><span class="badge bg-secondary">{{ sub.ponderacion }}%</span></td>
+              <td class="small">{{ sub.descripcion || '-' }}</td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-warning me-2" (click)="editarSubactividad(sub)" title="Editar">
+                  <i class="bi bi-pencil-fill"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" (click)="eliminar(sub)" title="Eliminar">
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+        } @else {
+        <div class="alert alert-light text-center">No hay sub-actividades para mostrar.</div>
+        }
+        }
+      </div>
+
+      <div class="modal-footer">
+        @if (!modoEdicionSubactividad) {
+        <button type="button" class="btn btn-primary" (click)="iniciarSubActividad()">
+          <i class="bi bi-plus-lg"></i> Nueva Sub-actividad
+        </button>
+        }
+        <button type="button" class="btn btn-secondary" (click)="cerrarModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+}
