@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { LocalActividad, LocalDbService, SyncStatus } from './local-db';
-import { tap, catchError } from 'rxjs/operators';
+import { tap, catchError, map } from 'rxjs/operators';
 
 export interface Actividad {
   id?: number;
@@ -42,12 +42,13 @@ export class ActividadService {
 
     if (this.isOnline) {
       return this.http.get<Actividad[]>(`${this.apiUrl}?materiaId=${mId}&trimestreId=${tId}`).pipe(
+        map(data => this.flattenActivities(data)), // Aplanamos el árbol que viene del server
         tap(data => {
           // Guardamos en local asegurando el formato plano
           this.guardarEnLocalBatch(data);
         }),
         catchError(err => {
-          console.warn('⚠️ Fallo API Actividades. Usando local.');
+          console.warn('⚠️ Fallo API Actividades. Usando local.', err);
           return from(this.getLocalActividades(mId, tId));
         })
       );
@@ -55,6 +56,25 @@ export class ActividadService {
       console.log(`🔌 [ActividadService] Offline. Buscando Mat:${mId}, Tri:${tId}`);
       return from(this.getLocalActividades(mId, tId));
     }
+  }
+
+  // Helper para aplanar el árbol de actividades
+  private flattenActivities(data: any[]): Actividad[] {
+    const flattened: Actividad[] = [];
+    
+    const recurse = (items: any[]) => {
+      for (const item of items) {
+        // Hacemos una copia superficial
+        const { subActividades, ...rest } = item;
+        flattened.push(rest);
+        if (subActividades && subActividades.length > 0) {
+          recurse(subActividades);
+        }
+      }
+    };
+    
+    recurse(data);
+    return flattened;
   }
 
   // Helper para búsqueda local robusta
@@ -80,8 +100,9 @@ export class ActividadService {
     if (!this.isOnline) return from([]);
 
     return this.http.get<Actividad[]>(`${this.apiUrl}/all`).pipe(
+      map(data => this.flattenActivities(data)), // Aplanamos también aquí
       tap(data => {
-        console.log(`📡 [Sync Actividades] Bajadas: ${data.length}`);
+        console.log(`📡 [Sync Actividades] Bajadas (planas): ${data.length}`);
         this.guardarEnLocalBatch(data);
       })
     );
@@ -96,6 +117,9 @@ export class ActividadService {
         trimestreId: Number(a.trimestre?.id || a.trimestreId),
         // Manejo de fecha
         fechaEntrega: a.fechaEntrega ? new Date(a.fechaEntrega) : undefined,
+        // Nuevos campos
+        parentId: a.parentId || (a.parent ? a.parent.id : null),
+        promedia: !!a.promedia
     }));
     this.localDb.guardarActividadesServer(actividadesPlanas);
   }
@@ -113,6 +137,8 @@ export class ActividadService {
         materiaId: Number(actividad.materiaId), 
         trimestreId: Number(actividad.trimestreId),
         fechaEntrega: actividad.fechaEntrega, // Guardamos la fecha
+        parentId: actividad.parentId,
+        promedia: actividad.promedia,
         id: null,
         syncStatus: 'create' 
       };
@@ -129,7 +155,9 @@ export class ActividadService {
              materiaId: a.materia?.id || actividad.materiaId,
              trimestreId: a.trimestre?.id || actividad.trimestreId,
              // Aseguramos que la fecha se guarde
-             fechaEntrega: a.fechaEntrega ? new Date(a.fechaEntrega) : actividad.fechaEntrega, 
+             fechaEntrega: a.fechaEntrega ? new Date(a.fechaEntrega) : actividad.fechaEntrega,
+             parentId: a.parentId || actividad.parentId,
+             promedia: a.promedia, 
              syncStatus: 'synced'
            };
            this.localDb.actividades.put(local);
@@ -160,6 +188,8 @@ export class ActividadService {
                 ...actividad,
                 materiaId: Number(actividad.materiaId),
                 trimestreId: Number(actividad.trimestreId),
+                parentId: actividad.parentId,
+                promedia: actividad.promedia,
                 // Mantener estado 'create' si aún no sube, sino pasar a 'update'
                 syncStatus: newSyncStatus
             });
@@ -174,6 +204,8 @@ export class ActividadService {
            // Actualización optimista en local
            this.localDb.actividades.where('id').equals(actividad.id).modify({
              ...actividad,
+             parentId: actividad.parentId,
+             promedia: actividad.promedia,
              syncStatus: 'synced' as const
             });
         }),

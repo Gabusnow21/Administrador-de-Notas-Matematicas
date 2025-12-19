@@ -55,13 +55,43 @@ export class GestionActividades implements OnInit {
         .subscribe({
           next: (data) => {
             console.log('Datos de actividades recibidos:', JSON.stringify(data, null, 2));
-            this.actividades = data;
-            this.ponderacionTotal = data.reduce((sum, act) => sum + (act.ponderacion || 0), 0);
+            this.actividades = this.buildTree(data);
+            this.ponderacionTotal = this.actividades.reduce((sum, act) => sum + (act.ponderacion || 0), 0);
           },
           error: (err) => console.error(err)
         });
     }
     this.cancelarEdicion();
+  }
+
+  private buildTree(actividades: Actividad[]): Actividad[] {
+    const tree: Actividad[] = [];
+    const map = new Map<number, Actividad>();
+
+    // 1. Inicializar subActividades y mapear las que tienen ID de servidor
+    actividades.forEach(act => {
+      act.subActividades = [];
+      if (act.id) {
+        map.set(act.id, act);
+      }
+    });
+
+    // 2. Construir árbol
+    actividades.forEach(act => {
+      if (act.parentId && map.has(act.parentId)) {
+        // Es hija y encontramos al padre: agregar al padre
+        map.get(act.parentId)!.subActividades?.push(act);
+      } else {
+        // Es raíz, o huérfana (padre no encontrado), o hija offline de padre offline
+        // Agregar al nivel superior (tree)
+        
+        // NOTA: Si es hija pero no encontramos al padre (porque el padre es offline sin ID),
+        // aparecerá como raíz temporalmente. Esto es aceptable para visualización offline.
+        tree.push(act);
+      }
+    });
+
+    return tree;
   }
 
   guardar() {

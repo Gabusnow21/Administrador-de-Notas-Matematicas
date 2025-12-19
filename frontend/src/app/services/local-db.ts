@@ -63,6 +63,8 @@ export interface LocalActividad {
   trimestreId: number;
   syncStatus: SyncStatus;
   fechaActividad?: string; // Mapeado de 'fecha_actividad'
+  parentId?: number;       // Nuevo campo
+  promedia?: boolean;      // Nuevo campo
 }
 
 export interface LocalCalificacion {

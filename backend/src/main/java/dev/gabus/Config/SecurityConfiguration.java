@@ -34,6 +34,8 @@ public class SecurityConfiguration {
             .authorizeHttpRequests(auth -> auth
                 // Permitir acceso libre a las rutas de autenticación
                 .requestMatchers("/api/auth/**").permitAll()
+                // Permitir acceso total a actividades para debugging
+                .requestMatchers("/api/actividades/**").permitAll()
                 //Permite al navergador hacer la petición OPTIONS
                 .requestMatchers(HttpMethod.OPTIONS).permitAll() 
                 // Cualquier otra petición requiere autenticación

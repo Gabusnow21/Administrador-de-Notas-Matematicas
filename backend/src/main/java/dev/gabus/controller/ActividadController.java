@@ -48,6 +48,8 @@ public class ActividadController {
     @PostMapping
     @Transactional
     public ResponseEntity<?> create(@RequestBody ActividadRequest request) {
+        System.out.println("📥 Recibida petición POST /api/actividades: " + request);
+
         var materia = materiaRepository.findById(request.getMateriaId())
                 .orElseThrow(() -> new RuntimeException("Materia no encontrada"));
         
