@@ -1,99 +1,109 @@
-<div class="d-flex justify-content-center align-items-center vh-100 bg-light">
-  <div class="card shadow-lg p-4 border-0" style="width: 100%; max-width: 400px;">
-    <div class="card-body">
+<div class="login-container">
+  <div class="card glass-card fade-in">
+    <div class="card-body p-5">
       
-      <!-- Vista de Login -->
-      <div *ngIf="!isRegistering">
-        <h2 class="text-center mb-4 text-primary fw-bold">Bienvenido</h2>
-        <p class="text-center text-muted mb-4">Ingresa tus credenciales para continuar</p>
+      <!-- Header con Logo (Placeholder) -->
+      <div class="text-center mb-4">
+        <!-- Usamos uno de los logos que vimos en la estructura -->
+        <img src="assets/Edumath-login.png" alt="Logo" class="brand-logo mb-2">
+        <h3 class="fw-bold text-dark">{{ isRegistering ? 'Crear Cuenta' : 'Bienvenido' }}</h3>
+        <p class="text-muted small mb-0">
+          {{ isRegistering ? 'Ingresa tus datos para registrarte' : 'Sistema de Administración de Notas' }}
+        </p>
+      </div>
 
+      <!-- Vista de Login -->
+      <div *ngIf="!isRegistering" class="fade-in">
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
           
-          <div class="mb-3">
-            <label for="username" class="form-label fw-semibold">Correo Electrónico</label>
+          <div class="form-floating mb-3">
             <input 
               type="email" 
-              id="username" 
-              class="form-control form-control-lg" 
+              class="form-control" 
+              id="floatingInput" 
+              placeholder="name@example.com"
               formControlName="username"
-              placeholder="ejemplo@escuela.com"
               [class.is-invalid]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched">
-            
-            <div class="invalid-feedback">
-              Por favor ingresa un correo válido.
+            <label for="floatingInput">Correo Electrónico</label>
+            <div class="invalid-feedback ps-2">
+              Correo inválido
             </div>
           </div>
 
-          <div class="mb-3">
-            <label for="password" class="form-label fw-semibold">Contraseña</label>
+          <div class="form-floating mb-4">
             <input 
               type="password" 
-              id="password" 
-              class="form-control form-control-lg" 
-              formControlName="password"
-              placeholder="••••••••">
+              class="form-control" 
+              id="floatingPassword" 
+              placeholder="Password"
+              formControlName="password">
+            <label for="floatingPassword">Contraseña</label>
           </div>
 
-          <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-center" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-center small py-2" role="alert">
+            <i class="bi bi-exclamation-circle-fill me-2"></i>
             <div>{{ errorMessage }}</div>
           </div>
 
-          <div class="d-grid gap-2 mt-4">
-            <button type="submit" class="btn btn-primary btn-lg" [disabled]="loginForm.invalid || isLoading">
+          <div class="d-grid gap-2 mb-4">
+            <button type="submit" class="btn btn-primary btn-primary-gradient text-white" [disabled]="loginForm.invalid || isLoading">
               <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              {{ isLoading ? 'Ingresando...' : 'Iniciar Sesión' }}
+              {{ isLoading ? 'Verificando...' : 'Iniciar Sesión' }}
             </button>
           </div>
         </form>
 
-        <div class="text-center mt-3">
-          <a href="#" (click)="toggleRegister($event)">No tienes cuenta? Regístrate</a>
+        <div class="text-center">
+          <span class="text-muted small">¿No tienes cuenta?</span>
+          <a href="#" class="toggle-link ms-1 small" (click)="toggleRegister($event)">Regístrate aquí</a>
         </div>
       </div>
 
       <!-- Vista de Registro -->
-      <div *ngIf="isRegistering">
-        <h2 class="text-center mb-4 text-primary fw-bold">Crear Cuenta</h2>
-        <p class="text-center text-muted mb-4">Completa el formulario para registrarte</p>
-
+      <div *ngIf="isRegistering" class="fade-in">
         <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
           
-          <div class="mb-3">
-            <label for="reg-nombre" class="form-label fw-semibold">Nombre</label>
-            <input type="text" id="reg-nombre" class="form-control form-control-lg" formControlName="nombre">
-          </div>
-          
-          <div class="mb-3">
-            <label for="reg-apellido" class="form-label fw-semibold">Apellido</label>
-            <input type="text" id="reg-apellido" class="form-control form-control-lg" formControlName="apellido">
-          </div>
-
-          <div class="mb-3">
-            <label for="reg-email" class="form-label fw-semibold">Correo Electrónico</label>
-            <input type="email" id="reg-email" class="form-control form-control-lg" formControlName="email">
-          </div>
-
-          <div class="mb-3">
-            <label for="reg-password" class="form-label fw-semibold">Contraseña</label>
-            <input type="password" id="reg-password" class="form-control form-control-lg" formControlName="password">
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="regNombre" placeholder="Nombre" formControlName="nombre">
+                <label for="regNombre">Nombre</label>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="regApellido" placeholder="Apellido" formControlName="apellido">
+                <label for="regApellido">Apellido</label>
+              </div>
+            </div>
           </div>
 
-          <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-center" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <div class="form-floating mb-3">
+            <input type="email" class="form-control" id="regEmail" placeholder="name@example.com" formControlName="email">
+            <label for="regEmail">Correo Electrónico</label>
+          </div>
+
+          <div class="form-floating mb-4">
+            <input type="password" class="form-control" id="regPass" placeholder="Password" formControlName="password">
+            <label for="regPass">Contraseña</label>
+          </div>
+
+          <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-center small py-2" role="alert">
+            <i class="bi bi-exclamation-circle-fill me-2"></i>
             <div>{{ errorMessage }}</div>
           </div>
 
-          <div class="d-grid gap-2 mt-4">
-            <button type="submit" class="btn btn-primary btn-lg" [disabled]="registerForm.invalid || isLoading">
+          <div class="d-grid gap-2 mb-4">
+            <button type="submit" class="btn btn-primary btn-primary-gradient text-white" [disabled]="registerForm.invalid || isLoading">
               <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
               {{ isLoading ? 'Registrando...' : 'Crear Cuenta' }}
             </button>
           </div>
         </form>
 
-        <div class="text-center mt-3">
-          <a href="#" (click)="toggleRegister($event)">Ya tienes cuenta? Inicia Sesión</a>
+        <div class="text-center">
+          <span class="text-muted small">¿Ya tienes cuenta?</span>
+          <a href="#" class="toggle-link ms-1 small" (click)="toggleRegister($event)">Inicia Sesión</a>
         </div>
       </div>
 
