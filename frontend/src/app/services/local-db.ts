@@ -31,6 +31,8 @@ export interface LocalEstudiante {
   nombre: string;
   apellido: string;
   gradoId: number;       // Referencia al ID del servidor del grado
+  nfcId?: string;
+  saldoTokens?: number;
   syncStatus: SyncStatus;
 }
 
@@ -98,7 +100,7 @@ export class LocalDbService extends Dexie {
     this.version(6).stores({
       usuarios: '++localId, id, username, syncStatus',
       grados: '++localId, id, serverId, nivel, seccion, anioEscolar, syncStatus',
-      estudiantes: '++localId, id, gradoId, syncStatus',
+      estudiantes: '++localId, id, gradoId, nfcId, syncStatus',
       materias: '++localId, id, syncStatus',
       trimestres: '++localId, id, anioEscolar, syncStatus',
       actividades: '++localId, id, materiaId, trimestreId, syncStatus, [materiaId+trimestreId]',
@@ -206,6 +208,12 @@ export class LocalDbService extends Dexie {
     return await this.estudiantes
       .where('gradoId').equals(gradoId)
       .filter(e => e.syncStatus !== 'delete')
+      .toArray();
+  }
+
+  async getEstudiantesSinNfc(): Promise<LocalEstudiante[]> {
+    return await this.estudiantes
+      .filter(estudiante => !estudiante.nfcId && estudiante.syncStatus !== 'delete')
       .toArray();
   }
 

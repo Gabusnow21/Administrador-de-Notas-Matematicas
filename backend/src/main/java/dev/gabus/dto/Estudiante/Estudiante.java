@@ -34,6 +34,13 @@ public class Estudiante {
     @Column(nullable = false)
     private String apellido;
 
+    @Column(unique = true)
+    private String nfcId;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer saldoTokens = 0;
+
     // (Opcional) Puedes añadir más campos si los necesitas, ej:
     // private String codigoEstudiante;
     // private String emailAcudiente;

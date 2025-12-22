@@ -10,6 +10,8 @@ export interface Estudiante {
   apellido: string;
   email: string;
   gradoId: number;
+  nfcId?: string;       // Opcional, puede ser null
+  saldoTokens?: number; // Opcional, puede ser null
   grado?: any;   // Objeto completo si viene del API
   localId?: number;
   syncStatus?: string;
@@ -27,7 +29,6 @@ export class EstudianteService {
   private get isOnline(): boolean {
   return navigator.onLine;
   }
-
 
   // Obtener estudiantes de un grado específico
   getEstudiantesPorGrado(gradoId: number): Observable<Estudiante[]> {
@@ -48,6 +49,21 @@ export class EstudianteService {
     } 
   }
   
+  // Obtener estudiantes sin NfcId asignado
+  getEstudiantesSinNfc(): Observable<Estudiante[]> {
+    if (this.isOnline) {
+      return this.http.get<Estudiante[]>(`${this.apiUrl}/sin-nfc`).pipe(
+        catchError(err => {
+          console.warn('⚠️ [EstudianteService] Fallo API para sin-nfc. Usando local.');
+          return from(this.localDb.getEstudiantesSinNfc() as Promise<Estudiante[]>);
+        })
+      );
+    } else {
+      console.log('🔌 [EstudianteService] Offline. Usando local para sin-nfc.');
+      return from(this.localDb.getEstudiantesSinNfc() as Promise<Estudiante[]>);
+    } 
+  }
+
   // Crear estudiante (nos servirá pronto)
   createEstudiante(estudiante: any): Observable<Estudiante> {
         const guardarLocalmente = () => {

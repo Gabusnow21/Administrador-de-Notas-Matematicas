@@ -1,0 +1,278 @@
+<!-- Header / Hero Section -->
+<header class="bg-brand-dark text-white pt-12 pb-20 px-4 relative overflow-hidden">
+    <div class="max-w-6xl mx-auto text-center relative z-10">
+        <span class="inline-block py-1 px-3 rounded-full bg-indigo-600 text-xs font-semibold tracking-wider mb-4 uppercase">Gamificación Educativa</span>
+        <h1 class="text-4xl md:text-6xl font-bold mb-4">Sistema de Recompensas NFC</h1>
+        <p class="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto">
+            Una ruta de progreso gamificada para motivar el aprendizaje. Acumula hasta <span class="text-level-gold font-bold">500 puntos</span> y desbloquea beneficios exclusivos.
+        </p>
+    </div>
+    <!-- Decorative background element (CSS only) -->
+    <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style="background: radial-gradient(circle at 50% 50%, #6366f1, transparent 70%);"></div>
+</header>
+
+<!-- Stats Overview Card (Floating overlap) -->
+<div class="max-w-6xl mx-auto px-4 -mt-10 relative z-20">
+    <div class="bg-white rounded-xl shadow-lg p-8 grid grid-cols-1 md:grid-cols-4 gap-8 text-center border-b-4 border-indigo-600">
+        <div>
+            <div class="text-4xl font-bold text-gray-800">500</div>
+            <div class="text-sm text-gray-500 uppercase font-semibold mt-1">Puntos Máximos</div>
+        </div>
+        <div>
+            <div class="text-4xl font-bold text-gray-800">4</div>
+            <div class="text-sm text-gray-500 uppercase font-semibold mt-1">Niveles de Logro</div>
+        </div>
+        <div>
+            <div class="text-4xl font-bold text-gray-800">15</div>
+            <div class="text-sm text-gray-500 uppercase font-semibold mt-1">Recompensas Únicas</div>
+        </div>
+        <div>
+            <div class="text-4xl font-bold text-indigo-600">NFC</div>
+            <div class="text-sm text-gray-500 uppercase font-semibold mt-1">Tecnología Sin Contacto</div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Area -->
+<main class="max-w-6xl mx-auto px-4 py-16 space-y-20">
+
+    <!-- Section 1: How it Works (Process Flow) -->
+    <section>
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-800">El Ciclo del Éxito</h2>
+            <p class="text-gray-600 mt-2">Cómo interactúan los estudiantes con el sistema</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Step 1 -->
+            <div class="text-center relative step-connector">
+                <div class="step-circle bg-blue-500 shadow-lg">1</div>
+                <h3 class="text-xl font-bold mb-2">Acumula</h3>
+                <p class="text-gray-600 text-sm px-4">Participa en clase, cumple tareas y mantén un buen comportamiento para ganar puntos diarios.</p>
+            </div>
+            <!-- Step 2 -->
+            <div class="text-center relative step-connector">
+                <div class="step-circle bg-purple-500 shadow-lg">2</div>
+                <h3 class="text-xl font-bold mb-2">Valida</h3>
+                <p class="text-gray-600 text-sm px-4">Acerca tu tarjeta <strong>NFC</strong> al lector del profesor para registrar tu progreso digitalmente.</p>
+            </div>
+            <!-- Step 3 -->
+            <div class="text-center relative">
+                <div class="step-circle bg-green-500 shadow-lg">3</div>
+                <h3 class="text-xl font-bold mb-2">Canjea</h3>
+                <p class="text-gray-600 text-sm px-4">Intercambia tus puntos acumulados por privilegios, materiales o ventajas académicas.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Data Analysis (Charts) -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-12">
+        
+        <!-- Chart 1: Reward Categories Analysis -->
+        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-level-silver">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Equilibrio de Incentivos</h3>
+            <p class="text-sm text-gray-600 mb-6">
+                El sistema está balanceado para ofrecer una mezcla de motivación extrínseca (material) y herramientas de apoyo (académico/privilegios).
+            </p>
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+            <p class="text-xs text-center text-gray-400 mt-4 italic">Distribución basada en el tipo de beneficio ofertado.</p>
+        </div>
+
+        <!-- Chart 2: Point Thresholds -->
+        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-level-gold">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Escalera de Progresión</h3>
+            <p class="text-sm text-gray-600 mb-6">
+                Los hitos de puntos requeridos para desbloquear cada categoría. El salto a "Épico" es el desafío final.
+            </p>
+            <div class="chart-container">
+                <canvas id="progressChart"></canvas>
+            </div>
+            <p class="text-xs text-center text-gray-400 mt-4 italic">Puntos acumulados necesarios para completar cada nivel.</p>
+        </div>
+    </section>
+
+    <!-- Section 3: Detailed Breakdown (Level Cards) -->
+    <section>
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-800">Catálogo de Niveles</h2>
+            <p class="text-gray-600 mt-2">Detalle de beneficios por rango de puntuación</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- BRONZE CARD -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden level-card">
+                <div class="bg-level-bronze p-4 text-white flex justify-between items-center">
+                    <h3 class="text-xl font-bold">🟢 Nivel Bronce</h3>
+                    <span class="bg-white bg-opacity-20 px-2 py-1 rounded text-sm font-semibold">10 - 50 Pts</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-500 mb-4 italic">Recompensas inmediatas para motivación rápida.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="text-level-bronze mr-2 font-bold">10p</span>
+                            <div>
+                                <span class="font-semibold block text-gray-800">Pincelada de Color</span>
+                                <span class="text-xs text-gray-600">Uso de bolígrafo especial en actividad.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-level-bronze mr-2 font-bold">20p</span>
+                            <div>
+                                <span class="font-semibold block text-gray-800">Pase VIP de Salida</span>
+                                <span class="text-xs text-gray-600">Primer lugar en la fila.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-level-bronze mr-2 font-bold">30p</span>
+                            <div>
+                                <span class="font-semibold block text-gray-800">Distintivo Adhesivo</span>
+                                <span class="text-xs text-gray-600">Sticker coleccionable.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-level-bronze mr-2 font-bold">50p</span>
+                            <div>
+                                <span class="font-semibold block text-gray-800">Modo Melomanía</span>
+                                <span class="text-xs text-gray-600">Música con auriculares (15 min).</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- SILVER CARD -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden level-card">
+                <div class="bg-level-silver p-4 text-white flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-shadow-sm">🟡 Nivel Plata</h3>
+                    <span class="bg-white bg-opacity-20 px-2 py-1 rounded text-sm font-semibold">75 - 150 Pts</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-500 mb-4 italic">Privilegios sociales y de gestión en el aula.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="text-level-silver mr-2 font-bold">75p</span>
+                            <div>
+                                <span class="font-semibold block text-gray-800">Nómada del Aula</span>
+                                <span class="text-xs text-gray-600">Cambio de asiento por un mes.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-level-silver mr-2 font-bold">100p</span>
+                            <div>
+                                <span class="font-semibold block text-gray-800">Segunda Oportunidad</span>
+                                <span class="text-xs text-gray-600">Cupón para entrega tardía (1 día).</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-level-silver mr-2 font-bold">125p</span>
+                            <div>
+                                <span class="font-semibold block text-gray-800">Director de Dinámicas</span>
+                                <span class="text-xs text-gray-600">Elige el juego o pausa activa.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-level-silver mr-2 font-bold">150p</span>
+                            <div>
+                                <span class="font-semibold block text-gray-800">Identidad Premium</span>
+                                <span class="text-xs text-gray-600">Sticker personalizado NFC.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- GOLD CARD -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden level-card">
+                <div class="bg-level-gold p-4 text-white flex justify-between items-center">
+                    <h3 class="text-xl font-bold">🟠 Nivel Oro</h3>
+                    <span class="bg-white bg-opacity-20 px-2 py-1 rounded text-sm font-semibold">200 - 350 Pts</span>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-500 mb-4 italic">Ventajas académicas sustanciales.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="text-level-gold mr-2 font-bold">200p</span>
+                            <div>
+                                <span class="font-semibold block text-gray-800">Escudo Protector</span>
+                                <span class="text-xs text-gray-600">Elimina nota baja de quiz + 2pts.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-level-gold mr-2 font-bold">250p</span>
+                            <div>
+                                <span class="font-semibold block text-gray-800">Potenciador de Nota</span>
+                                <span class="text-xs text-gray-600">+1 punto en examen/integradora.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-level-gold mr-2 font-bold">300p</span>
+                            <div>
+                                <span class="font-semibold block text-gray-800">Zona Ciber-Relax</span>
+                                <span class="text-xs text-gray-600">20 min extra en ordenador.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-level-gold mr-2 font-bold">350p</span>
+                            <div>
+                                <span class="font-semibold block text-gray-800">Pack de Supervivencia</span>
+                                <span class="text-xs text-gray-600">Kit de útiles escolares premium.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- EPIC CARD -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden level-card border-2 border-level-epic">
+                <div class="bg-level-epic p-4 text-white flex justify-between items-center">
+                    <h3 class="text-xl font-bold">🔴 Nivel Épico</h3>
+                    <span class="bg-white bg-opacity-20 px-2 py-1 rounded text-sm font-semibold">400 - 500 Pts</span>
+                </div>
+                <div class="p-6 bg-red-50">
+                    <p class="text-sm text-gray-500 mb-4 italic">Logros legendarios a largo plazo.</p>
+                    <ul class="space-y-4">
+                        <li class="flex items-center bg-white p-3 rounded shadow-sm">
+                            <div class="bg-red-100 text-level-epic font-bold p-2 rounded mr-3">400p</div>
+                            <div>
+                                <span class="font-bold block text-gray-800">Banquete de Héroes</span>
+                                <span class="text-xs text-gray-600">Combo de Hamburguesa/Pizza + Soda.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-center bg-white p-3 rounded shadow-sm">
+                            <div class="bg-red-100 text-level-epic font-bold p-2 rounded mr-3">450p</div>
+                            <div>
+                                <span class="font-bold block text-gray-800">Hidratación de Leyenda</span>
+                                <span class="text-xs text-gray-600">Botella o Termo personalizado.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-center bg-gradient-to-r from-red-100 to-white p-3 rounded shadow-sm border border-red-200">
+                            <div class="bg-level-epic text-white font-bold p-2 rounded mr-3">500p</div>
+                            <div>
+                                <span class="font-bold block text-gray-900 uppercase tracking-wide">🏆 Trofeo Maestro</span>
+                                <span class="text-xs text-gray-600">Trofeo especial y reconocimiento final.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final Motivation -->
+    <section class="bg-indigo-900 rounded-2xl p-12 text-center text-white">
+        <h2 class="text-3xl font-bold mb-4">¿Listo para comenzar?</h2>
+        <p class="mb-6 max-w-2xl mx-auto text-indigo-200">Cada punto cuenta. Valida tus logros con tu tarjeta NFC y empieza a construir tu camino hacia el Nivel Épico hoy mismo.</p>
+        <button class="bg-level-silver text-gray-900 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-yellow-300 transition duration-300 transform hover:scale-105">
+            Verificar mis Puntos
+        </button>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center text-gray-400 text-sm pb-8">
+        <p>© 2025 Sistema de Recompensas Educativo | Powered by NFC Technology</p>
+    </footer>
+
+</main>

@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { Login } from './components/login/login';
 import { Dashboard } from './components/dashboard/dashboard';
+import { InfoRecompensasComponent } from './components/info-recompensas/info-recompensas';
 import { VistaGrado } from './components/vista-grado/vista-grado';
 import { VistaCalificaciones } from './components/vista-calificaciones/vista-calificaciones';
 import { RegistroNotas } from './components/registro-notas/registro-notas';
@@ -8,11 +9,14 @@ import { GestionMaterias } from './components/gestion-materias/gestion-materias'
 import { GestionActividades } from './components/gestion-actividades/gestion-actividades';
 import { adminGuard } from './guards/admin-guard';
 import { GestionUsuarios } from './components/gestion-usuarios/gestion-usuarios';
+import { GestionRecompensasComponent } from './components/gestion-recompensas/gestion-recompensas';
+import { NfcTerminalComponent } from './components/nfc-terminal/nfc-terminal';
 
 
 export const routes: Routes = [
     { path: 'login', component: Login },
     { path: 'dashboard', component: Dashboard },
+    { path: 'info-recompensas', component: InfoRecompensasComponent },
     { path: 'grado/:id', component: VistaGrado },
     { path: 'estudiante/:id/calificaciones', component: VistaCalificaciones },
     { path: 'registro-notas', component: RegistroNotas },
@@ -22,17 +26,25 @@ export const routes: Routes = [
   { 
     path: 'configuracion/usuarios', 
     component: GestionUsuarios,
-    canActivate: [adminGuard] // <--- ¡CANDADO PUESTO!
+    canActivate: [adminGuard]
   },
   { 
     path: 'configuracion/materias', 
     component: GestionMaterias
-
   },
   { 
     path: 'configuracion/actividades', 
     component: GestionActividades
-
+  },
+  {
+    path: 'gestion-recompensas',
+    component: GestionRecompensasComponent,
+    canActivate: [adminGuard]
+  },
+  {
+    path: 'nfc-terminal',
+    component: NfcTerminalComponent,
+    canActivate: [adminGuard] // Asumiendo que solo admins o profesores pueden usarlo.
   },
     { path: '', redirectTo: 'login', pathMatch: 'full' }
 ];
