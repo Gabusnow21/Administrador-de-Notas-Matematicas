@@ -1,3 +1,36 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="/dashboard">
+      <i class="bi bi-mortarboard-fill me-2"></i>Gestor de Notas
+    </a>
+
+    <div class="d-flex gap-2">
+
+      <!-- INDICADOR DE ESTADO DE RED / SYNC -->
+      <button class="btn btn-sm me-2" 
+              [class.btn-success]="syncService.isFullyOnline" 
+              [class.btn-warning]="!syncService.isFullyOnline && syncService.isOnline"
+              (click)="forzarSincronizacion()"
+              title="Clic para sincronizar ahora">
+        
+        @if (!syncService.isFullyOnline) {
+          <i class="bi bi-wifi-off"></i> Offline
+        } 
+        @else if (syncService.isSyncing()) {
+          <span class="spinner-border spinner-border-sm"></span> Sync...
+        } 
+        @else {
+          <i class="bi bi-cloud-check"></i> En Línea
+        }
+      </button>
+
+      <!-- Botón Cerrar Sesión (Visible para todos) -->
+      <button class="btn btn-light btn-sm text-primary fw-bold" (click)="logout()">
+        Cerrar Sesión <i class="bi bi-box-arrow-right ms-1"></i>
+      </button>
+    </div>
+  </div>
+</nav>
 <!-- Modal para Asignar Calificación -->
 <div class="modal-overlay" [class.show]="showModal">
   <div class="modal-dialog modal-lg" [class.show]="showModal">

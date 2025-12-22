@@ -2,6 +2,8 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Usuario, UsuarioService } from '../../services/usuario';
 import { RouterLink, Routes } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { SyncService } from '../../services/sync';
+import { AuthService } from '../../services/auth';
 
 
 @Component({
@@ -13,7 +15,8 @@ import { FormsModule } from '@angular/forms';
 })
 
 export class GestionUsuarios implements OnInit {
-
+  public syncService = inject(SyncService);
+  private authService = inject(AuthService);
   private usuarioService = inject(UsuarioService);
 
   usuarios: Usuario[] = [];
@@ -93,11 +96,19 @@ export class GestionUsuarios implements OnInit {
     };
   }
 
+  forzarSincronizacion() {
+    this.syncService.sincronizar();
+  }
+
     private finalizarOperacion(msg: string) {
     this.procesando = false;
     alert(msg);
     this.cancelar();
     this.cargarUsuarios();
+  }
+
+  logout() {
+    this.authService.logout();
   }
 
 }

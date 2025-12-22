@@ -3,6 +3,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EstudianteService, Estudiante } from '../../services/estudiante';
 import { FormsModule } from '@angular/forms';
 import { Grado, GradoService } from '../../services/grado';
+import { SyncService } from '../../services/sync';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-vista-grado',
@@ -17,7 +19,9 @@ export class VistaGrado implements OnInit {
   //Inyecciones de servicios
   private route = inject(ActivatedRoute)
   private estudianteService = inject(EstudianteService);
-  private gradoService = inject(GradoService); 
+  private gradoService = inject(GradoService);
+  public syncService = inject(SyncService);
+  private authService = inject(AuthService); 
 
   //Variables
   estudiantes: Estudiante[] = [];
@@ -148,6 +152,11 @@ export class VistaGrado implements OnInit {
     });
   }
 
+  forzarSincronizacion() {
+    this.syncService.sincronizar();
+  }
+
+
 
   // Helpers
   finalizarOperacion() {
@@ -161,6 +170,10 @@ export class VistaGrado implements OnInit {
     console.error(err);
     this.procesando = false;
     alert('Ocurrió un error.');
+  }
+
+  logout() {
+    this.authService.logout();
   }
 
 }

@@ -4,6 +4,8 @@ import { RouterLink } from '@angular/router';
 import { Materia, MateriaService } from '../../services/materia';
 import { Trimestre, TrimestreService } from '../../services/trimestre';
 import { Actividad, ActividadService } from '../../services/actividad';
+import { SyncService } from '../../services/sync';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-gestion-actividades',
@@ -16,6 +18,8 @@ export class GestionActividades implements OnInit {
   private materiaService = inject(MateriaService);
   private trimestreService = inject(TrimestreService);
   private actividadService = inject(ActividadService);
+  public syncService = inject(SyncService);
+  private authService = inject(AuthService);
 
   materias: Materia[] = [];
   trimestres: Trimestre[] = [];
@@ -46,6 +50,10 @@ export class GestionActividades implements OnInit {
   cargarCatalogos() {
     this.materiaService.getAll().subscribe(d => this.materias = d);
     this.trimestreService.getAll().subscribe(d => this.trimestres = d);
+  }
+
+  forzarSincronizacion() {
+    this.syncService.sincronizar();
   }
 
   cargarActividades() {
@@ -230,5 +238,9 @@ export class GestionActividades implements OnInit {
     console.error(e);
     this.procesando = false;
     alert(`Error al ${accion}: ` + (e.error?.message || e.error || e.message));
+  }
+
+  logout() {
+    this.authService.logout();
   }
 }

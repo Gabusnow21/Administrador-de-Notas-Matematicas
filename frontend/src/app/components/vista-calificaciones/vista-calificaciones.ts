@@ -9,6 +9,7 @@ import { Materia, MateriaService } from '../../services/materia';
 import { Actividad, ActividadService } from '../../services/actividad';
 import { Trimestre, TrimestreService } from '../../services/trimestre';
 import { SyncService } from '../../services/sync';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-vista-calificaciones',
@@ -26,7 +27,8 @@ export class VistaCalificaciones implements OnInit {
   private materiaService = inject(MateriaService);
   private actividadService = inject(ActividadService);
   private trimestreService = inject(TrimestreService);
-  private syncService = inject(SyncService);
+  public syncService = inject(SyncService);
+  private authService = inject(AuthService);
 
 
   //Variables
@@ -156,6 +158,10 @@ export class VistaCalificaciones implements OnInit {
     });
   }
 
+  forzarSincronizacion() {
+    this.syncService.sincronizar();
+  }
+
   onFiltroChange() {
     this.actividades = []; // Limpiar anteriores
     this.nuevaCalificacion.actividadId = 0; // Resetear selección
@@ -215,5 +221,9 @@ export class VistaCalificaciones implements OnInit {
 
   cerrarModal() {
     this.showModal = false;
+  }
+
+  logout() {
+    this.authService.logout();
   }
 }
