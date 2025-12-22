@@ -196,4 +196,9 @@ export class AuthService {
     console.log('Rol detectado:', role); // Debug
     return role === 'ADMIN';
   }
+
+  isTeacher(): boolean {
+    const role = this.getRole();
+    return role === 'USER';
+  }
 }

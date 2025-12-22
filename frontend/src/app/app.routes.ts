@@ -8,6 +8,7 @@ import { RegistroNotas } from './components/registro-notas/registro-notas';
 import { GestionMaterias } from './components/gestion-materias/gestion-materias';
 import { GestionActividades } from './components/gestion-actividades/gestion-actividades';
 import { adminGuard } from './guards/admin-guard';
+import { teacherGuard } from './guards/teacher-guard';
 import { GestionUsuarios } from './components/gestion-usuarios/gestion-usuarios';
 import { GestionRecompensasComponent } from './components/gestion-recompensas/gestion-recompensas';
 import { NfcTerminalComponent } from './components/nfc-terminal/nfc-terminal';
@@ -30,21 +31,23 @@ export const routes: Routes = [
   },
   { 
     path: 'configuracion/materias', 
-    component: GestionMaterias
+    component: GestionMaterias,
+    canActivate: [adminGuard]
   },
   { 
     path: 'configuracion/actividades', 
-    component: GestionActividades
+    component: GestionActividades,
+    canActivate: [teacherGuard]
   },
   {
     path: 'gestion-recompensas',
     component: GestionRecompensasComponent,
-    canActivate: [adminGuard]
+    canActivate: [teacherGuard]
   },
   {
     path: 'nfc-terminal',
     component: NfcTerminalComponent,
-    canActivate: [adminGuard] // Asumiendo que solo admins o profesores pueden usarlo.
+    canActivate: [teacherGuard]
   },
     { path: '', redirectTo: 'login', pathMatch: 'full' }
 ];

@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 shadow-sm">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="#">
+    <a class="navbar-brand fw-bold" href="/dashboard">
       <i class="bi bi-mortarboard-fill me-2"></i>Gestor de Notas
     </a>
 
@@ -151,8 +151,9 @@
             </div>
           </div>
           
-          <!-- TARJETA ESPECIAL: GESTION DE RECOMPENSAS (Solo Admin) -->
-          @if (isAdmin) {
+          <!-- TARJETAS ESPECIALES (Admin y Profesor) -->
+          @if (isAdmin || isTeacher) {
+            <!-- GESTION DE RECOMPENSAS -->
             <div class="col-md-6 col-lg-3 d-flex align-items-stretch">
               <div class="card mb-4 w-100 border-0 shadow-sm bg-info text-white hover-effect" 
                    style="aspect-ratio: 1 / 1; cursor: pointer;"
@@ -164,6 +165,23 @@
                   <h4 class="fw-bold">Gestionar Recompensas</h4>
                   <button class="btn btn-light text-info-emphasis fw-bold mt-3 rounded-pill px-4">
                     Ir a Configurar <i class="bi bi-arrow-right-short"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- TERMINAL NFC -->
+            <div class="col-md-6 col-lg-3 d-flex align-items-stretch">
+              <div class="card mb-4 w-100 border-0 shadow-sm bg-success text-white hover-effect" 
+                   style="aspect-ratio: 1 / 1; cursor: pointer;"
+                   [routerLink]="['/nfc-terminal']">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center text-center h-100">
+                  <div class="mb-3">
+                    <i class="bi bi-broadcast display-1"></i>
+                  </div>
+                  <h4 class="fw-bold">Terminal NFC</h4>
+                  <button class="btn btn-light text-success fw-bold mt-3 rounded-pill px-4">
+                    Abrir Terminal <i class="bi bi-arrow-right-short"></i>
                   </button>
                 </div>
               </div>

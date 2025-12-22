@@ -1,133 +1,153 @@
-<div class="container mx-auto p-8">
-  <h1 class="text-3xl font-bold text-gray-800 mb-6">Terminal NFC de Recompensas</h1>
+<!-- Navbar de la Vista -->
+<div class="bg-primary text-white shadow-sm mb-4">
+  <div class="container-fluid d-flex justify-content-between align-items-center p-3">
+    <a routerLink="/dashboard" class="btn btn-outline-light rounded-circle" style="width: 40px; height: 40px; line-height: 24px;" title="Volver al Dashboard">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <h1 class="h4 mb-0 fw-bold d-flex align-items-center mx-auto">
+      <i class="bi bi-nfc-fill me-2"></i>
+      Terminal NFC
+    </h1>
+    <div style="width: 40px;"></div> <!-- Spacer -->
+  </div>
+</div>
 
-  <!-- Sección de Estado y Control NFC -->
-  <div class="bg-white shadow-lg rounded-lg p-6 mb-8">
-    <h2 class="text-xl font-semibold text-gray-700 mb-4">Estado del Lector NFC</h2>
-    <div class="flex items-center space-x-4 mb-4">
-      <span class="text-sm font-medium">Soporte NFC:</span>
-      <span [ngClass]="{'bg-green-100 text-green-800': isNfcSupported, 'bg-red-100 text-red-800': !isNfcSupported}" class="px-3 py-1 rounded-full text-sm font-semibold">
-        {{ isNfcSupported ? 'Soportado' : 'No Soportado' }}
-      </span>
-      <span *ngIf="isNfcSupported && isScanning" class="flex items-center text-blue-600">
-        <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        Escaneando...
-      </span>
+<div class="container-fluid px-4">
+  <!-- 1. Panel de Control NFC -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light fw-bold">
+      Control del Lector
     </div>
-
-    <div class="mb-4">
-      <p *ngIf="nfcMessage" [ngClass]="{
-        'text-blue-700 bg-blue-50 border-blue-200': nfcMessage.type === 'info',
-        'text-green-700 bg-green-50 border-green-200': nfcMessage.type === 'success',
-        'text-red-700 bg-red-50 border-red-200': nfcMessage.type === 'error'
-      }" class="p-3 rounded-md border text-sm">
-        {{ nfcMessage.payload | json }}
-      </p>
-    </div>
-
-    <div *ngIf="isNfcSupported" class="flex space-x-4">
-      <button (click)="startScan()" [disabled]="isScanning" class="bg-green-500 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-green-600 transition duration-300 disabled:opacity-50">
-        Iniciar Escaneo
-      </button>
-      <button (click)="stopScan()" [disabled]="!isScanning" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition duration-300 disabled:opacity-50">
-        Detener Escaneo
-      </button>
+    <div class="card-body">
+      <div class="d-flex align-items-center gap-4 mb-3">
+        <div class="fw-bold">Soporte NFC: 
+          <span class="badge" [ngClass]="isNfcSupported ? 'text-bg-success' : 'text-bg-danger'">
+            {{ isNfcSupported ? 'Soportado' : 'No Soportado' }}
+          </span>
+        </div>
+        <div *ngIf="isNfcSupported">
+          <button (click)="startScan()" [disabled]="isScanning" class="btn btn-success d-flex align-items-center">
+            <i class="bi bi-play-circle me-1"></i> Iniciar Escaneo
+          </button>
+        </div>
+      </div>
+      <div *ngIf="nfcMessage" class="alert mt-3" [ngClass]="{
+        'alert-info': nfcMessage.type === 'info',
+        'alert-success': nfcMessage.type === 'success',
+        'alert-danger': nfcMessage.type === 'error'
+      }" role="alert">
+        <i class="bi me-2" [ngClass]="{
+          'bi-info-circle-fill': nfcMessage.type === 'info',
+          'bi-check-circle-fill': nfcMessage.type === 'success',
+          'bi-exclamation-triangle-fill': nfcMessage.type === 'error'
+        }"></i>
+        <strong class="me-2">{{ nfcMessage.type | titlecase }}:</strong>
+        <span>{{ nfcMessage.payload }}</span>
+      </div>
     </div>
   </div>
 
-  <!-- Contenido principal: Estudiante y Acciones -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    <!-- Panel del Estudiante -->
-    <div class="bg-white shadow-lg rounded-lg p-6">
-      <h2 class="text-xl font-semibold text-gray-700 mb-4">Información del Estudiante</h2>
-      <div *ngIf="scannedNfcId">
-        <p class="text-gray-600 mb-2"><strong>NFC ID Escaneado:</strong> <span class="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{{ scannedNfcId }}</span></p>
-        <div *ngIf="currentStudent">
-          <p class="text-lg font-bold text-indigo-600">{{ getEstudianteFullName(currentStudent) }}</p>
-          <p class="text-gray-600">Grado: {{ currentStudent.grado?.nivel }} {{ currentStudent.grado?.seccion }}</p>
-          <p class="text-2xl font-extrabold mt-4">Saldo: <span class="text-yellow-600">{{ currentStudent.saldoTokens || 0 }}</span> {{ tokenName }}</p>
-
-          <!-- Sección de Dar Tokens -->
-          <h3 class="text-lg font-semibold mt-6 mb-3">Dar {{ tokenName }}</h3>
-          <form [formGroup]="giveTokensForm" (ngSubmit)="darTokens()" class="space-y-3">
-            <div>
-              <label for="monto" class="block text-sm font-medium text-gray-700">Monto</label>
-              <input type="number" id="monto" formControlName="monto" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
-            </div>
-            <div>
-              <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción (por qué se dan)</label>
-              <input type="text" id="descripcion" formControlName="descripcion" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
-            </div>
-            <button type="submit" [disabled]="giveTokensForm.invalid || !scannedNfcId" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 disabled:opacity-50">
-              Dar {{ tokenName }}
-            </button>
-          </form>
-
+  <!-- 2. Contenido Principal (dividido en dos columnas) -->
+  <div class="row g-4">
+    <!-- Columna Izquierda: Información y Acciones sobre el Estudiante -->
+    <div class="col-lg-5">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-light fw-bold">
+          <i class="bi bi-person-badge-fill me-2"></i>
+          Información del Estudiante
         </div>
-        <div *ngIf="!currentStudent && scannedNfcId" class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-          <p class="font-semibold text-yellow-800 mb-2">Este NFC ID no está asignado.</p>
-          <p class="text-sm text-yellow-700 mb-3">Asigne este NFC ID a un estudiante:</p>
-          <form [formGroup]="assignNfcForm" (ngSubmit)="asignarNfc()" class="space-y-3">
-            <div>
-              <label for="estudianteSelect" class="block text-sm font-medium text-gray-700">Seleccionar Estudiante</label>
-              <select id="estudianteSelect" formControlName="estudianteId" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                <option [value]="null" disabled>Seleccione un estudiante</option>
-                <option *ngFor="let est of unassignedStudents" [value]="est.id">{{ getEstudianteFullName(est) }}</option>
-              </select>
+        <div class="card-body p-4">
+          <!-- Estado: Estudiante Encontrado -->
+          <div *ngIf="currentStudent; else noStudentView">
+            <div class="text-center mb-4">
+              <h3 class="fw-bold text-primary">{{ getEstudianteFullName(currentStudent) }}</h3>
+              <p class="text-muted">{{ currentStudent.grado?.nivel }} "{{ currentStudent.grado?.seccion }}"</p>
+              <div class="display-4 fw-bolder text-warning">
+                {{ currentStudent.saldoTokens || 0 }}
+                <span class="h5 align-top">{{ tokenName }}</span>
+              </div>
             </div>
-            <button type="submit" [disabled]="assignNfcForm.invalid" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50">
-              Asignar NFC a Estudiante
-            </button>
-          </form>
+            
+            <hr class="my-4">
+
+            <!-- Formulario para dar tokens -->
+            <h5 class="fw-bold mb-3">Acreditar {{ tokenName }}</h5>
+            <form [formGroup]="giveTokensForm" (ngSubmit)="darTokens()" class="vstack gap-3">
+              <input type="number" formControlName="monto" class="form-control" placeholder="Monto">
+              <input type="text" formControlName="descripcion" class="form-control" placeholder="Descripción (ej: Participación)">
+              <button type="submit" [disabled]="giveTokensForm.invalid" class="btn btn-primary w-100">
+                Acreditar
+              </button>
+            </form>
+          </div>
+
+          <!-- Template para cuando no hay un estudiante cargado -->
+          <ng-template #noStudentView>
+            <!-- Estado: NFC escaneado pero no asignado -->
+            <div *ngIf="scannedNfcId; else waitingForScan" class="alert alert-warning">
+              <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>NFC ID no Asignado</h5>
+              <p>El Tag <strong>{{ scannedNfcId }}</strong> está libre. Asignalo a un estudiante.</p>
+              <hr>
+              <form [formGroup]="assignNfcForm" (ngSubmit)="asignarNfc()">
+                <div class="vstack gap-2">
+                  <select formControlName="estudianteId" class="form-select">
+                    <option value="" disabled>Selecciona un estudiante...</option>
+                    <option *ngFor="let est of unassignedStudents" [value]="est.id">{{ getEstudianteFullName(est) }}</option>
+                  </select>
+                  <button type="submit" [disabled]="assignNfcForm.invalid" class="btn btn-warning w-100">Asignar a Estudiante</button>
+                </div>
+              </form>
+            </div>
+            <!-- Estado: Esperando escaneo -->
+            <ng-template #waitingForScan>
+              <div class="text-center text-muted p-5">
+                <i class="bi bi-nfc-scan display-1"></i>
+                <p class="mt-3">Esperando escaneo de tarjeta...</p>
+              </div>
+            </ng-template>
+          </ng-template>
         </div>
-      </div>
-      <div *ngIf="!scannedNfcId" class="text-gray-500 text-center py-10">
-        <p>Esperando el escaneo de una tarjeta NFC...</p>
-        <p *ngIf="!isNfcSupported" class="text-red-500 mt-2">WebNFC no soportado. Asegúrate de usar un dispositivo compatible.</p>
       </div>
     </div>
 
-    <!-- Panel de Recompensas -->
-    <div class="bg-white shadow-lg rounded-lg p-6">
-      <h2 class="text-xl font-semibold text-gray-700 mb-4">Recompensas Disponibles</h2>
-      <div *ngIf="currentStudent; else noStudentSelected">
-        <div *ngIf="availableRewards.length > 0; else noRewards">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div *ngFor="let recompensa of availableRewards" class="border border-gray-200 rounded-lg p-4 flex flex-col justify-between hover:shadow-md transition duration-200">
-              <div class="flex items-center mb-2">
-                <img [src]="recompensa.imagenUrl || 'assets/Edumath-login.png'" alt="Recompensa" class="w-12 h-12 object-cover rounded-full mr-3">
-                <div>
-                  <h3 class="font-bold text-gray-800">{{ recompensa.nombre }}</h3>
-                  <p class="text-sm text-gray-600">{{ recompensa.descripcion }}</p>
+    <!-- Columna Derecha: Recompensas para Canjear -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-light fw-bold">
+          <i class="bi bi-gift-fill me-2"></i>
+          Recompensas para Canjear
+        </div>
+        <div class="card-body p-4">
+          <div *ngIf="currentStudent; else noStudentForRewards" class="vstack gap-3">
+            <div *ngFor="let recompensa of availableRewards" class="card hover-effect">
+              <div class="card-body d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                  <img [src]="recompensa.imagenUrl || 'assets/Edumath-login.png'" alt="Recompensa" class="rounded-circle me-3" width="50" height="50">
+                  <div>
+                    <h6 class="card-title fw-bold mb-0">{{ recompensa.nombre }}</h6>
+                    <small class="text-muted">{{ recompensa.descripcion }}</small>
+                  </div>
+                </div>
+                <div class="text-end">
+                  <button (click)="canjearRecompensa(recompensa)" 
+                          [disabled]="(currentStudent.saldoTokens ?? 0) < recompensa.costo || (recompensa.stock != null && recompensa.stock <= 0)" 
+                          class="btn btn-sm btn-info text-white">
+                    <i class="bi bi-gem me-1"></i> {{ recompensa.costo }}
+                  </button>
                 </div>
               </div>
-              <div class="flex justify-between items-center mt-auto pt-2 border-t border-gray-100">
-                <span class="text-indigo-600 font-bold">{{ recompensa.costo }} {{ tokenName }}</span>
-                <button
-                  (click)="canjearRecompensa(recompensa)"
-                  [disabled]="!currentStudent || (currentStudent.saldoTokens !== undefined && currentStudent.saldoTokens < recompensa.costo) || (recompensa.stock !== null && recompensa.stock! <= 0)"
-                  [ngClass]="{
-                    'bg-blue-500 hover:bg-blue-600': currentStudent && (currentStudent.saldoTokens === undefined || currentStudent.saldoTokens >= recompensa.costo) && (recompensa.stock === null || recompensa.stock! > 0),
-                    'bg-gray-400 cursor-not-allowed': !currentStudent || (currentStudent.saldoTokens !== undefined && currentStudent.saldoTokens < recompensa.costo) || (recompensa.stock !== null && recompensa.stock! <= 0)
-                  }"
-                  class="text-white text-sm py-1 px-3 rounded-lg transition duration-300"
-                >
-                  Canjear
-                </button>
-              </div>
+            </div>
+            <div *ngIf="availableRewards.length === 0" class="text-center text-muted p-5">
+              <p>No hay recompensas configuradas.</p>
             </div>
           </div>
+          <ng-template #noStudentForRewards>
+            <div class="text-center text-muted p-5">
+              <p>Escanea un estudiante para ver las recompensas que puede canjear.</p>
+            </div>
+          </ng-template>
         </div>
-        <ng-template #noRewards>
-          <p class="text-gray-500 text-center py-10">No hay recompensas configuradas.</p>
-        </ng-template>
       </div>
-      <ng-template #noStudentSelected>
-        <p class="text-gray-500 text-center py-10">Escanee un estudiante para ver las recompensas.</p>
-      </ng-template>
     </div>
   </div>
 </div>

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Recompensa, RecompensaService } from '../../services/recompensa';
 import { Modal } from 'bootstrap';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-gestion-recompensas',
@@ -14,7 +14,6 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 })
 export class GestionRecompensasComponent implements OnInit, AfterViewInit {
   // Inyección de servicios
-  private route = inject(ActivatedRoute)
   private recompensaService = inject(RecompensaService);
   private fb = inject(FormBuilder);
 

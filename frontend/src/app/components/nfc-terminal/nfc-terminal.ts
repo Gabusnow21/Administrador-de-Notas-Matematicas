@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { RouterLink } from '@angular/router';
 
 // Servicios y Modelos
 import { WebNfcService, NfcMessage } from '../../services/web-nfc.service';
@@ -13,7 +14,7 @@ import { ConfiguracionService } from '../../services/configuracion.service';
 @Component({
   selector: 'app-nfc-terminal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './nfc-terminal.html',
   styleUrls: ['./nfc-terminal.css']
 })
@@ -29,28 +30,32 @@ export class NfcTerminalComponent implements OnInit, OnDestroy {
   // Estado del componente
   isNfcSupported = false;
   isScanning = false;
-  nfcMessage: NfcMessage | null = null;
+  nfcMessage: { type: 'info' | 'success' | 'error', payload: string } | null = null;
   scannedNfcId: string | null = null;
   currentStudent: Estudiante | null = null;
   availableRewards: Recompensa[] = [];
-  tokenName = 'Quiros'; // Nombre por defecto, se cargará de la configuración
+  tokenName = 'Quiros'; // Default name
 
   // Formularios
   assignNfcForm: FormGroup;
   giveTokensForm: FormGroup;
 
-  // Datos para asignación NFC
+  // Datos para asignación
   unassignedStudents: Estudiante[] = [];
+  
+  // Estados de carga para UX
+  isAssigning = false;
+  isGivingTokens = false;
+  isRedeeming: { [key: number]: boolean } = {};
 
   private nfcSubscription: Subscription | undefined;
 
   constructor() {
-    // Inicializar formularios
     this.assignNfcForm = this.fb.group({
       estudianteId: ['', Validators.required]
     });
     this.giveTokensForm = this.fb.group({
-      monto: [0, [Validators.required, Validators.min(1)]],
+      monto: [10, [Validators.required, Validators.min(1)]],
       descripcion: ['', Validators.required]
     });
   }
@@ -63,14 +68,12 @@ export class NfcTerminalComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.nfcSubscription?.unsubscribe();
-    this.stopScan(); // Asegurarse de detener el escaneo al salir
   }
 
-  // --- Inicialización y carga de datos ---
   private checkNfcSupport(): void {
     this.isNfcSupported = 'NDEFReader' in window;
     if (!this.isNfcSupported) {
-      this.nfcMessage = { type: 'error', payload: 'WebNFC no es soportado en este navegador o dispositivo. Asegúrate de usar Chrome en Android.' };
+      this.nfcMessage = { type: 'error', payload: 'WebNFC no es soportado en este navegador. Usa Chrome en Android.' };
     }
   }
 
@@ -80,141 +83,122 @@ export class NfcTerminalComponent implements OnInit, OnDestroy {
     this.estudianteService.getEstudiantesSinNfc().subscribe(data => this.unassignedStudents = data);
   }
 
-  // --- Suscripción a mensajes NFC ---
   private subscribeToNfcMessages(): void {
     this.nfcSubscription = this.webNfcService.getMessages().subscribe(message => {
-      this.nfcMessage = message;
-      if (message.type === 'success' && message.payload.serialNumber) {
-        this.scannedNfcId = message.payload.serialNumber;
-        if (this.scannedNfcId) { // <-- AÑADIR ESTA VERIFICACIÓN
-          this.lookupStudentByNfcId(this.scannedNfcId);
+      if (message.type === 'data') {
+        if (message.payload?.serialNumber) {
+          this.scannedNfcId = message.payload.serialNumber;
+          if (this.scannedNfcId) { // <--- VERIFICACIÓN AÑADIDA AQUÍ
+            this.lookupStudentByNfcId(this.scannedNfcId);
+          }
         }
-      } else if (message.type === 'error') {
-        this.scannedNfcId = null;
-        this.currentStudent = null;
+      } else {
+        // Para 'info', 'success', 'error'
+        this.nfcMessage = { type: message.type, payload: message.payload as string };
+        if (message.type === 'error') {
+          this.resetState();
+          this.isScanning = false;
+        }
       }
     });
   }
 
-  // --- Control de escaneo NFC ---
   startScan(): void {
     if (!this.isNfcSupported) return;
+    this.resetState();
     this.webNfcService.scan();
     this.isScanning = true;
-    this.nfcMessage = { type: 'info', payload: 'Acerque una tarjeta NFC para escanear...' };
-    this.resetState();
+    this.nfcMessage = { type: 'info', payload: 'Lector activado. Acerque una tarjeta NFC...' };
   }
 
-  stopScan(): void {
-    // WebNFC no tiene un método 'stop' explícito en la especificación actual
-    // Simplemente deja de escuchar después de un tiempo o cuando se cierra la página
-    this.isScanning = false;
-    this.nfcMessage = { type: 'info', payload: 'Escaneo detenido.' };
-  }
-
-  // --- Lógica del estudiante ---
-  lookupStudentByNfcId(nfcId: string): void {
+  private lookupStudentByNfcId(nfcId: string): void {
+    this.nfcMessage = { type: 'info', payload: 'Leyendo información del estudiante...' };
     this.nfcInteractionService.getEstudiantePorNfcId(nfcId).subscribe({
       next: (estudiante) => {
         this.currentStudent = estudiante;
-        this.nfcMessage = { type: 'success', payload: `Estudiante encontrado: ${estudiante.nombre} ${estudiante.apellido}` };
+        this.nfcMessage = { type: 'success', payload: `Estudiante: ${estudiante.nombre} ${estudiante.apellido}` };
+        this.isScanning = false;
       },
-      error: (err) => {
+      error: () => {
         this.currentStudent = null;
-        if (err.status === 404) {
-          this.nfcMessage = { type: 'info', payload: `NFC ID "${nfcId}" no asignado a ningún estudiante.` };
-        } else {
-          this.nfcMessage = { type: 'error', payload: 'Error al buscar estudiante: ' + (err.error?.message || err.message) };
-        }
+        this.nfcMessage = { type: 'info', payload: `El Tag NFC no está asignado. Puede asignarlo a un estudiante de la lista.` };
+        this.isScanning = false;
       }
     });
   }
 
-  // --- Asignar NFC ---
   asignarNfc(): void {
-    if (this.assignNfcForm.invalid || !this.scannedNfcId) {
-      return;
-    }
+    if (this.assignNfcForm.invalid || !this.scannedNfcId) return;
+    
+    this.isAssigning = true;
     const estudianteId = this.assignNfcForm.get('estudianteId')?.value;
-
+    
     this.nfcInteractionService.asignarNfcAEstudiante(estudianteId, this.scannedNfcId).subscribe({
       next: (estudiante) => {
         this.currentStudent = estudiante;
-        this.nfcMessage = { type: 'success', payload: `NFC ID asignado a ${estudiante.nombre} ${estudiante.apellido} exitosamente.` };
-        this.estudianteService.getEstudiantesSinNfc().subscribe(data => this.unassignedStudents = data); // Recargar lista
+        this.nfcMessage = { type: 'success', payload: `Tag asignado a ${estudiante.nombre} correctamente.` };
+        this.estudianteService.getEstudiantesSinNfc().subscribe(data => this.unassignedStudents = data);
         this.assignNfcForm.reset();
+        this.isAssigning = false;
       },
       error: (err) => {
-        this.nfcMessage = { type: 'error', payload: 'Error al asignar NFC: ' + (err.error?.message || err.message) };
+        this.nfcMessage = { type: 'error', payload: `Error al asignar: ${err.error?.message || 'Error de servidor'}` };
+        this.isAssigning = false;
       }
     });
   }
 
-  // --- Dar Tokens ---
   darTokens(): void {
-    if (this.giveTokensForm.invalid || !this.scannedNfcId || !this.currentStudent) {
-      return;
-    }
+    if (this.giveTokensForm.invalid || !this.scannedNfcId) return;
+
+    this.isGivingTokens = true;
     const { monto, descripcion } = this.giveTokensForm.value;
-    const payload: TransaccionPayload = {
-      nfcId: this.scannedNfcId,
-      monto: monto,
-      descripcion: descripcion,
-      tipo: 'ACUMULACION'
-    };
+    const payload: TransaccionPayload = { nfcId: this.scannedNfcId, monto, descripcion, tipo: 'ACUMULACION' };
 
     this.nfcInteractionService.realizarTransaccion(payload).subscribe({
-      next: (estudianteActualizado) => {
-        this.currentStudent = estudianteActualizado;
-        this.nfcMessage = { type: 'success', payload: `Se añadieron ${monto} ${this.tokenName} a ${estudianteActualizado.nombre}. Saldo actual: ${estudianteActualizado.saldoTokens}` };
-        this.giveTokensForm.reset({ monto: 0, descripcion: '' });
+      next: (estudiante) => {
+        this.currentStudent = estudiante;
+        this.nfcMessage = { type: 'success', payload: `+${monto} ${this.tokenName} para ${estudiante.nombre}. Nuevo saldo: ${estudiante.saldoTokens}` };
+        this.giveTokensForm.reset({ monto: 10, descripcion: '' });
+        this.isGivingTokens = false;
       },
       error: (err) => {
-        this.nfcMessage = { type: 'error', payload: 'Error al dar tokens: ' + (err.error?.message || err.message) };
+        this.nfcMessage = { type: 'error', payload: `Error al acreditar: ${err.error?.message || 'Error de servidor'}` };
+        this.isGivingTokens = false;
       }
     });
   }
 
-  // --- Canjear Recompensa ---
   canjearRecompensa(recompensa: Recompensa): void {
-    if (!this.scannedNfcId || !this.currentStudent || !recompensa.costo) {
-      this.nfcMessage = { type: 'error', payload: 'Datos incompletos para canjear recompensa.' };
+    if (!this.scannedNfcId || !this.currentStudent || !recompensa.costo) return;
+
+    if ((this.currentStudent.saldoTokens ?? 0) < recompensa.costo) {
+      this.nfcMessage = { type: 'error', payload: 'Saldo insuficiente para este canje.' };
       return;
     }
-
-    if (this.currentStudent.saldoTokens === undefined || this.currentStudent.saldoTokens < recompensa.costo) {
-      this.nfcMessage = { type: 'error', payload: `Saldo insuficiente. Necesitas ${recompensa.costo} ${this.tokenName}. Tienes ${this.currentStudent.saldoTokens || 0}.` };
-      return;
-    }
-
-    if (!confirm(`¿Confirmas el canje de "${recompensa.nombre}" por ${recompensa.costo} ${this.tokenName} para ${this.currentStudent.nombre}?`)) {
-      return;
-    }
-
-    const payload: TransaccionPayload = {
-      nfcId: this.scannedNfcId,
-      monto: recompensa.costo,
-      descripcion: `Canje de recompensa: ${recompensa.nombre}`,
-      tipo: 'CANJE'
-    };
+    
+    this.isRedeeming[recompensa.id!] = true;
+    const payload: TransaccionPayload = { nfcId: this.scannedNfcId, monto: recompensa.costo, descripcion: `Canje: ${recompensa.nombre}`, tipo: 'CANJE' };
 
     this.nfcInteractionService.realizarTransaccion(payload).subscribe({
-      next: (estudianteActualizado) => {
-        this.currentStudent = estudianteActualizado;
-        this.nfcMessage = { type: 'success', payload: `Canje de "${recompensa.nombre}" exitoso. Saldo actual: ${estudianteActualizado.saldoTokens}` };
+      next: (estudiante) => {
+        this.currentStudent = estudiante;
+        this.nfcMessage = { type: 'success', payload: `Canje de '${recompensa.nombre}' exitoso. Nuevo saldo: ${estudiante.saldoTokens}` };
+        delete this.isRedeeming[recompensa.id!];
       },
       error: (err) => {
-        this.nfcMessage = { type: 'error', payload: 'Error al canjear recompensa: ' + (err.error?.message || err.message) };
+        this.nfcMessage = { type: 'error', payload: `Error en el canje: ${err.error?.message || 'Error de servidor'}` };
+        delete this.isRedeeming[recompensa.id!];
       }
     });
   }
 
-  // --- Utilidades ---
   private resetState(): void {
     this.scannedNfcId = null;
     this.currentStudent = null;
+    this.nfcMessage = null;
     this.assignNfcForm.reset();
-    this.giveTokensForm.reset({ monto: 0, descripcion: '' });
+    this.giveTokensForm.reset({ monto: 10, descripcion: '' });
   }
 
   getEstudianteFullName(estudiante: Estudiante): string {
