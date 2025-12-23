@@ -16,7 +16,7 @@ FROM nginx:alpine
 
 # Copiamos los archivos compilados de Angular a la carpeta pública de Nginx
 # NOTA: Ajusta 'dist/gestor-frontend/browser' según tu angular.json (outputPath)
-COPY --from=build /app/dist/gestor-frontend/browser /usr/share/nginx/html
+COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
 
 # Copiamos una configuración básica de Nginx (opcional, pero recomendada para SPA)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
