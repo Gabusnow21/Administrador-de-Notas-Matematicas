@@ -9,7 +9,7 @@ RUN npm install
 # Copiamos el código fuente
 COPY . .
 # Compilamos la aplicación para producción
-RUN npm run build -- --configuration=production
+RUN npm run build -- --configuration production
 
 # ETAPA 2: Servidor Web (Nginx)
 FROM nginx:alpine
