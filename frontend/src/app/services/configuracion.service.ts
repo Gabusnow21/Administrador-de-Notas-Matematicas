@@ -9,7 +9,7 @@ import { environment } from '../environments/environment.prod';
 })
 export class ConfiguracionService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/api/configuracion`;
+  private apiUrl = `${environment.apiUrl}/configuracion`;
 
   getTokenName(): Observable<string> {
     // El backend devuelve el nombre directamente como un string

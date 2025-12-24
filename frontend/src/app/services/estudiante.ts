@@ -24,7 +24,7 @@ export interface Estudiante {
 export class EstudianteService {
   //Variables
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/api/estudiantes`;
+  private apiUrl = `${environment.apiUrl}/estudiantes`;
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean {

@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Estudiante } from './estudiante';
+import { environment } from '../environments/environment.prod';
 
 export interface TransaccionPayload {
   nfcId: string;
@@ -15,7 +16,7 @@ export interface TransaccionPayload {
 })
 export class NfcInteractionService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/nfc';
+  private apiUrl = `${environment.apiUrl}/nfc`;
 
   getEstudiantePorNfcId(nfcId: string): Observable<Estudiante> {
     return this.http.get<Estudiante>(`${this.apiUrl}/estudiante/${nfcId}`);

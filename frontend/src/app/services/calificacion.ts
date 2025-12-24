@@ -38,7 +38,7 @@ export interface CalificacionRequest {
 export class CalificacionService {
   private http = inject(HttpClient);
   private localDb = inject(LocalDbService);
-  private apiUrl = `${environment.apiUrl}/api/calificaciones`;
+  private apiUrl = `${environment.apiUrl}/calificaciones`;
 
   private get isOnline(): boolean { return navigator.onLine; }
 

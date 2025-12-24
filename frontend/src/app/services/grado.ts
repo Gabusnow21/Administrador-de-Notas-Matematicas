@@ -21,7 +21,7 @@ export interface Grado {
 
 export class GradoService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/api/grados`;
+  private apiUrl = `${environment.apiUrl}/grados`;
   private localDb = inject(LocalDbService);
 
   // Helper para verificar conexión

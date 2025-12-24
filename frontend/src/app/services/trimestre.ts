@@ -21,7 +21,7 @@ export interface Trimestre {
 })
 export class TrimestreService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/api/trimestres`;
+  private apiUrl = `${environment.apiUrl}/trimestres`;
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean { return navigator.onLine; }

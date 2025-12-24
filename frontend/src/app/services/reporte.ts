@@ -17,7 +17,7 @@ const logoDerecha = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ8AAADHCAYAA
 export class Reporte {
   private http = inject(HttpClient);
   private localDb = inject(LocalDbService);
-  private apiUrl = `${environment.apiUrl}/api/reportes`;
+  private apiUrl = `${environment.apiUrl}/reportes`;
 
   descargarBoletin(estudianteId: number): Observable<Blob> {
     // Intentar siempre la descarga online. Si falla, se activa el fallback a offline.

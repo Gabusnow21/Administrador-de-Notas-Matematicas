@@ -17,7 +17,7 @@ export interface Recompensa {
 })
 export class RecompensaService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/api/recompensas`;
+  private apiUrl = `${environment.apiUrl}/recompensas`;
 
   getRecompensas(): Observable<Recompensa[]> {
     return this.http.get<Recompensa[]>(this.apiUrl);
