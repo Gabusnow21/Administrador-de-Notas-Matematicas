@@ -29,7 +29,7 @@ export interface Actividad {
 
 export class ActividadService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}api/actividades`;
+  private apiUrl = `${environment.apiUrl}/actividades`;
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean { return navigator.onLine; }
