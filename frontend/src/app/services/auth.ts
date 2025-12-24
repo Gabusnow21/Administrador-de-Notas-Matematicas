@@ -20,7 +20,7 @@ export class AuthService {
   private platformId = inject(PLATFORM_ID);
 
   // URL de tu Backend (Asegúrate que coincida con tu Spring Boot)
-  private apiUrl = `${environment.apiUrl}/api/auth`;
+  private apiUrl = `${environment.apiUrl}/auth`;
   private tokenKey = 'authToken';
   private offlineUserKey = 'offlineUser';
 
