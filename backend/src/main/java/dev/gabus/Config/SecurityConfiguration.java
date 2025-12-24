@@ -50,6 +50,8 @@ public class SecurityConfiguration {
             // ASEGÚRATE que tu Controller tenga @RequestMapping("/api/auth")
             //.requestMatchers("/api/auth/**").permitAll()
             .requestMatchers("/api/**").permitAll()
+            .requestMatchers("/").permitAll()
+            .requestMatchers("/error").permitAll()
             
             // Otras rutas públicas
             .requestMatchers("/api/actividades/**").permitAll()
