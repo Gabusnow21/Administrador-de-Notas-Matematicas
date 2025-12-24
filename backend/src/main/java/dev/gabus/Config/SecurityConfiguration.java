@@ -48,7 +48,8 @@ public class SecurityConfiguration {
             
             // Permitir tus rutas públicas de autenticación
             // ASEGÚRATE que tu Controller tenga @RequestMapping("/api/auth")
-            .requestMatchers("/api/auth/**").permitAll()
+            //.requestMatchers("/api/auth/**").permitAll()
+            .requestMatchers("/api/**").permitAll()
             
             // Otras rutas públicas
             .requestMatchers("/api/actividades/**").permitAll()
