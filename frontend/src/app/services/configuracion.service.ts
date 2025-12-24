@@ -8,7 +8,7 @@ import { map } from 'rxjs/operators';
 })
 export class ConfiguracionService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/configuracion';
+  private apiUrl = 'environment.apiUrl' + '/api/configuracion';
 
   getTokenName(): Observable<string> {
     // El backend devuelve el nombre directamente como un string

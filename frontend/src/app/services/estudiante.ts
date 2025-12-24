@@ -23,7 +23,7 @@ export interface Estudiante {
 export class EstudianteService {
   //Variables
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/estudiantes';
+  private apiUrl = 'environment.apiUrl' + '/api/estudiantes';
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean {

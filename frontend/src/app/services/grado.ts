@@ -20,7 +20,7 @@ export interface Grado {
 
 export class GradoService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/grados';
+  private apiUrl = 'environment.apiUrl' + '/api/grados';
   private localDb = inject(LocalDbService);
 
   // Helper para verificar conexión

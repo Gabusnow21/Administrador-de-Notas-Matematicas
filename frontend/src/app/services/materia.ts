@@ -18,7 +18,7 @@ export interface Materia {
 
 export class MateriaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/materias';
+  private apiUrl = 'environment.apiUrl' + '/api/materias';
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean { return navigator.onLine; }

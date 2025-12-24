@@ -20,8 +20,8 @@ export interface Usuario {
 })
 export class UsuarioService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/usuarios';
-  private registerUrl = 'http://localhost:8080/api/auth/register'; // URL de registro
+  private apiUrl = 'environment.apiUrl' + '/api/usuarios';
+  private registerUrl = 'environment.apiUrl' + '/api/auth/register'; // URL de registro
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean { return navigator.onLine; }

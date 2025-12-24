@@ -5,7 +5,7 @@ services:
     env: docker
     rootDir: ./backend
     plan: free # Can be changed in dashboard
-    branch: main # Adjust if using a different branch
+    branch: Develop # Adjust if using a different branch
     envVars:
       - key: PORT
         value: 8080
