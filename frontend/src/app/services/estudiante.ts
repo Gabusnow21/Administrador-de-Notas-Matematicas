@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LocalDbService, LocalEstudiante } from './local-db';
+import { environment } from '../environments/environment.prod';
 
 export interface Estudiante {
   id: number;
@@ -23,7 +24,7 @@ export interface Estudiante {
 export class EstudianteService {
   //Variables
   private http = inject(HttpClient);
-  private apiUrl = 'environment.apiUrl' + '/api/estudiantes';
+  private apiUrl = `${environment.apiUrl}/api/estudiantes`;
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean {

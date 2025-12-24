@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../environments/environment.prod';
 
 export interface Recompensa {
   id?: number;
@@ -16,7 +17,7 @@ export interface Recompensa {
 })
 export class RecompensaService {
   private http = inject(HttpClient);
-  private apiUrl = 'environment.apiUrl' + '/api/recompensas';
+  private apiUrl = `${environment.apiUrl}/api/recompensas`;
 
   getRecompensas(): Observable<Recompensa[]> {
     return this.http.get<Recompensa[]>(this.apiUrl);

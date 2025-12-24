@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { LocalActividad, LocalDbService, SyncStatus } from './local-db';
 import { tap, catchError, map } from 'rxjs/operators';
+import { environment } from '../environments/environment.prod';
 
 export interface Actividad {
   id?: number;
@@ -28,7 +29,7 @@ export interface Actividad {
 
 export class ActividadService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/actividades';
+  private apiUrl = `${environment.apiUrl}api/actividades`;
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean { return navigator.onLine; }
