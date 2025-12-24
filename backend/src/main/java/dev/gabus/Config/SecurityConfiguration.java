@@ -73,22 +73,18 @@ public class SecurityConfiguration {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        
-        // Permite el origen dinámico (Local o Render)
-        configuration.setAllowedOrigins(List.of(allowedOrigin)); 
-        
-        // Métodos permitidos
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        
-        // Cabeceras permitidas
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
-        
-        // Si necesitas enviar cookies o credenciales, descomenta esto:
-        // configuration.setAllowCredentials(true);
+    CorsConfiguration configuration = new CorsConfiguration();
+    
+    // USAR allowedOriginPatterns EN LUGAR DE allowedOrigins
+    // Esto permite que funcione "*" incluso si hay credenciales involucradas
+    configuration.setAllowedOriginPatterns(List.of("*"));
+    
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+    configuration.setAllowCredentials(true); // Permitir credenciales/cookies
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
     }
 }
