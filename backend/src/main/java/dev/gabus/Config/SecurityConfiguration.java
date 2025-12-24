@@ -34,23 +34,38 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(AbstractHttpConfigurer::disable)
-            // Aquí referenciamos a la configuración CORS definida abajo
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/actividades/**").permitAll()
-                .requestMatchers(HttpMethod.OPTIONS).permitAll() // Importante para preflight checks
-                .anyRequest().authenticated()
-            )
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authenticationProvider(authenticationProvider)
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+    http
+        // 1. Desactivar CSRF (Causa #1 del error 403 en Post)
+        .csrf(AbstractHttpConfigurer::disable)
+        
+        // 2. Configurar CORS (usando el Bean que definimos abajo)
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        
+        // 3. Configurar Permisos de Rutas
+        .authorizeHttpRequests(auth -> auth
+            // Permitir OPTIONS explícitamente (Preflight checks del navegador)
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            
+            // Permitir tus rutas públicas de autenticación
+            // ASEGÚRATE que tu Controller tenga @RequestMapping("/api/auth")
+            .requestMatchers("/api/auth/**").permitAll()
+            
+            // Otras rutas públicas
+            .requestMatchers("/api/actividades/**").permitAll()
+            
+            // Todo lo demás requiere autenticación
+            .anyRequest().authenticated()
+        )
+        
+        // 4. Gestión de sesión Stateless (No guardar cookies)
+        .sessionManagement(session -> session
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        )
+        
+        .authenticationProvider(authenticationProvider)
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
+    return http.build();
     }
 
     @Bean
