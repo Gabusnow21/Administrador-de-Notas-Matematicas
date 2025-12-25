@@ -32,7 +32,7 @@ export const routes: Routes = [
   { 
     path: 'configuracion/materias', 
     component: GestionMaterias,
-    canActivate: [adminGuard]
+    canActivate: [teacherGuard]
   },
   { 
     path: 'configuracion/actividades', 
