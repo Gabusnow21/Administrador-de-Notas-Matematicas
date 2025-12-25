@@ -1,0 +1,88 @@
+<div class="sidebar" [class.expanded]="isExpanded">
+  <div class="sidebar-header">
+    <a class="sidebar-brand fw-bold" href="/dashboard">
+      <i class="bi bi-mortarboard-fill me-2"></i>
+      <span class="brand-text">Gestor de Notas</span>
+    </a>
+  </div>
+
+  <ul class="nav nav-pills flex-column mb-auto">
+    <li class="nav-item">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
+        <i class="bi bi-house-door-fill"></i>
+        <span class="link-text">Dashboard</span>
+      </a>
+    </li>
+
+    <!-- Admin Zone -->
+    @if (authService.isAdmin()) {
+      <li class="nav-item-header"><span class="link-text">ADMINISTRACIÓN</span></li>
+      <li class="nav-item">
+        <a routerLink="/configuracion/usuarios" routerLinkActive="active" class="nav-link">
+          <i class="bi bi-people-fill"></i>
+          <span class="link-text">Usuarios</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/configuracion/trimestres" routerLinkActive="active" class="nav-link">
+          <i class="bi bi-calendar-check"></i>
+          <span class="link-text">Trimestres</span>
+        </a>
+      </li>
+    }
+
+    <!-- Teacher & Admin Zone -->
+    @if (authService.isAdmin() || authService.isTeacher()) {
+      <li class="nav-item-header"><span class="link-text">GESTIÓN ACADÉMICA</span></li>
+      <li class="nav-item">
+        <a routerLink="/configuracion/materias" routerLinkActive="active" class="nav-link">
+          <i class="bi bi-journal-bookmark-fill"></i>
+          <span class="link-text">Materias</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/configuracion/actividades" routerLinkActive="active" class="nav-link">
+          <i class="bi bi-list-check"></i>
+          <span class="link-text">Actividades</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/gestion-recompensas" routerLinkActive="active" class="nav-link">
+          <i class="bi bi-award-fill"></i>
+          <span class="link-text">Recompensas</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/nfc-terminal" routerLinkActive="active" class="nav-link">
+          <i class="bi bi-broadcast"></i>
+          <span class="link-text">Terminal NFC</span>
+        </a>
+      </li>
+    }
+  </ul>
+
+  <div class="sidebar-footer">
+      <button class="btn btn-sidebar-footer mb-2" 
+              [class.btn-success]="syncService.isFullyOnline" 
+              [class.btn-warning]="!syncService.isFullyOnline && syncService.isOnline"
+              [class.btn-outline-light-custom]="!(!syncService.isFullyOnline && syncService.isOnline) && !syncService.isFullyOnline"
+              (click)="forzarSincronizacion()"
+              title="Clic para sincronizar ahora">
+        
+        @if (!syncService.isFullyOnline && !syncService.isSyncing()) {
+          <i class="bi bi-wifi-off"></i> <span class="link-text ms-2">Offline</span>
+        } 
+        @else if (syncService.isSyncing()) {
+          <span class="spinner-border spinner-border-sm"></span> <span class="link-text ms-2">Sync...</span>
+        } 
+        @else {
+          <i class="bi bi-cloud-check"></i> <span class="link-text ms-2">En Línea</span>
+        }
+      </button>
+
+      <button class="btn btn-outline-light-custom fw-bold" (click)="logout()">
+        <i class="bi bi-box-arrow-right"></i>
+        <span class="link-text ms-2">Cerrar Sesión</span>
+      </button>
+  </div>
+</div>
