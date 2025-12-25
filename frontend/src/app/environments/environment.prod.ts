@@ -1,6 +1,6 @@
 export const environment = {
-    production: true,
-    apiUrl: 'https://back-administrador-de-notas-matematicas.onrender.com/api', // Reemplaza con la URL de tu backend en producción
+    production: false,
+    apiUrl: 'http://localhost:8080/api', // Reemplaza con la URL de tu backend en producción
     //auth: {
       //domain: 'YOUR_AUTH0_DOMAIN', // Reemplaza con tu Dominio de Auth0
       //clientId: 'YOUR_AUTH0_CLIENT_ID', // Reemplaza con tu Client ID de Auth0
