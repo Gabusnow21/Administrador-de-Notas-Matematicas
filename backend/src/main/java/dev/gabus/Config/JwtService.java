@@ -37,12 +37,19 @@ public class JwtService {
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         //LÓGICA AGREGADA: Si no me pasaron claims, intento sacar el rol del usuario
-        if (extraClaims.isEmpty() && userDetails.getAuthorities() != null) {
-            String role = userDetails.getAuthorities().stream()
-                    .findFirst()
-                    .map(item -> item.getAuthority())
-                    .orElse("USER");
-            extraClaims.put("role", role); // <--- AQUÍ GUARDAMOS EL ROL "ADMIN" o "USER"
+        if (extraClaims.isEmpty()) {
+            if (userDetails.getAuthorities() != null) {
+                String role = userDetails.getAuthorities().stream()
+                        .findFirst()
+                        .map(item -> item.getAuthority())
+                        .orElse("USER");
+                extraClaims.put("role", role); // <--- AQUÍ GUARDAMOS EL ROL "ADMIN" o "USER"
+            }
+            
+            if (userDetails instanceof dev.gabus.dto.Usuario.Usuario) {
+                dev.gabus.dto.Usuario.Usuario user = (dev.gabus.dto.Usuario.Usuario) userDetails;
+                extraClaims.put("nombre", user.getNombre() + " " + user.getApellido());
+            }
         }
         return Jwts.builder()
                 .setClaims(extraClaims)
