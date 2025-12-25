@@ -42,6 +42,7 @@ public class Usuario implements UserDetails {
     private String username; // Usaremos el email como username
 
     @Column(nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private String password; // Contraseña hasheada
 
     @Enumerated(EnumType.STRING) // Guarda el rol como texto (ej. "ADMIN") en lugar de un número
