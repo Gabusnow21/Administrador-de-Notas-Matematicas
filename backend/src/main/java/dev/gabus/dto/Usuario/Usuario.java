@@ -52,6 +52,9 @@ public class Usuario implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Devuelve una lista con la autoridad/rol de este usuario
+        if (role == null) {
+            return List.of(new SimpleGrantedAuthority(Role.USER.name()));
+        }
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
