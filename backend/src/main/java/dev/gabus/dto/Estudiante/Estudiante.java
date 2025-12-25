@@ -47,7 +47,7 @@ public class Estudiante {
 
     // --- Relación con Grado ---
     // Muchos estudiantes pueden pertenecer a Un Grado.
-    @ManyToOne(fetch = FetchType.LAZY) // LAZY = Solo carga el Grado cuando se acceda a él
+    @ManyToOne(fetch = FetchType.EAGER) // LAZY = Solo carga el Grado cuando se acceda a él
     @JoinColumn(name = "grado_id", nullable = false) // Esta será la columna FK en la tabla 'estudiante'
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Evita problemas de serialización con Hibernate
     private Grado grado;

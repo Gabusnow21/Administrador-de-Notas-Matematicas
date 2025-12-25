@@ -99,8 +99,10 @@ public class MateriaController {
         Materia materia = materiaRepository.findById(id).get();
 
         if (user.getRole() != Role.ADMIN) {
-            // Teachers cannot delete, only Admin
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+             // Check ownership
+             if (materia.getProfesor() == null || !materia.getProfesor().getId().equals(user.getId())) {
+                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+             }
         }
 
         materiaRepository.deleteById(id);

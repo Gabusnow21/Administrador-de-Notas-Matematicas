@@ -109,11 +109,9 @@
                       <button class="btn btn-sm btn-outline-warning me-2" (click)="editar(mat)">
                         <i class="bi bi-pencil-fill"></i>
                       </button>
-                      @if (authService.isAdmin()) {
-                        <button class="btn btn-sm btn-outline-danger" (click)="eliminar(mat)">
-                          <i class="bi bi-trash-fill"></i>
-                        </button>
-                      }
+                      <button class="btn btn-sm btn-outline-danger" (click)="eliminar(mat)">
+                        <i class="bi bi-trash-fill"></i>
+                      </button>
                     </td>
                   </tr>
                 }
