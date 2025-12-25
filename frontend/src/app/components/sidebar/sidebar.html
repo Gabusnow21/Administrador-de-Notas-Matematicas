@@ -1,5 +1,8 @@
 <div class="sidebar" [class.expanded]="isExpanded">
   <div class="sidebar-header">
+    <button class="btn btn-link text-white p-0 me-2" (click)="toggle()">
+        <i class="bi bi-list fs-2"></i>
+    </button>
     <a class="sidebar-brand fw-bold" href="/dashboard">
       <i class="bi bi-mortarboard-fill me-2"></i>
       <span class="brand-text">Gestor de Notas</span>

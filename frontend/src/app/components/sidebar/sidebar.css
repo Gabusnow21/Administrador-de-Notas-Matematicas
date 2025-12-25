@@ -40,14 +40,28 @@
   padding: 1rem;
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* Justify content adjustments for toggle button */
+  justify-content: flex-start;
   min-height: 64px; /* Match navbar height */
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden; /* Prevent content overflow during transition */
+  white-space: nowrap;
 }
 
-.sidebar.expanded .sidebar-header {
-  justify-content: space-between;
+.sidebar:not(.expanded) .sidebar-header {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
 }
+
+.sidebar:not(.expanded) .sidebar-header .sidebar-brand {
+    display: none;
+}
+
+.sidebar:not(.expanded) .sidebar-header button {
+    margin-right: 0 !important;
+}
+
 
 .sidebar-brand {
   color: white;

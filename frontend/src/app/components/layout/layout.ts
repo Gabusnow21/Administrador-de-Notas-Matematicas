@@ -13,9 +13,6 @@ import { CommonModule } from '@angular/common';
       <nav class="navbar navbar-dark bg-primary shadow sticky-top">
         <div class="container-fluid">
           <div class="d-flex align-items-center">
-            <button class="btn btn-link text-white me-3 p-0 border-0" (click)="sidebar.toggle()">
-              <i class="bi bi-list fs-2"></i>
-            </button>
             <span class="navbar-brand mb-0 h1 fw-bold">Administrador de Notas Matemáticas</span>
           </div>
           <div class="d-flex align-items-center text-white">
