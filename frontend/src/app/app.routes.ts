@@ -12,6 +12,7 @@ import { teacherGuard } from './guards/teacher-guard';
 import { GestionUsuarios } from './components/gestion-usuarios/gestion-usuarios';
 import { GestionRecompensasComponent } from './components/gestion-recompensas/gestion-recompensas';
 import { NfcTerminalComponent } from './components/nfc-terminal/nfc-terminal';
+import { GestionTrimestres } from './components/gestion-trimestres/gestion-trimestres';
 
 
 export const routes: Routes = [
@@ -24,18 +25,23 @@ export const routes: Routes = [
     { path: 'gestion-materias', component: GestionMaterias },
     { path: 'gestion-actividades', component: GestionActividades },
     //  RUTAS PROTEGIDAS PARA ADMIN
-  { 
-    path: 'configuracion/usuarios', 
+  {
+    path: 'configuracion/usuarios',
     component: GestionUsuarios,
     canActivate: [adminGuard]
   },
-  { 
-    path: 'configuracion/materias', 
+  {
+    path: 'configuracion/trimestres',
+    component: GestionTrimestres,
+    canActivate: [adminGuard]
+  },
+  {
+    path: 'configuracion/materias',
     component: GestionMaterias,
     canActivate: [teacherGuard]
   },
-  { 
-    path: 'configuracion/actividades', 
+  {
+    path: 'configuracion/actividades',
     component: GestionActividades,
     canActivate: [teacherGuard]
   },
@@ -51,3 +57,4 @@ export const routes: Routes = [
   },
     { path: '', redirectTo: 'login', pathMatch: 'full' }
 ];
+

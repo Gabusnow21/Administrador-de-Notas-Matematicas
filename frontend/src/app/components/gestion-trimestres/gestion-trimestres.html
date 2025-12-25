@@ -1,0 +1,106 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary"><i class="bi bi-calendar-check me-2"></i>Gestión de Trimestres</h2>
+    <a routerLink="/dashboard" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+  </div>
+
+  <div class="row">
+    <!-- Formulario -->
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title m-0 text-success">
+            {{ esEdicion ? 'Editar Trimestre' : 'Nuevo Trimestre' }}
+          </h5>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="guardar()">
+            <div class="mb-3">
+              <label class="form-label">Nombre</label>
+              <input type="text" class="form-control" [(ngModel)]="trimestreForm.nombre" name="nombre" placeholder="Ej. Primer Trimestre" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Año Escolar</label>
+              <input type="number" class="form-control" [(ngModel)]="trimestreForm.anioEscolar" name="anio" required>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Fecha Inicio</label>
+              <input type="date" class="form-control" [ngModel]="trimestreForm.fechaInicio | date:'yyyy-MM-dd'" (ngModelChange)="trimestreForm.fechaInicio = $event" name="fechaInicio" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Fecha Fin</label>
+              <input type="date" class="form-control" [ngModel]="trimestreForm.fechaFin | date:'yyyy-MM-dd'" (ngModelChange)="trimestreForm.fechaFin = $event" name="fechaFin" required>
+            </div>
+
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" [(ngModel)]="trimestreForm.estado" name="estado" id="estadoCheck">
+              <label class="form-check-label" for="estadoCheck">Activo</label>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-success" [disabled]="procesando">
+                {{ esEdicion ? 'Actualizar' : 'Guardar' }}
+              </button>
+              @if (esEdicion) {
+                <button type="button" class="btn btn-outline-secondary" (click)="cancelarEdicion()">Cancelar</button>
+              }
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="col-md-8">
+      @if (loading) {
+        <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+      } @else {
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Nombre</th>
+                  <th>Año</th>
+                  <th>Fechas</th>
+                  <th>Estado</th>
+                  <th class="text-end">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (t of trimestres; track t.id) {
+                  <tr>
+                    <td class="fw-bold">{{ t.nombre }}</td>
+                    <td>{{ t.anioEscolar }}</td>
+                    <td class="small text-muted">
+                      {{ t.fechaInicio | date:'shortDate' }} - {{ t.fechaFin | date:'shortDate' }}
+                    </td>
+                    <td>
+                      @if (t.estado) { <span class="badge bg-success">Activo</span> }
+                      @else { <span class="badge bg-secondary">Cerrado</span> }
+                    </td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-warning me-2" (click)="editar(t)">
+                        <i class="bi bi-pencil-fill"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger" (click)="eliminar(t)">
+                        <i class="bi bi-trash-fill"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+                @if (trimestres.length === 0) {
+                  <tr><td colspan="5" class="text-center">No hay trimestres registrados.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
