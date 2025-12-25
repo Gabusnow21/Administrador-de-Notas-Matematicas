@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { LocalDbService, SyncStatus } from './local-db';
 import { tap, catchError } from 'rxjs/operators';
+import { environment } from '../environments/environment.prod';
 
 export interface Materia {
   id: number;
@@ -18,7 +19,7 @@ export interface Materia {
 
 export class MateriaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/materias';
+  private apiUrl = `${environment.apiUrl}/materias`;
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean { return navigator.onLine; }

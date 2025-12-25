@@ -4,6 +4,8 @@ import { RouterLink } from '@angular/router';
 import { Materia, MateriaService } from '../../services/materia';
 import { Trimestre, TrimestreService } from '../../services/trimestre';
 import { Actividad, ActividadService } from '../../services/actividad';
+import { SyncService } from '../../services/sync';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-gestion-actividades',
@@ -16,28 +18,30 @@ export class GestionActividades implements OnInit {
   private materiaService = inject(MateriaService);
   private trimestreService = inject(TrimestreService);
   private actividadService = inject(ActividadService);
+  public syncService = inject(SyncService);
+  private authService = inject(AuthService);
 
-  // Catálogos
   materias: Materia[] = [];
   trimestres: Trimestre[] = [];
   actividades: Actividad[] = [];
 
-  // Selecciones de Filtro
   selMateria: number = 0;
   selTrimestre: number = 0;
 
-  // Estado Formulario
   esEdicion: boolean = false;
   procesando: boolean = false;
-  
-  // Objeto para el formulario
+  ponderacionTotal: number = 0;
+
   actividadForm: Partial<Actividad> = {
     nombre: '',
     descripcion: '',
     ponderacion: 0,
-    materiaId: 0,
-    trimestreId: 0
+    promedia: false
   };
+
+  selectedActividad: Actividad | null = null;
+  modoEdicionSubactividad: boolean = false;
+  subActividadForm: Partial<Actividad> = {};
 
   ngOnInit() {
     this.cargarCatalogos();
@@ -48,94 +52,195 @@ export class GestionActividades implements OnInit {
     this.trimestreService.getAll().subscribe(d => this.trimestres = d);
   }
 
-  // Cargar lista cuando cambian los filtros
+  forzarSincronizacion() {
+    this.syncService.sincronizar();
+  }
+
   cargarActividades() {
-    // 1. Limpiar lista anterior para evitar mezclas visuales
-    this.actividades = []; 
-    
-    // 2. VALIDACIÓN ESTRICTA: Solo llamar si ambos son mayores a 0
+    this.actividades = [];
     if (this.selMateria > 0 && this.selTrimestre > 0) {
-      
       this.actividadService.getByMateriaAndTrimestre(this.selMateria, this.selTrimestre)
         .subscribe({
           next: (data) => {
-            this.actividades = data;
-            // Opcional: Debug para ver qué llega
-            console.log('Actividades cargadas:', data); 
+            console.log('Datos de actividades recibidos:', JSON.stringify(data, null, 2));
+            this.actividades = this.buildTree(data);
+            this.ponderacionTotal = this.actividades.reduce((sum, act) => sum + (act.ponderacion || 0), 0);
           },
           error: (err) => console.error(err)
         });
     }
-    
     this.cancelarEdicion();
   }
 
-   // Guardar nueva o editada
+  private buildTree(actividades: Actividad[]): Actividad[] {
+    const tree: Actividad[] = [];
+    const map = new Map<number, Actividad>();
+
+    // 1. Inicializar subActividades y mapear las que tienen ID de servidor
+    actividades.forEach(act => {
+      act.subActividades = [];
+      if (act.id) {
+        map.set(act.id, act);
+      }
+    });
+
+    // 2. Construir árbol
+    actividades.forEach(act => {
+      if (act.parentId && map.has(act.parentId)) {
+        // Es hija y encontramos al padre: agregar al padre
+        map.get(act.parentId)!.subActividades?.push(act);
+      } else {
+        // Es raíz, o huérfana (padre no encontrado), o hija offline de padre offline
+        // Agregar al nivel superior (tree)
+        
+        // NOTA: Si es hija pero no encontramos al padre (porque el padre es offline sin ID),
+        // aparecerá como raíz temporalmente. Esto es aceptable para visualización offline.
+        tree.push(act);
+      }
+    });
+
+    return tree;
+  }
+
   guardar() {
     this.procesando = true;
 
-    // 1. Crear el objeto PLANO que espera el Backend
-    const payload = {
-      nombre: this.actividadForm.nombre,
-      descripcion: this.actividadForm.descripcion,
-      // OJO AQUÍ: Asegúrate de usar la propiedad correcta. 
-      // Si tu interfaz tiene 'ponderacion', úsala. Si usaste 'porcentaje', cámbialo.
-      ponderacion: this.actividadForm.ponderacion, 
-      
-      // IDs directos
-      materiaId: Number(this.selMateria), 
-      trimestreId: Number(this.selTrimestre)
+    const formPonderacion = this.actividadForm.ponderacion || 0;
+    const ponderacionOtrasRaices = this.actividades
+      .filter(act => act.id !== this.actividadForm.id)
+      .reduce((sum, act) => sum + (act.ponderacion || 0), 0);
+
+    if (ponderacionOtrasRaices + formPonderacion > 100) {
+      alert('La ponderación total de las actividades principales no puede exceder el 100%.');
+      this.procesando = false;
+      return;
+    }
+
+    const payload: Partial<Actividad> = {
+      ...this.actividadForm,
+      materiaId: Number(this.selMateria),
+      trimestreId: Number(this.selTrimestre),
+      parentId: undefined 
     };
 
-    if (this.esEdicion) {
-      // Para editar, necesitamos agregar el ID de la actividad al payload
-      const payloadEdicion = { ...payload, id: this.actividadForm.id };
+    const serviceCall = this.esEdicion
+      ? this.actividadService.actualizar(payload)
+      : this.actividadService.crear(payload);
 
-      // 👇 CORRECCIÓN: Enviar 'payloadEdicion', NO 'this.actividadForm'
-      // Usamos 'as any' para evitar quejas de TypeScript por la diferencia de estructura
-      this.actividadService.actualizar(payloadEdicion as any).subscribe({
-        next: () => this.finalizarOperacion(),
-        error: (e) => { 
-            console.error(e); 
-            this.procesando = false; 
-            alert('Error al actualizar'); 
-        }
-      });
-    } else {
-      // 👇 CORRECCIÓN: Enviar 'payload', NO 'this.actividadForm'
-      this.actividadService.crear(payload as any).subscribe({
-        next: () => this.finalizarOperacion(),
-        error: (e) => { 
-            console.error(e); 
-            this.procesando = false; 
-            alert('Error al crear'); 
-        }
-      });
-    }
+    serviceCall.subscribe({
+      next: () => this.finalizarOperacion(),
+      error: (e) => this.handleError(e, this.esEdicion ? 'actualizar' : 'crear')
+    });
   }
 
-  // Cargar datos en el formulario para editar
   editar(act: Actividad) {
     this.esEdicion = true;
     this.actividadForm = { ...act };
   }
 
-  // Eliminar una Actividad
   eliminar(actividad: Actividad) {
-    if(!confirm('¿Eliminar actividad? Se borrarán las notas asociadas.')) return;
-    this.actividadService.borrar(actividad).subscribe(() => this.cargarActividades());
+    if (!confirm('¿Eliminar actividad? Se borrarán las notas y sub-actividades asociadas.')) return;
+    this.actividadService.borrar(actividad).subscribe(() => {
+      if (this.selectedActividad) {
+        this.cerrarModal();
+      }
+      this.cargarActividades();
+    });
   }
 
-  // Cancelar edición
   cancelarEdicion() {
     this.esEdicion = false;
-    this.actividadForm = { nombre: '', descripcion: '', ponderacion: 0 };
+    this.actividadForm = {
+      nombre: '',
+      descripcion: '',
+      ponderacion: 0,
+      promedia: false
+    };
   }
 
-  private finalizarOperacion() {
+  verSubActividades(actividad: Actividad) {
+    this.selectedActividad = actividad;
+    this.modoEdicionSubactividad = false;
+  }
+
+  cerrarModal() {
+    this.selectedActividad = null;
+    this.modoEdicionSubactividad = false;
+  }
+
+  iniciarSubActividad() {
+    this.modoEdicionSubactividad = true;
+    this.subActividadForm = {
+      nombre: '',
+      descripcion: '',
+      ponderacion: 0,
+      parentId: this.selectedActividad?.id
+    };
+  }
+
+  editarSubactividad(sub: Actividad) {
+    this.modoEdicionSubactividad = true;
+    this.subActividadForm = { ...sub };
+  }
+
+  cancelarEdicionSubactividad() {
+    this.modoEdicionSubactividad = false;
+  }
+
+  guardarSubactividad() {
+    this.procesando = true;
+    const formPonderacion = this.subActividadForm.ponderacion || 0;
+
+    if (this.selectedActividad && this.selectedActividad.subActividades) {
+      const ponderacionHermanas = this.selectedActividad.subActividades
+        .filter(sub => sub.id !== this.subActividadForm.id)
+        .reduce((sum, sub) => sum + (sub.ponderacion || 0), 0);
+
+      if (ponderacionHermanas + formPonderacion > (this.selectedActividad.ponderacion || 0)) {
+        alert(`La suma de ponderaciones de las sub-actividades no puede exceder la del padre (${this.selectedActividad.ponderacion}%).`);
+        this.procesando = false;
+        return;
+      }
+    }
+    
+    const payload: Partial<Actividad> = {
+      ...this.subActividadForm,
+      materiaId: Number(this.selMateria),
+      trimestreId: Number(this.selTrimestre)
+    };
+    
+    console.log('Payload de sub-actividad a guardar:', JSON.stringify(payload, null, 2));
+
+    const isEdit = !!payload.id;
+    const serviceCall = isEdit
+      ? this.actividadService.actualizar(payload)
+      : this.actividadService.crear(payload);
+
+    serviceCall.subscribe({
+      next: () => {
+        this.finalizarOperacion(true);
+      },
+      error: (e) => this.handleError(e, isEdit ? 'actualizar' : 'crear')
+    });
+  }
+
+  private finalizarOperacion(enModal: boolean = false) {
     this.procesando = false;
-    this.cancelarEdicion();
+    if (enModal) {
+      this.cerrarModal();
+    } else {
+      this.cancelarEdicion();
+    }
     this.cargarActividades();
   }
 
+  private handleError(e: any, accion: string) {
+    console.error(e);
+    this.procesando = false;
+    alert(`Error al ${accion}: ` + (e.error?.message || e.error || e.message));
+  }
+
+  logout() {
+    this.authService.logout();
+  }
 }

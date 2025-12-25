@@ -47,6 +47,12 @@ public class EstudianteController {
                 .orElseThrow(() -> new RuntimeException("Estudiante no encontrado")));
     }
 
+    // Nuevo: Listar estudiantes sin NFC ID asignado
+    @GetMapping("/sin-nfc")
+    public ResponseEntity<List<Estudiante>> getEstudiantesWithoutNfcId() {
+        return ResponseEntity.ok(estudianteRepository.findByNfcIdIsNull());
+    }
+
     // Crear estudiante
     @PostMapping
     public ResponseEntity<?> createEstudiante(@RequestBody EstudianteRequest request) {

@@ -1,8 +1,14 @@
 package dev.gabus.dto.Calificacion;
-
-import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import jakarta.transaction.Transactional;
+
+@Repository
 public interface CalificacionRepository extends JpaRepository<Calificacion, Long> {
 
     //Buscar todas las notas de un estudiante en un trimestre: SELECT * FROM _calificacion WHERE estudiante_id = ? AND trimestre_id = ?
@@ -19,6 +25,11 @@ public interface CalificacionRepository extends JpaRepository<Calificacion, Long
 
     //Buscar una nota especifica por estudiante y actividad
     Calificacion findByEstudianteIdAndActividadId(Long estudianteId, Long actividadId);
+
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM Calificacion c WHERE c.actividad.id = ?1")
+    void deleteByActividadId(Long actividadId);
 
     //Buscar todas las notas en un trimestre especifico
     // List<Calificacion> findByTrimestreId(Long trimestreId);

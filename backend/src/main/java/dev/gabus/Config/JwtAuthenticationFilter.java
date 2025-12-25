@@ -68,6 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     } catch (Exception e) {
         System.out.println("💥 Excepción verificando token: " + e.getMessage());
         e.printStackTrace(); // Esto nos dirá el error exacto en la terminal
+        SecurityContextHolder.clearContext(); // Limpiar contexto por seguridad
     }
 
     filterChain.doFilter(request, response);

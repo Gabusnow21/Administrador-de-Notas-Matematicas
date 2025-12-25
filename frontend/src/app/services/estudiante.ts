@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LocalDbService, LocalEstudiante } from './local-db';
+import { environment } from '../environments/environment.prod';
 
 export interface Estudiante {
   id: number;
@@ -10,6 +11,8 @@ export interface Estudiante {
   apellido: string;
   email: string;
   gradoId: number;
+  nfcId?: string;       // Opcional, puede ser null
+  saldoTokens?: number; // Opcional, puede ser null
   grado?: any;   // Objeto completo si viene del API
   localId?: number;
   syncStatus?: string;
@@ -21,13 +24,12 @@ export interface Estudiante {
 export class EstudianteService {
   //Variables
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/estudiantes';
+  private apiUrl = `${environment.apiUrl}/estudiantes`;
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean {
   return navigator.onLine;
   }
-
 
   // Obtener estudiantes de un grado específico
   getEstudiantesPorGrado(gradoId: number): Observable<Estudiante[]> {
@@ -48,6 +50,21 @@ export class EstudianteService {
     } 
   }
   
+  // Obtener estudiantes sin NfcId asignado
+  getEstudiantesSinNfc(): Observable<Estudiante[]> {
+    if (this.isOnline) {
+      return this.http.get<Estudiante[]>(`${this.apiUrl}/sin-nfc`).pipe(
+        catchError(err => {
+          console.warn('⚠️ [EstudianteService] Fallo API para sin-nfc. Usando local.');
+          return from(this.localDb.getEstudiantesSinNfc() as Promise<Estudiante[]>);
+        })
+      );
+    } else {
+      console.log('🔌 [EstudianteService] Offline. Usando local para sin-nfc.');
+      return from(this.localDb.getEstudiantesSinNfc() as Promise<Estudiante[]>);
+    } 
+  }
+
   // Crear estudiante (nos servirá pronto)
   createEstudiante(estudiante: any): Observable<Estudiante> {
         const guardarLocalmente = () => {

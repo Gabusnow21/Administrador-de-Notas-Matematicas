@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from} from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { LocalDbService } from './local-db';
+import { environment } from '../environments/environment.prod';
 
 export interface Usuario {
   id?: number;
@@ -20,8 +21,8 @@ export interface Usuario {
 })
 export class UsuarioService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/usuarios';
-  private registerUrl = 'http://localhost:8080/api/auth/register'; // URL de registro
+  private apiUrl = `${environment.apiUrl}/usuarios`;
+  private registerUrl = `${environment.apiUrl}/auth/register`; // URL de registro
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean { return navigator.onLine; }

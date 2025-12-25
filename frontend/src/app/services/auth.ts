@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { LocalDbService } from './local-db';
 import { Observable, from, of, throwError } from 'rxjs';
+import { environment } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -19,7 +20,7 @@ export class AuthService {
   private platformId = inject(PLATFORM_ID);
 
   // URL de tu Backend (Asegúrate que coincida con tu Spring Boot)
-  private apiUrl = 'http://localhost:8080/api/auth';
+  private apiUrl = `${environment.apiUrl}/auth`;
   private tokenKey = 'authToken';
   private offlineUserKey = 'offlineUser';
 
@@ -195,5 +196,10 @@ export class AuthService {
     const role = this.getRole();
     console.log('Rol detectado:', role); // Debug
     return role === 'ADMIN';
+  }
+
+  isTeacher(): boolean {
+    const role = this.getRole();
+    return role === 'USER';
   }
 }

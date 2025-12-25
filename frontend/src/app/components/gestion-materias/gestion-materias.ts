@@ -2,6 +2,8 @@ import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Materia, MateriaService } from '../../services/materia';
+import { AuthService } from '../../services/auth';
+import { SyncService } from '../../services/sync';
 
 export interface MateriaData {
   id?: number;
@@ -17,6 +19,8 @@ export interface MateriaData {
 })
 export class GestionMaterias implements OnInit {
   private materiaService = inject(MateriaService);
+  private authService = inject(AuthService);
+  public syncService = inject(SyncService);
 
   materias: Materia[] = [];
   loading: boolean = true;
@@ -73,7 +77,7 @@ export class GestionMaterias implements OnInit {
     }
   }
   // Eliminar materia
-eliminar(materia: Materia) { 
+  eliminar(materia: Materia) { 
     if(!confirm('¿Eliminar esta materia?')) return;
   
     const idParaBorrar = materia.id || materia.localId;
@@ -86,11 +90,18 @@ eliminar(materia: Materia) {
     }
   }
 
+  forzarSincronizacion() {
+    this.syncService.sincronizar();
+  }
+
   private finalizarOperacion() {
     this.procesando = false;
     this.cancelarEdicion();
     this.cargarMaterias();
   }
 
+  logout() {
+    this.authService.logout();
+  }
 
 }

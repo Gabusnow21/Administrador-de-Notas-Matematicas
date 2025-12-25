@@ -37,6 +37,10 @@ export class Dashboard implements OnInit, AfterViewInit {
     return this.authService.isAdmin();
   }
 
+  get isTeacher(): boolean {
+    return this.authService.isTeacher();
+  }
+
   ngOnInit(): void {
     this.cargarGrados();
   }

@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, from } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { LocalCalificacion, LocalDbService, LocalEstudiante } from './local-db';
+import { environment } from '../environments/environment.prod';
 
 export interface PlanillaItem {
   estudianteId: number;
@@ -37,7 +38,7 @@ export interface CalificacionRequest {
 export class CalificacionService {
   private http = inject(HttpClient);
   private localDb = inject(LocalDbService);
-  private apiUrl = 'http://localhost:8080/api/calificaciones';
+  private apiUrl = `${environment.apiUrl}/calificaciones`;
 
   private get isOnline(): boolean { return navigator.onLine; }
 

@@ -1,0 +1,98 @@
+.login-container {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); /* Azul profundo y profesional */
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  max-width: 450px;
+  width: 100%;
+}
+
+.brand-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 1rem;
+}
+
+.form-floating > label {
+  color: #6c757d;
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+  color: #1e3c72;
+  font-weight: 600;
+}
+
+.form-control {
+  border-radius: 10px;
+  border: 1px solid #ced4da;
+  padding-left: 1rem;
+}
+
+.form-control:focus {
+  border-color: #2a5298;
+  box-shadow: 0 0 0 0.25rem rgba(42, 82, 152, 0.15);
+}
+
+.btn-primary-gradient {
+  background: linear-gradient(to right, #1e3c72, #2a5298);
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary-gradient:hover {
+  background: linear-gradient(to right, #2a5298, #1e3c72);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(30, 60, 114, 0.3);
+}
+
+.btn-primary-gradient:disabled {
+  background: #ccc;
+  transform: none;
+  box-shadow: none;
+}
+
+.toggle-link {
+  color: #1e3c72;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.toggle-link:hover {
+  color: #2a5298;
+  text-decoration: underline;
+}
+
+/* Animaciones */
+.fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}

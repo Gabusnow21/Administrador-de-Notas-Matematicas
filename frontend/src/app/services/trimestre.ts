@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, from } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LocalDbService } from './local-db';
+import { environment } from '../environments/environment.prod';
 
 export interface Trimestre {
   id: number;
@@ -20,7 +21,7 @@ export interface Trimestre {
 })
 export class TrimestreService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/trimestres';
+  private apiUrl = `${environment.apiUrl}/trimestres`;
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean { return navigator.onLine; }
