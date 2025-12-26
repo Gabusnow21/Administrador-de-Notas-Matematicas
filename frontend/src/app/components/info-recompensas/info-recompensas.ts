@@ -50,33 +50,46 @@ export class InfoRecompensasComponent implements AfterViewInit {
       data: {
         labels: labelsCategory.map(l => this.wrapLabel(l)),
         datasets: [{
-          label: 'Cantidad de Recompensas',
+          label: 'Cantidad',
           data: [5, 5, 3, 2],
           backgroundColor: [
-            'rgba(76, 175, 80, 0.7)',
-            'rgba(255, 193, 7, 0.7)',
-            'rgba(255, 152, 0, 0.7)',
-            'rgba(244, 67, 54, 0.7)'
+            'rgba(16, 185, 129, 0.8)', // Emerald 500
+            'rgba(79, 70, 229, 0.8)',  // Indigo 600
+            'rgba(245, 158, 11, 0.8)', // Amber 500
+            'rgba(168, 85, 247, 0.8)'  // Purple 500
           ],
-          borderColor: [
-            '#4CAF50',
-            '#FFC107',
-            '#FF9800',
-            '#F44336'
-          ],
-          borderWidth: 1
+          borderRadius: 12,
+          borderSkipped: false,
+          barThickness: 32
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false }
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1e293b',
+            padding: 12,
+            titleFont: { family: 'Outfit', size: 14 },
+            bodyFont: { family: 'Outfit', size: 13 },
+            cornerRadius: 8
+          }
         },
         scales: {
           y: {
             beginAtZero: true,
-            title: { display: true, text: 'Número de Premios' }
+            grid: { display: false },
+            ticks: {
+              font: { family: 'Outfit', size: 12 },
+              stepSize: 1
+            }
+          },
+          x: {
+            grid: { display: false },
+            ticks: {
+              font: { family: 'Outfit', size: 12 }
+            }
           }
         }
       }
@@ -90,22 +103,23 @@ export class InfoRecompensasComponent implements AfterViewInit {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const labelsProgress = ['Nivel Bronce (Inicio)', 'Nivel Plata (Medio)', 'Nivel Oro (Avanzado)', 'Nivel Épico (Final)'];
+    const labelsProgress = ['Bronce', 'Plata', 'Oro', 'Épico'];
 
     new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: labelsProgress.map(l => this.wrapLabel(l)),
+        labels: labelsProgress,
         datasets: [{
-          label: 'Puntos Requeridos (Max)',
+          label: 'Puntos Requeridos',
           data: [50, 150, 350, 500],
           backgroundColor: [
-            'rgba(76, 175, 80, 0.8)',
-            'rgba(255, 193, 7, 0.8)',
-            'rgba(255, 152, 0, 0.8)',
-            'rgba(244, 67, 54, 0.8)'
+            '#10b981', // Emerald
+            '#f59e0b', // Amber
+            '#ef4444', // Red
+            '#a855f7'  // Purple
           ],
-          borderRadius: 5
+          borderRadius: 8,
+          barThickness: 24
         }]
       },
       options: {
@@ -113,12 +127,28 @@ export class InfoRecompensasComponent implements AfterViewInit {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false }
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1e293b',
+            padding: 12,
+            titleFont: { family: 'Outfit', size: 14 },
+            bodyFont: { family: 'Outfit', size: 13 },
+            cornerRadius: 8
+          }
         },
         scales: {
           x: {
             max: 550,
-            title: { display: true, text: 'Puntos Acumulados' }
+            grid: { color: '#f1f5f9' },
+            ticks: {
+              font: { family: 'Outfit', size: 12 }
+            }
+          },
+          y: {
+            grid: { display: false },
+            ticks: {
+              font: { family: 'Outfit', size: 12, weight: 'bold' }
+            }
           }
         }
       }
