@@ -63,29 +63,4 @@
       </li>
     }
   </ul>
-
-  <div class="sidebar-footer">
-      <button class="btn btn-sidebar-footer mb-2" 
-              [class.btn-success]="syncService.isFullyOnline" 
-              [class.btn-warning]="!syncService.isFullyOnline && syncService.isOnline"
-              [class.btn-outline-light-custom]="!(!syncService.isFullyOnline && syncService.isOnline) && !syncService.isFullyOnline"
-              (click)="forzarSincronizacion()"
-              [title]="!isExpanded ? (syncService.isSyncing() ? 'Sincronizando...' : (syncService.isFullyOnline ? 'En Línea' : 'Offline')) : 'Clic para sincronizar ahora'">
-        
-        @if (!syncService.isFullyOnline && !syncService.isSyncing()) {
-          <i class="bi bi-wifi-off"></i> <span class="link-text ms-2">Offline</span>
-        } 
-        @else if (syncService.isSyncing()) {
-          <span class="spinner-border spinner-border-sm"></span> <span class="link-text ms-2">Sync...</span>
-        } 
-        @else {
-          <i class="bi bi-cloud-check"></i> <span class="link-text ms-2">En Línea</span>
-        }
-      </button>
-
-      <button class="btn btn-outline-light-custom fw-bold" (click)="logout()" [title]="!isExpanded ? 'Cerrar Sesión' : ''">
-        <i class="bi bi-box-arrow-right"></i>
-        <span class="link-text ms-2">Cerrar Sesión</span>
-      </button>
-  </div>
 </div>
