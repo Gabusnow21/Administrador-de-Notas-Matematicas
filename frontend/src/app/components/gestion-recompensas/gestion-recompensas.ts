@@ -27,6 +27,8 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
   isEditMode = false;
   currentRecompensaId: number | null = null;
   
+  niveles = ['Bronce', 'Plata', 'Oro', 'Epico'];
+
   // Estado de carga para UX
   isLoading = false;
   isDeleting: { [key: number]: boolean } = {};
@@ -38,7 +40,7 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
       descripcion: [''],
       costo: [0, [Validators.required, Validators.min(1)]],
       stock: [null, [Validators.min(0)]],
-      imagenUrl: ['']
+      imagenUrl: ['Bronce', Validators.required]
     });
   }
 
@@ -59,6 +61,26 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
       this.recompensas = data;
       this.isLoading = false;
     });
+  }
+
+  getIconClass(nivel: string | undefined): string {
+    switch (nivel) {
+      case 'Bronce': return 'bi-award';
+      case 'Plata': return 'bi-award-fill';
+      case 'Oro': return 'bi-trophy-fill';
+      case 'Epico': return 'bi-gem';
+      default: return 'bi-award';
+    }
+  }
+
+  getIconColor(nivel: string | undefined): string {
+    switch (nivel) {
+      case 'Bronce': return '#cd7f32'; // Bronze
+      case 'Plata': return '#708090'; // SlateGray (Silver-ish)
+      case 'Oro': return '#ffd700'; // Gold
+      case 'Epico': return '#9932cc'; // DarkOrchid (Epic)
+      default: return '#6c757d'; // Secondary
+    }
   }
 
   // --- Métodos para el Modal ---
@@ -82,17 +104,41 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
       return;
     }
     this.isLoading = true;
-    const recompensaData = this.recompensaForm.value;
+    const recompensaData = { ...this.recompensaForm.value };
 
-    const operation = this.isEditMode && this.currentRecompensaId
-      ? this.recompensaService.updateRecompensa(this.currentRecompensaId, recompensaData)
-      : this.recompensaService.createRecompensa(recompensaData);
-
-    operation.subscribe(() => {
-      this.cargarRecompensas();
-      this.modalInstance?.hide();
-      this.isLoading = false;
-    });
+    if (this.isEditMode && this.currentRecompensaId) {
+      // Para actualizar, buscamos la recompensa original para conservar el profesor si existe
+      const original = this.recompensas.find(r => r.id === this.currentRecompensaId);
+      if (original) {
+        recompensaData.profesor = original.profesor;
+      }
+      
+      this.recompensaService.updateRecompensa(this.currentRecompensaId, recompensaData).subscribe({
+        next: () => {
+          this.cargarRecompensas();
+          this.modalInstance?.hide();
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error al actualizar:', error);
+          this.isLoading = false;
+          alert('No tienes permisos para editar esta recompensa o ha ocurrido un error.');
+        }
+      });
+    } else {
+      this.recompensaService.createRecompensa(recompensaData).subscribe({
+        next: () => {
+          this.cargarRecompensas();
+          this.modalInstance?.hide();
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error al crear:', error);
+          this.isLoading = false;
+          alert('Error al crear la recompensa.');
+        }
+      });
+    }
   }
 
   eliminarRecompensa(id: number): void {

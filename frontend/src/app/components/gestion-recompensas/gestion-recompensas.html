@@ -40,7 +40,9 @@
             <tr *ngFor="let recompensa of recompensas" class="hover-effect">
               <td class="ps-3">
                 <div class="d-flex align-items-center">
-                  <img class="rounded-circle me-3" width="45" height="45" [src]="recompensa.imagenUrl || 'assets/Edumath-login.png'" alt="Imagen" />
+                  <div class="me-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                    <i class="bi" [ngClass]="getIconClass(recompensa.imagenUrl)" [style.color]="getIconColor(recompensa.imagenUrl)" style="font-size: 2rem;"></i>
+                  </div>
                   <div>
                     <div class="fw-bold">{{ recompensa.nombre }}</div>
                     <div class="text-muted small">{{ recompensa.descripcion }}</div>
@@ -109,8 +111,10 @@
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">URL de la Imagen (Opcional)</label>
-            <input type="text" formControlName="imagenUrl" class="form-control">
+            <label class="form-label">Nivel de Recompensa</label>
+            <select formControlName="imagenUrl" class="form-select">
+              <option *ngFor="let nivel of niveles" [value]="nivel">{{ nivel }}</option>
+            </select>
           </div>
         </div>
         <div class="modal-footer">

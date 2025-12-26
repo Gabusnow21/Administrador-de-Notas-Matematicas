@@ -59,42 +59,61 @@ public class RecompensaController {
 
     // Actualizar una recompensa
     @PutMapping("/{id}")
-    public ResponseEntity<Recompensa> updateRecompensa(@PathVariable Long id, @RequestBody Recompensa recompensaDetails) {
+    public ResponseEntity<?> updateRecompensa(@PathVariable Long id, @RequestBody Recompensa recompensaDetails) {
         Usuario user = getCurrentUser();
+        var recompensaOptional = recompensaRepository.findById(id);
 
-        return recompensaRepository.findById(id)
-                .map(recompensa -> {
-                    
-                    if (user.getRole() != Role.ADMIN) {
-                        if (recompensa.getProfesor() == null || !recompensa.getProfesor().getId().equals(user.getId())) {
-                            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-                        }
-                    }
+        if (recompensaOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
-                    recompensa.setNombre(recompensaDetails.getNombre());
-                    recompensa.setDescripcion(recompensaDetails.getDescripcion());
-                    recompensa.setCosto(recompensaDetails.getCosto());
-                    recompensa.setStock(recompensaDetails.getStock());
-                    recompensa.setImagenUrl(recompensaDetails.getImagenUrl());
-                    Recompensa updatedRecompensa = recompensaRepository.save(recompensa);
-                    return ResponseEntity.ok(updatedRecompensa);
-                }).orElse(ResponseEntity.notFound().build());
+        Recompensa recompensa = recompensaOptional.get();
+
+        // Si no es ADMIN, verificar que sea el dueño
+        if (user.getRole() != Role.ADMIN) {
+            if (recompensa.getProfesor() != null && !recompensa.getProfesor().getId().equals(user.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        recompensa.setNombre(recompensaDetails.getNombre());
+        recompensa.setDescripcion(recompensaDetails.getDescripcion());
+        recompensa.setCosto(recompensaDetails.getCosto());
+        recompensa.setStock(recompensaDetails.getStock());
+        recompensa.setImagenUrl(recompensaDetails.getImagenUrl());
+        
+        // Lógica para el profesor:
+        if (user.getRole() == Role.ADMIN) {
+            if (recompensaDetails.getProfesor() != null) {
+                recompensa.setProfesor(recompensaDetails.getProfesor());
+            }
+        } else if (recompensa.getProfesor() == null) {
+            recompensa.setProfesor(user);
+        }
+
+        Recompensa updatedRecompensa = recompensaRepository.save(recompensa);
+        return ResponseEntity.ok(updatedRecompensa);
     }
 
     // Borrar una recompensa
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRecompensa(@PathVariable Long id) {
+    public ResponseEntity<?> deleteRecompensa(@PathVariable Long id) {
         Usuario user = getCurrentUser();
+        var recompensaOptional = recompensaRepository.findById(id);
 
-        return recompensaRepository.findById(id)
-                .map(recompensa -> {
-                    if (user.getRole() != Role.ADMIN) {
-                        if (recompensa.getProfesor() == null || !recompensa.getProfesor().getId().equals(user.getId())) {
-                            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-                        }
-                    }
-                    recompensaRepository.delete(recompensa);
-                    return ResponseEntity.ok().<Void>build();
-                }).orElse(ResponseEntity.notFound().build());
+        if (recompensaOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Recompensa recompensa = recompensaOptional.get();
+
+        if (user.getRole() != Role.ADMIN) {
+            if (recompensa.getProfesor() != null && !recompensa.getProfesor().getId().equals(user.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+        
+        recompensaRepository.delete(recompensa);
+        return ResponseEntity.ok().build();
     }
 }
