@@ -14,15 +14,19 @@ import { GestionRecompensasComponent } from './components/gestion-recompensas/ge
 import { NfcTerminalComponent } from './components/nfc-terminal/nfc-terminal';
 import { GestionTrimestres } from './components/gestion-trimestres/gestion-trimestres';
 import { LayoutComponent } from './components/layout/layout';
+import { VistaProgresoEstudiante } from './components/vista-progreso-estudiante/vista-progreso-estudiante';
+import { AccesoProgresoComponent } from './components/acceso-progreso/acceso-progreso';
 
 export const routes: Routes = [
     { path: 'login', component: Login },
+    { path: 'info-recompensas', component: InfoRecompensasComponent },
+    { path: 'mi-progreso', component: AccesoProgresoComponent },
+    { path: 'mi-progreso/detalle', component: VistaProgresoEstudiante },
     {
         path: '',
         component: LayoutComponent,
         children: [
             { path: 'dashboard', component: Dashboard },
-            { path: 'info-recompensas', component: InfoRecompensasComponent },
             { path: 'grado/:id', component: VistaGrado },
             { path: 'estudiante/:id/calificaciones', component: VistaCalificaciones },
             { path: 'registro-notas', component: RegistroNotas },
@@ -63,4 +67,3 @@ export const routes: Routes = [
     },
     { path: '', redirectTo: 'login', pathMatch: 'full' }
 ];
-

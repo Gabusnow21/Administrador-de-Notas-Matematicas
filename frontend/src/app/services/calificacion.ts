@@ -131,8 +131,8 @@ export class CalificacionService {
 
       return {
         estudianteId: est.id || est.localId!,
-        nombreEstudiante: est.nombre,
-        apellidoEstudiante: est.apellido,
+        nombreEstudiante: est.nombres,
+        apellidoEstudiante: est.apellidos,
         calificacionId: nota ? (nota.id || nota.localId) : undefined,
         nota: nota ? nota.nota : undefined,
         observacion: nota ? nota.observacion : undefined,

@@ -43,22 +43,29 @@
           {{ UpdateEdicion ? 'Editar Datos del Estudiante' : 'Datos del Nuevo Estudiante' }}
         </h5>
         
-        <form (ngSubmit)="guardarEstudiante()" class="row g-3">
+        <form #studentForm="ngForm" (ngSubmit)="guardarEstudiante()" class="row g-3">
           
-          <div class="col-md-5">
+          <div class="col-md-4">
             <label class="form-label">Nombres</label>
             <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.nombre" name="nombre" placeholder="Ej. Juan Carlos" required>
           </div>
 
-          <div class="col-md-5">
+          <div class="col-md-4">
             <label class="form-label">Apellidos</label>
             <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.apellido" name="apellido" placeholder="Ej. Pérez López" required>
           </div>
 
-          <div class="col-md-2 d-flex align-items-end">
-            <button type="submit" class="btn btn-success w-100" [disabled]="procesando">
+          @if (!UpdateEdicion) {
+            <div class="col-md-4">
+              <label class="form-label">Código de Progreso</label>
+              <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.codigoProgreso" name="codigoProgreso" placeholder="8 caracteres" required minlength="8" maxlength="8">
+            </div>
+          }
+
+          <div class="col-12 d-flex justify-content-end">
+            <button type="submit" class="btn btn-success" [disabled]="procesando || studentForm.invalid">
               @if (procesando) {
-                <span class="spinner-border spinner-border-sm"></span>
+                <span class="spinner-border spinner-border-sm"></span> Guardando...
               } @else {
                 Guardar
               }
@@ -100,15 +107,17 @@
               <th scope="col" class="ps-4">#</th>
               <th scope="col">Apellidos</th>
               <th scope="col">Nombres</th>
+              <th scope="col">Código de Progreso</th>
               <th scope="col" class="text-end pe-4">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            @for (est of estudiantes; track est.id; let i = $index) {
+            @for (est of estudiantes; track $index) {
               <tr>
-                <th scope="row" class="ps-4">{{ i + 1 }}</th>
-                <td class="fw-bold">{{ est.apellido }}</td>
-                <td>{{ est.nombre }}</td>
+                <th scope="row" class="ps-4">{{ $index + 1 }}</th>
+                <td class="fw-bold">{{ est.apellidos }}</td>
+                <td>{{ est.nombres }}</td>
+                <td><span class="badge bg-secondary">{{ est.codigoProgreso }}</span></td>
                 <td class="text-end pe-4">
                   <button class="btn btn-sm btn-primary" 
                             [routerLink]="['/estudiante', est.id, 'calificaciones']"

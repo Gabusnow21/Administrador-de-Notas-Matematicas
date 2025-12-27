@@ -1,8 +1,12 @@
 import { Component, AfterViewInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 
 @Component({
   selector: 'app-info-recompensas',
+  standalone: true,
+  imports: [CommonModule, RouterLink],
   templateUrl: './info-recompensas.html',
   styleUrls: ['./info-recompensas.css']
 })
