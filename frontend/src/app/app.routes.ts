@@ -16,6 +16,7 @@ import { GestionTrimestres } from './components/gestion-trimestres/gestion-trime
 import { LayoutComponent } from './components/layout/layout';
 import { VistaProgresoEstudiante } from './components/vista-progreso-estudiante/vista-progreso-estudiante';
 import { AccesoProgresoComponent } from './components/acceso-progreso/acceso-progreso';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
     { path: 'login', component: Login },
@@ -25,6 +26,7 @@ export const routes: Routes = [
     {
         path: '',
         component: LayoutComponent,
+        canActivate: [authGuard],
         children: [
             { path: 'dashboard', component: Dashboard },
             { path: 'grado/:id', component: VistaGrado },
@@ -65,5 +67,5 @@ export const routes: Routes = [
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
         ]
     },
-    { path: '', redirectTo: 'login', pathMatch: 'full' }
+    { path: '**', redirectTo: 'login' }
 ];
