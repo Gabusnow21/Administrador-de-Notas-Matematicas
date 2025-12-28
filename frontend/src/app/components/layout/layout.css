@@ -1,0 +1,59 @@
+.main-content-wrapper {
+  transition: margin-left 0.3s ease;
+  margin-left: 80px; /* Collapsed width */
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.main-content-wrapper.expanded {
+  margin-left: 250px; /* Expanded width */
+}
+
+.navbar {
+  height: 64px;
+  padding: 0 1.5rem;
+}
+
+.navbar-brand {
+  font-size: 1.25rem;
+  letter-spacing: 0.5px;
+}
+
+/* Estilos para el botón de usuario */
+.user-dropdown-btn {
+  background: rgba(255, 255, 255, 0);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  padding: 0.4rem 1rem;
+  transition: all 0.3s ease;
+  color: white;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.user-dropdown-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.user-dropdown-btn:active {
+  transform: translateY(0);
+}
+
+.dropdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1040;
+  background: transparent;
+  cursor: default;
+}
+
+.dropdown-menu {
+    border: none;
+    border-radius: 12px;
+}

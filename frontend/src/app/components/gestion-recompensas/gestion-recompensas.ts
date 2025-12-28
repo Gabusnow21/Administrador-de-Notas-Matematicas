@@ -2,6 +2,7 @@ import { Component, OnInit, inject, ViewChild, ElementRef, AfterViewInit } from 
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Recompensa, RecompensaService } from '../../services/recompensa';
+import { Estudiante, EstudianteService } from '../../services/estudiante';
 import { Modal } from 'bootstrap';
 import { RouterLink } from '@angular/router';
 
@@ -15,20 +16,28 @@ import { RouterLink } from '@angular/router';
 export class GestionRecompensasComponent implements OnInit, AfterViewInit {
   // Inyección de servicios
   private recompensaService = inject(RecompensaService);
+  private estudianteService = inject(EstudianteService);
   private fb = inject(FormBuilder);
 
-  // Referencia al elemento del modal en el HTML
+  // Referencias a modales
   @ViewChild('recompensaModal') recompensaModalElement!: ElementRef;
+  @ViewChild('puntosModal') puntosModalElement!: ElementRef;
+  
   private modalInstance: Modal | null = null;
+  private puntosModalInstance: Modal | null = null;
 
   // Propiedades del componente
   recompensas: Recompensa[] = [];
+  estudiantesPuntos: Estudiante[] = [];
   recompensaForm: FormGroup;
   isEditMode = false;
   currentRecompensaId: number | null = null;
   
+  niveles = ['Bronce', 'Plata', 'Oro', 'Epico'];
+
   // Estado de carga para UX
   isLoading = false;
+  isLoadingPuntos = false;
   isDeleting: { [key: number]: boolean } = {};
 
   constructor() {
@@ -38,7 +47,7 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
       descripcion: [''],
       costo: [0, [Validators.required, Validators.min(1)]],
       stock: [null, [Validators.min(0)]],
-      imagenUrl: ['']
+      imagenUrl: ['Bronce', Validators.required]
     });
   }
 
@@ -47,9 +56,12 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Inicializar la instancia del modal de Bootstrap
+    // Inicializar instancias de modales
     if (this.recompensaModalElement) {
       this.modalInstance = new Modal(this.recompensaModalElement.nativeElement);
+    }
+    if (this.puntosModalElement) {
+      this.puntosModalInstance = new Modal(this.puntosModalElement.nativeElement);
     }
   }
 
@@ -61,7 +73,48 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // --- Métodos para el Modal ---
+  cargarPuntosEstudiantes(): void {
+    this.isLoadingPuntos = true;
+    this.estudiantesPuntos = [];
+    // Nota: Usamos getEstudiantesSinNfc como placeholder para obtener una lista de ejemplo.
+    // En un sistema real, se debería usar un endpoint que devuelva todos los estudiantes con su saldo.
+    this.estudianteService.getEstudiantesSinNfc().subscribe({
+      next: (data) => {
+        this.estudiantesPuntos = data.sort((a, b) => (b.saldoTokens || 0) - (a.saldoTokens || 0));
+        this.isLoadingPuntos = false;
+      },
+      error: () => {
+        this.isLoadingPuntos = false;
+      }
+    });
+  }
+
+  openPuntosModal(): void {
+    this.cargarPuntosEstudiantes();
+    this.puntosModalInstance?.show();
+  }
+
+  getIconClass(nivel: string | undefined): string {
+    switch (nivel) {
+      case 'Bronce': return 'bi-award';
+      case 'Plata': return 'bi-award-fill';
+      case 'Oro': return 'bi-trophy-fill';
+      case 'Epico': return 'bi-gem';
+      default: return 'bi-award';
+    }
+  }
+
+  getIconColor(nivel: string | undefined): string {
+    switch (nivel) {
+      case 'Bronce': return '#cd7f32'; // Bronze
+      case 'Plata': return '#708090'; // SlateGray (Silver-ish)
+      case 'Oro': return '#ffd700'; // Gold
+      case 'Epico': return '#9932cc'; // DarkOrchid (Epic)
+      default: return '#6c757d'; // Secondary
+    }
+  }
+
+  // --- Métodos para el Modal de Recompensa ---
   openCreateModal(): void {
     this.isEditMode = false;
     this.recompensaForm.reset({ costo: 1, stock: null });
@@ -82,17 +135,40 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
       return;
     }
     this.isLoading = true;
-    const recompensaData = this.recompensaForm.value;
+    const recompensaData = { ...this.recompensaForm.value };
 
-    const operation = this.isEditMode && this.currentRecompensaId
-      ? this.recompensaService.updateRecompensa(this.currentRecompensaId, recompensaData)
-      : this.recompensaService.createRecompensa(recompensaData);
-
-    operation.subscribe(() => {
-      this.cargarRecompensas();
-      this.modalInstance?.hide();
-      this.isLoading = false;
-    });
+    if (this.isEditMode && this.currentRecompensaId) {
+      const original = this.recompensas.find(r => r.id === this.currentRecompensaId);
+      if (original) {
+        recompensaData.profesor = original.profesor;
+      }
+      
+      this.recompensaService.updateRecompensa(this.currentRecompensaId, recompensaData).subscribe({
+        next: () => {
+          this.cargarRecompensas();
+          this.modalInstance?.hide();
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error al actualizar:', error);
+          this.isLoading = false;
+          alert('No tienes permisos para editar esta recompensa o ha ocurrido un error.');
+        }
+      });
+    } else {
+      this.recompensaService.createRecompensa(recompensaData).subscribe({
+        next: () => {
+          this.cargarRecompensas();
+          this.modalInstance?.hide();
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error al crear:', error);
+          this.isLoading = false;
+          alert('Error al crear la recompensa.');
+        }
+      });
+    }
   }
 
   eliminarRecompensa(id: number): void {

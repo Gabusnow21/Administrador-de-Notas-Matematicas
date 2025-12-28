@@ -73,7 +73,7 @@ export class VistaCalificaciones implements OnInit {
     // 1. Obtener Nombre del Estudiante (Opcional, si falla no rompe la app)
     this.estudianteService.getEstudianteById(this.estudianteId).subscribe({
       next: (est) => {
-        this.nombreEstudiante = `${est.nombre} ${est.apellido}`;
+        this.nombreEstudiante = `${est.nombres} ${est.apellidos}`;
       },
       error: () => {
         this.nombreEstudiante = 'Estudiante #' + this.estudianteId;

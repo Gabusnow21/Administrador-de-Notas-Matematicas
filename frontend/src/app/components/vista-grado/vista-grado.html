@@ -1,36 +1,17 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 shadow-sm">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="/dashboard">
-      <i class="bi bi-mortarboard-fill me-2"></i>Gestor de Notas
+<div class="bg-primary text-white shadow-sm mb-4">
+  <div class="container-fluid d-flex justify-content-between align-items-center p-3">
+    <a routerLink="/dashboard" class="btn btn-outline-light rounded-circle" style="width: 40px; height: 40px; line-height: 24px;" title="Volver al Dashboard">
+      <i class="bi bi-arrow-left"></i>
     </a>
-
-    <div class="d-flex gap-2">
-
-      <!-- INDICADOR DE ESTADO DE RED / SYNC -->
-      <button class="btn btn-sm me-2" 
-              [class.btn-success]="syncService.isFullyOnline" 
-              [class.btn-warning]="!syncService.isFullyOnline && syncService.isOnline"
-              (click)="forzarSincronizacion()"
-              title="Clic para sincronizar ahora">
-        
-        @if (!syncService.isFullyOnline) {
-          <i class="bi bi-wifi-off"></i> Offline
-        } 
-        @else if (syncService.isSyncing()) {
-          <span class="spinner-border spinner-border-sm"></span> Sync...
-        } 
-        @else {
-          <i class="bi bi-cloud-check"></i> En Línea
-        }
-      </button>
-
-      <!-- Botón Cerrar Sesión (Visible para todos) -->
-      <button class="btn btn-light btn-sm text-primary fw-bold" (click)="logout()">
-        Cerrar Sesión <i class="bi bi-box-arrow-right ms-1"></i>
-      </button>
-    </div>
+    <h1 class="h4 mb-0 fw-bold d-flex align-items-center mx-auto">
+      <i class="bi bi-award-fill me-2"></i>
+      Gestión de Grado
+    </h1>
+    <button class="btn btn-success" (click)="iniciarInscripcion()">
+      <i class="bi bi-person-plus-fill me-1"></i> Inscribir Estudiante
+    </button>
   </div>
-</nav>
+</div>
 <div class="container mt-4">
   
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -45,56 +26,47 @@
         <p class="text-muted mb-0">Cargando información del grado...</p>
       }
     </div>
-    
-    <div class="d-flex gap-2">
-      <button class="btn" 
-              [class.btn-success]="!mostrarFormulario" 
-              [class.btn-danger]="mostrarFormulario"
-              (click)="iniciarInscripcion()">
-        @if (!mostrarFormulario) {
-          <i class="bi bi-person-plus-fill me-1"></i> Inscribir Estudiante
-        } @else {
-          <i class="bi bi-x-lg me-1"></i> Cancelar
-        }
-      </button>
-
-      <a routerLink="/dashboard" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Volver
-      </a>
-    </div>
-    
   </div>
 
   @if (mostrarFormulario) {
-    <div class="card mb-4 border-success bg-light animate__animated animate__fadeIn">
-      <div class="card-body">
-        <h5 class="card-title text-success mb-3">
-          {{ UpdateEdicion ? 'Editar Datos del Estudiante' : 'Datos del Nuevo Estudiante' }}
-        </h5>
-        
-        <form (ngSubmit)="guardarEstudiante()" class="row g-3">
-          
-          <div class="col-md-5">
-            <label class="form-label">Nombres</label>
-            <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.nombre" name="nombre" placeholder="Ej. Juan Carlos" required>
-          </div>
-
-          <div class="col-md-5">
-            <label class="form-label">Apellidos</label>
-            <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.apellido" name="apellido" placeholder="Ej. Pérez López" required>
-          </div>
-
-          <div class="col-md-2 d-flex align-items-end">
-            <button type="submit" class="btn btn-success w-100" [disabled]="procesando">
-              @if (procesando) {
-                <span class="spinner-border spinner-border-sm"></span>
-              } @else {
-                Guardar
-              }
-            </button>
-          </div>
-
-        </form>
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form #studentForm="ngForm" (ngSubmit)="guardarEstudiante()">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ UpdateEdicion ? 'Editar Datos del Estudiante' : 'Datos del Nuevo Estudiante' }}</h5>
+              <button type="button" class="btn-close" (click)="mostrarFormulario = false"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nombres</label>
+                  <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.nombres" name="nombres" placeholder="Ej. Juan Carlos" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Apellidos</label>
+                  <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.apellidos" name="apellidos" placeholder="Ej. Pérez López" required>
+                </div>
+                @if (!UpdateEdicion) {
+                  <div class="col-12">
+                    <label class="form-label">Código de Progreso</label>
+                    <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.codigoProgreso" name="codigoProgreso" placeholder="8 caracteres" required minlength="8" maxlength="8">
+                  </div>
+                }
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" (click)="mostrarFormulario = false">Cancelar</button>
+              <button type="submit" class="btn btn-primary" [disabled]="procesando || !studentForm.form.valid">
+                @if (procesando) {
+                  <span class="spinner-border spinner-border-sm"></span> Guardando...
+                } @else {
+                  Guardar
+                }
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   }
@@ -129,15 +101,17 @@
               <th scope="col" class="ps-4">#</th>
               <th scope="col">Apellidos</th>
               <th scope="col">Nombres</th>
+              <th scope="col">Código de Progreso</th>
               <th scope="col" class="text-end pe-4">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            @for (est of estudiantes; track est.id; let i = $index) {
+            @for (est of estudiantes; track $index) {
               <tr>
-                <th scope="row" class="ps-4">{{ i + 1 }}</th>
-                <td class="fw-bold">{{ est.apellido }}</td>
-                <td>{{ est.nombre }}</td>
+                <th scope="row" class="ps-4">{{ $index + 1 }}</th>
+                <td class="fw-bold">{{ est.apellidos }}</td>
+                <td>{{ est.nombres }}</td>
+                <td><span class="badge bg-secondary">{{ est.codigoProgreso }}</span></td>
                 <td class="text-end pe-4">
                   <button class="btn btn-sm btn-primary" 
                             [routerLink]="['/estudiante', est.id, 'calificaciones']"

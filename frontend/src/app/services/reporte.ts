@@ -78,7 +78,7 @@ export class Reporte {
 
     doc.setFontSize(11);
     doc.setTextColor('#003366'); // Color azul oscuro
-    doc.text(`Estudiante:  ${estudiante.apellido} ${estudiante.nombre}`, 14, 95);
+    doc.text(`Estudiante:  ${estudiante.apellidos} ${estudiante.nombres}`, 14, 95);
     doc.setTextColor('#000000'); // Reset color
     // --- Fin de la Cabecera ---
 

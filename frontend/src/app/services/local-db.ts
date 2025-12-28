@@ -28,9 +28,11 @@ export interface LocalGrado {
 export interface LocalEstudiante {
   localId?: number;
   id?: number;
-  nombre: string;
-  apellido: string;
-  gradoId: number;       // Referencia al ID del servidor del grado
+  nombres: string;
+  apellidos: string;
+  email?: string;
+  gradoId: number;
+  codigoProgreso?: string;
   nfcId?: string;
   saldoTokens?: number;
   syncStatus: SyncStatus;
@@ -100,7 +102,7 @@ export class LocalDbService extends Dexie {
     this.version(6).stores({
       usuarios: '++localId, id, username, syncStatus',
       grados: '++localId, id, serverId, nivel, seccion, anioEscolar, syncStatus',
-      estudiantes: '++localId, id, gradoId, nfcId, syncStatus',
+      estudiantes: '++localId, id, gradoId, nfcId, syncStatus, codigoProgreso',
       materias: '++localId, id, syncStatus',
       trimestres: '++localId, id, anioEscolar, syncStatus',
       actividades: '++localId, id, materiaId, trimestreId, syncStatus, [materiaId+trimestreId]',

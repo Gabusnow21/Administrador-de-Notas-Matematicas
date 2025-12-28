@@ -1,74 +1,329 @@
-body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #F3F4F6; /* Gray 100 */
-    color: #1F2937; /* Gray 800 */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+:host {
+    display: block;
+    font-family: 'Outfit', sans-serif;
+    --brand-primary: #6366f1;
+    --brand-secondary: #4f46e5;
+    --bg-light: #f8fafc;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    
+    /* Level Colors */
+    --color-bronze: #10b981;
+    --color-silver: #f59e0b;
+    --color-gold: #ef4444;
+    --color-epic: #a855f7;
+    
+    --glass-bg: rgba(255, 255, 255, 0.9);
+    --glass-border: rgba(255, 255, 255, 0.2);
 }
 
-/* Custom Palette - Gamified Tech */
-.bg-brand-dark { background-color: #1F2937; }
-.text-brand-dark { color: #1F2937; }
-
-.bg-level-bronze { background-color: #4CAF50; }
-.text-level-bronze { color: #4CAF50; }
-
-.bg-level-silver { background-color: #FFC107; }
-.text-level-silver { color: #F59E0B; } /* Darker for text legibility */
-
-.bg-level-gold { background-color: #FF9800; }
-.text-level-gold { color: #E65100; }
-
-.bg-level-epic { background-color: #F44336; }
-.text-level-epic { color: #D32F2F; }
-
-/* Chart Container Rules */
-.chart-container {
+/* Header & Hero */
+.hero-section {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     position: relative;
-    width: 100%;
-    max-width: 600px; /* Restrict max width for readability */
-    margin-left: auto;
-    margin-right: auto;
-    height: 350px; /* Base height */
-    max-height: 400px;
+    padding: 6rem 1rem 9rem;
+    overflow: hidden;
+    color: white;
 }
 
-/* Card Hover Effects */
-.level-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.level-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+.hero-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.1;
+    background-image: radial-gradient(var(--brand-primary) 0.5px, transparent 0.5px);
+    background-size: 24px 24px;
 }
 
-/* Flow Step Styling */
-.step-circle {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+.hero-gradient {
+    position: absolute;
+    top: -10%;
+    right: -10%;
+    width: 40%;
+    height: 60%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+    filter: blur(50px);
+}
+
+.hero-badge {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    border-radius: 99px;
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    backdrop-filter: blur(4px);
+    margin-bottom: 1.5rem;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: #cbd5e1;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.text-indigo-accent { color: #818cf8; }
+
+/* Floating Stats */
+.stats-container {
+    margin-top: -4rem;
+    position: relative;
+    z-index: 30;
+    max-width: 1140px;
+}
+
+.stats-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    padding: 2.5rem;
+}
+
+.stat-item h3 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(to bottom right, #4f46e5, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Main Content */
+.main-content {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 5rem 1rem;
+}
+
+.section-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 1rem;
+}
+
+.title-divider {
+    width: 80px;
+    height: 6px;
+    background: var(--brand-primary);
+    border-radius: 3px;
+    margin: 0 auto 3rem;
+}
+
+/* Step Cards */
+.step-card {
+    background: white;
+    padding: 3rem 2rem;
+    border-radius: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid #f1f5f9;
+    height: 100%;
+    text-align: center;
+}
+
+.step-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.step-number {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    font-weight: bold;
+    font-size: 1.75rem;
+    font-weight: 700;
     color: white;
-    margin: 0 auto 1rem auto;
-    position: relative;
-    z-index: 10;
+    margin: 0 auto 1.5rem;
 }
 
-/* Connector Line for Desktop */
-@media (min-width: 768px) {
-    .step-connector::after {
-        content: '';
-        position: absolute;
-        top: 30px;
-        left: 50%;
-        width: 100%;
-        height: 4px;
-        background-color: #E5E7EB;
-        z-index: 0;
-    }
-    .step-connector:last-child::after {
-        display: none;
-    }
+.bg-step-1 { background-color: #10b981; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3); }
+.bg-step-2 { background-color: #6366f1; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3); }
+.bg-step-3 { background-color: #a855f7; box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.3); }
+
+/* Charts */
+.chart-card {
+    background: white;
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
+
+.chart-wrapper {
+    position: relative;
+    height: 320px; /* Aumentamos un poco la altura */
+    width: 100%;
+    flex-grow: 1;
+}
+
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Level Cards */
+.level-card {
+    background: white;
+    border-radius: 32px;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    border: 1px solid #f1f5f9;
+    height: 100%;
+    position: relative;
+}
+
+.level-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+}
+
+.level-header {
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    color: white;
+}
+
+.level-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.level-badge {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.reward-list {
+    padding: 1.5rem;
+}
+
+.reward-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 16px;
+    margin-bottom: 0.75rem;
+    background: #f8fafc;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.reward-item:hover {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+
+.points-tag {
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 10px;
+    margin-right: 1.25rem;
+    min-width: 55px;
+    text-align: center;
+}
+
+/* Level Color Themes */
+.bronze { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
+.bronze-tag { background: #ecfdf5; color: #059669; }
+
+.silver { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); }
+.silver-tag { background: #fffbeb; color: #d97706; }
+
+.gold { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); }
+.gold-tag { background: #fef2f2; color: #dc2626; }
+
+.epic { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
+.epic-tag { background: #f5f3ff; color: #7c3aed; }
+.reward-item.epic-highlight { background: linear-gradient(to right, #7c3aed, #4f46e5); color: white; border: none; }
+.points-tag.epic-badge { background: white; color: #7c3aed; }
+
+/* Motivation CTA */
+.cta-section {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    border-radius: 40px;
+    padding: 5rem 2rem;
+    text-align: center;
+    color: white;
+    margin-top: 5rem;
+}
+
+.cta-button {
+    background: white;
+    color: #4f46e5;
+    padding: 1.25rem 3rem;
+    border-radius: 99px;
+    font-weight: 700;
+    font-size: 1.25rem;
+    border: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+}
+
+.cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    background: #f8fafc;
+}
+
+/* Animations */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+    100% { transform: translateY(0px); }
+}
+
+.float-anim {
+    animation: float 4s ease-in-out infinite;
+}
+
+/* Helper Classes */
+.text-slate-800 { color: #1e293b; }
+.text-slate-600 { color: #475569; }
+.text-slate-500 { color: #64748b; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-16 { margin-bottom: 4rem; }
+.mt-4 { margin-top: 1rem; }

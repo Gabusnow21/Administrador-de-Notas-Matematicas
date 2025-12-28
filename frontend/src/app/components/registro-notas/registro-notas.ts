@@ -113,7 +113,8 @@ export class RegistroNotas implements OnInit {
     this.calificacionService.obtenerPlanilla(this.selGrado, this.selActividad)
       .subscribe({
         next: (data) => {
-          this.planilla = data;
+          const uniqueData = Array.from(new Map(data.map(item => [item.estudianteId, item])).values());
+          this.planilla = uniqueData;
           this.loading = false;
         },
         error: (err) => {

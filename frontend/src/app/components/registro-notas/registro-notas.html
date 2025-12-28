@@ -1,52 +1,16 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 shadow-sm">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="/dashboard">
-      <i class="bi bi-mortarboard-fill me-2"></i>Gestor de Notas
+<div class="bg-primary text-white shadow-sm mb-4">
+  <div class="container-fluid d-flex justify-content-between align-items-center p-3">
+    <a routerLink="/dashboard" class="btn btn-outline-light rounded-circle" style="width: 40px; height: 40px; line-height: 24px;" title="Volver al Dashboard">
+      <i class="bi bi-arrow-left"></i>
     </a>
-
-    <div class="d-flex gap-2">
-
-      <!-- INDICADOR DE ESTADO DE RED / SYNC -->
-      <button class="btn btn-sm me-2" 
-              [class.btn-success]="syncService.isFullyOnline" 
-              [class.btn-warning]="!syncService.isFullyOnline && syncService.isOnline"
-              (click)="forzarSincronizacion()"
-              title="Clic para sincronizar ahora">
-        
-        @if (!syncService.isFullyOnline) {
-          <i class="bi bi-wifi-off"></i> Offline
-        } 
-        @else if (syncService.isSyncing()) {
-          <span class="spinner-border spinner-border-sm"></span> Sync...
-        } 
-        @else {
-          <i class="bi bi-cloud-check"></i> En Línea
-        }
-      </button>
-
-      <!-- Botón Cerrar Sesión (Visible para todos) -->
-      <button class="btn btn-light btn-sm text-primary fw-bold" (click)="logout()">
-        Cerrar Sesión <i class="bi bi-box-arrow-right ms-1"></i>
-      </button>
-    </div>
+    <h1 class="h4 mb-0 fw-bold d-flex align-items-center mx-auto">
+      <i class="bi bi-award-fill me-2"></i>
+      Planilla de Gestión de Notas
+    </h1>
   </div>
-</nav>
+</div>
+
 <div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="text-primary m-0">
-      <i class="bi bi-table me-2"></i>Registro de Notas
-    </h2>
-    <div class="d-flex flex-column gap-2 align-items-end">
-    <a routerLink="/dashboard" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> Volver al Dashboard
-    </a>
-    @if (selGrado && selGrado > 0 ){
-    <a [routerLink]="['/grado', selGrado]" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> Regresar al Grado
-    </a>
-    }
-    </div>
-  </div>
 
   <div class="card shadow-sm mb-4 p-3 bg-light">
     <div class="row g-2">

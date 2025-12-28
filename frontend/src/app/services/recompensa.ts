@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environments/environment.prod';
+import { Usuario } from './usuario';
 
 export interface Recompensa {
   id?: number;
@@ -10,6 +11,7 @@ export interface Recompensa {
   costo: number;
   stock?: number;
   imagenUrl?: string;
+  profesor?: Usuario;
 }
 
 @Injectable({

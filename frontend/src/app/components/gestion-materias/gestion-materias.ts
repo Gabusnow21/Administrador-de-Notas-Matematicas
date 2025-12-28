@@ -19,7 +19,7 @@ export interface MateriaData {
 })
 export class GestionMaterias implements OnInit {
   private materiaService = inject(MateriaService);
-  private authService = inject(AuthService);
+  public authService = inject(AuthService);
   public syncService = inject(SyncService);
 
   materias: Materia[] = [];

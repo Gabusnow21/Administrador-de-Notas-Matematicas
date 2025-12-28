@@ -8,10 +8,16 @@
       <i class="bi bi-award-fill me-2"></i>
       Gestión de Recompensas
     </h1>
-    <button (click)="openCreateModal()" class="btn btn-success d-flex align-items-center">
-      <i class="bi bi-plus-lg me-1"></i>
-      Crear Recompensa
-    </button>
+    <div class="d-flex">
+      <button (click)="openPuntosModal()" class="btn btn-info me-2 d-flex align-items-center">
+        <i class="bi bi-people-fill me-1"></i>
+        Puntos por Estudiante
+      </button>
+      <button (click)="openCreateModal()" class="btn btn-success d-flex align-items-center">
+        <i class="bi bi-plus-lg me-1"></i>
+        Crear Recompensa
+      </button>
+    </div>
   </div>
 </div>
 
@@ -40,7 +46,9 @@
             <tr *ngFor="let recompensa of recompensas" class="hover-effect">
               <td class="ps-3">
                 <div class="d-flex align-items-center">
-                  <img class="rounded-circle me-3" width="45" height="45" [src]="recompensa.imagenUrl || 'assets/Edumath-login.png'" alt="Imagen" />
+                  <div class="me-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                    <i class="bi" [ngClass]="getIconClass(recompensa.imagenUrl)" [style.color]="getIconColor(recompensa.imagenUrl)" style="font-size: 2rem;"></i>
+                  </div>
                   <div>
                     <div class="fw-bold">{{ recompensa.nombre }}</div>
                     <div class="text-muted small">{{ recompensa.descripcion }}</div>
@@ -109,8 +117,10 @@
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">URL de la Imagen (Opcional)</label>
-            <input type="text" formControlName="imagenUrl" class="form-control">
+            <label class="form-label">Nivel de Recompensa</label>
+            <select formControlName="imagenUrl" class="form-select">
+              <option *ngFor="let nivel of niveles" [value]="nivel">{{ nivel }}</option>
+            </select>
           </div>
         </div>
         <div class="modal-footer">
@@ -121,6 +131,43 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Puntos por Estudiante -->
+<div class="modal fade" #puntosModal tabindex="-1" aria-labelledby="puntosModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title" id="puntosModalLabel"><i class="bi bi-graph-up-arrow me-2"></i>Ranking de Puntos</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="isLoadingPuntos" class="text-center py-5">
+          <div class="spinner-border text-info" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+        </div>
+        <div *ngIf="!isLoadingPuntos && estudiantesPuntos.length === 0" class="text-center text-muted py-5">
+          No se encontraron datos de estudiantes.
+        </div>
+        <ul *ngIf="!isLoadingPuntos && estudiantesPuntos.length > 0" class="list-group list-group-flush">
+          <li *ngFor="let estudiante of estudiantesPuntos; let i = index" class="list-group-item d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+              <span class="badge bg-primary rounded-pill me-3 fs-6">{{ i + 1 }}</span>
+              <div>
+                <span class="fw-bold">{{ estudiante.nombres }} {{ estudiante.apellidos }}</span>
+                <div class="small text-muted">{{ estudiante.email }}</div>
+              </div>
+            </div>
+            <span class="badge bg-success rounded-pill fs-6">{{ estudiante.saldoTokens || 0 }} Puntos</span>
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
     </div>
   </div>
 </div>

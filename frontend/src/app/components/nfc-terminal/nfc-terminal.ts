@@ -116,7 +116,7 @@ export class NfcTerminalComponent implements OnInit, OnDestroy {
     this.nfcInteractionService.getEstudiantePorNfcId(nfcId).subscribe({
       next: (estudiante) => {
         this.currentStudent = estudiante;
-        this.nfcMessage = { type: 'success', payload: `Estudiante: ${estudiante.nombre} ${estudiante.apellido}` };
+        this.nfcMessage = { type: 'success', payload: `Estudiante: ${estudiante.nombres} ${estudiante.apellidos}` };
         this.isScanning = false;
       },
       error: () => {
@@ -136,7 +136,7 @@ export class NfcTerminalComponent implements OnInit, OnDestroy {
     this.nfcInteractionService.asignarNfcAEstudiante(estudianteId, this.scannedNfcId).subscribe({
       next: (estudiante) => {
         this.currentStudent = estudiante;
-        this.nfcMessage = { type: 'success', payload: `Tag asignado a ${estudiante.nombre} correctamente.` };
+        this.nfcMessage = { type: 'success', payload: `Tag asignado a ${estudiante.nombres} correctamente.` };
         this.estudianteService.getEstudiantesSinNfc().subscribe(data => this.unassignedStudents = data);
         this.assignNfcForm.reset();
         this.isAssigning = false;
@@ -158,7 +158,7 @@ export class NfcTerminalComponent implements OnInit, OnDestroy {
     this.nfcInteractionService.realizarTransaccion(payload).subscribe({
       next: (estudiante) => {
         this.currentStudent = estudiante;
-        this.nfcMessage = { type: 'success', payload: `+${monto} ${this.tokenName} para ${estudiante.nombre}. Nuevo saldo: ${estudiante.saldoTokens}` };
+        this.nfcMessage = { type: 'success', payload: `+${monto} ${this.tokenName} para ${estudiante.nombres}. Nuevo saldo: ${estudiante.saldoTokens}` };
         this.giveTokensForm.reset({ monto: 10, descripcion: '' });
         this.isGivingTokens = false;
       },
@@ -202,6 +202,6 @@ export class NfcTerminalComponent implements OnInit, OnDestroy {
   }
 
   getEstudianteFullName(estudiante: Estudiante): string {
-    return `${estudiante.nombre} ${estudiante.apellido}`;
+    return `${estudiante.nombres} ${estudiante.apellidos}`;
   }
 }

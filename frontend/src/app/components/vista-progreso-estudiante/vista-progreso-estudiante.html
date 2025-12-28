@@ -1,0 +1,81 @@
+<div class="hero-section">
+    <div class="hero-pattern"></div>
+    <div class="hero-gradient"></div>
+    <div class="container text-center relative z-10">
+        <span class="hero-badge">
+            Mi Aventura Educativa
+        </span>
+        <h1 class="hero-title">
+            Hola, <span class="text-indigo-accent">{{ estudiante?.nombres || 'Estudiante' }}</span>
+        </h1>
+        <p class="hero-subtitle">
+            Aquí puedes ver tu progreso actual y cuánto te falta para el siguiente gran nivel.
+        </p>
+    </div>
+</div>
+
+<div class="container main-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card progress-main-card border-0 shadow-lg">
+                <div class="card-body p-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h2 class="h4 fw-bold text-slate-800 mb-1">Estado de Progreso</h2>
+                            <p class="text-slate-500 mb-0">Nivel Actual: <span [style.color]="getNivelColor()" class="fw-bold">{{ nivelActual }}</span></p>
+                        </div>
+                        <div class="puntos-badge" [style.background-color]="getNivelColor()">
+                            <span class="fs-2 fw-bold">{{ puntosTotales }}</span>
+                            <span class="small uppercase tracking-widest">Puntos</span>
+                        </div>
+                    </div>
+
+                    <div class="progress-container mb-5">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small fw-bold text-slate-600">Progreso hacia el siguiente nivel</span>
+                            <span class="small fw-bold text-slate-600">{{ progresoPorcentaje | number:'1.0-0' }}%</span>
+                        </div>
+                        <div class="progress rounded-pill" style="height: 12px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" 
+                                 [style.width.%]="progresoPorcentaje"
+                                 [style.background-color]="getNivelColor()">
+                            </div>
+                        </div>
+                        <p class="text-center mt-3 text-slate-500 small" *ngIf="puntosParaSiguiente > 0">
+                            Te faltan <span class="fw-bold text-slate-800">{{ puntosParaSiguiente }} puntos</span> para alcanzar el siguiente nivel. ¡Tú puedes!
+                        </p>
+                        <p class="text-center mt-3 text-success fw-bold small" *ngIf="puntosParaSiguiente <= 0">
+                            ¡Has alcanzado el nivel máximo! Eres una leyenda. 🏆
+                        </p>
+                    </div>
+
+                    <div class="niveles-timeline mt-5">
+                        <h3 class="h6 fw-bold text-uppercase tracking-wider text-slate-400 mb-4">Hoja de Ruta</h3>
+                        <div class="row g-3">
+                            <div class="col-md-3" *ngFor="let nivel of niveles">
+                                <div class="nivel-step text-center p-3 rounded-4" 
+                                     [class.active]="puntosTotales >= nivel.min"
+                                     [style.border-color]="puntosTotales >= nivel.min ? nivel.color : '#e2e8f0'">
+                                    <span class="fs-2 d-block mb-2">{{ nivel.icon }}</span>
+                                    <span class="d-block fw-bold small">{{ nivel.nombre }}</span>
+                                    <span class="d-block text-slate-400" style="font-size: 0.65rem;">{{ nivel.min }} pts</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <a routerLink="/info-recompensas" class="btn btn-outline-primary rounded-pill px-4">
+                    <i class="bi bi-info-circle me-2"></i>Ver catálogo de recompensas
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="text-center text-slate-500 small py-5 mt-5">
+    <p>© 2025 Sistema de Recompensas Educativo | Gamificación con Tecnología NFC</p>
+</footer>

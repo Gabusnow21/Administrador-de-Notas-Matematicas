@@ -1,0 +1,31 @@
+<div class="login-container">
+  <div class="logo">🚀</div>
+  <h1 class="title">Acceso al Progreso</h1>
+  <p class="subtitle">Ingresa tu código único de 8 caracteres para ver tu avance.</p>
+
+  <form [formGroup]="codeForm" (ngSubmit)="onSubmit()">
+    <div class="code-input-group" (keyup)="onKeyUp($event)">
+      <input *ngFor="let i of [0, 1, 2, 3, 4, 5, 6, 7]" 
+             #codeInput 
+             [formControlName]="'digit' + i" 
+             type="text" 
+             maxlength="1"
+             class="code-input"
+             (input)="onInput($event, i)"
+             (keydown)="onKeyDown($event, i)">
+    </div>
+
+    <button type="submit" class="submit-btn" [disabled]="codeForm.invalid || isLoading">
+      <span *ngIf="isLoading" class="loading-spinner"></span>
+      {{ isLoading ? 'Verificando...' : 'Verificar Progreso' }}
+    </button>
+  </form>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div class="mt-4">
+    <a routerLink="/info-recompensas" class="back-link">← Volver al sistema de recompensas</a>
+  </div>
+</div>

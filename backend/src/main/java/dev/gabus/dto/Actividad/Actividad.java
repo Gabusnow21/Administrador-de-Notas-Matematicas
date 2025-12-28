@@ -64,7 +64,7 @@ public class Actividad {
 
     // --- Relación con Materia ---
     // Muchas actividades pertenecen a Una Materia
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "materia_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ToString.Exclude
@@ -72,7 +72,7 @@ public class Actividad {
 
     // --- Relación con Trimestre ---
     // Muchas actividades se realizan en Un Trimestre
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "trimestre_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ToString.Exclude
