@@ -7,16 +7,9 @@
       <i class="bi bi-award-fill me-2"></i>
       Gestión de Grado
     </h1>
-      <button class="btn" 
-              [class.btn-success]="!mostrarFormulario" 
-              [class.btn-danger]="mostrarFormulario"
-              (click)="iniciarInscripcion()">
-        @if (!mostrarFormulario) {
-          <i class="bi bi-person-plus-fill me-1"></i> Inscribir Estudiante
-        } @else {
-          <i class="bi bi-x-lg me-1"></i> Cancelar
-        }
-      </button>
+    <button class="btn btn-success" (click)="iniciarInscripcion()">
+      <i class="bi bi-person-plus-fill me-1"></i> Inscribir Estudiante
+    </button>
   </div>
 </div>
 <div class="container mt-4">
@@ -33,46 +26,47 @@
         <p class="text-muted mb-0">Cargando información del grado...</p>
       }
     </div>
-    
   </div>
 
   @if (mostrarFormulario) {
-    <div class="card mb-4 border-success bg-light animate__animated animate__fadeIn">
-      <div class="card-body">
-        <h5 class="card-title text-success mb-3">
-          {{ UpdateEdicion ? 'Editar Datos del Estudiante' : 'Datos del Nuevo Estudiante' }}
-        </h5>
-        
-        <form #studentForm="ngForm" (ngSubmit)="guardarEstudiante()" class="row g-3">
-          
-          <div class="col-md-4">
-            <label class="form-label">Nombres</label>
-            <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.nombre" name="nombre" placeholder="Ej. Juan Carlos" required>
-          </div>
-
-          <div class="col-md-4">
-            <label class="form-label">Apellidos</label>
-            <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.apellido" name="apellido" placeholder="Ej. Pérez López" required>
-          </div>
-
-          @if (!UpdateEdicion) {
-            <div class="col-md-4">
-              <label class="form-label">Código de Progreso</label>
-              <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.codigoProgreso" name="codigoProgreso" placeholder="8 caracteres" required minlength="8" maxlength="8">
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form #studentForm="ngForm" (ngSubmit)="guardarEstudiante()">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ UpdateEdicion ? 'Editar Datos del Estudiante' : 'Datos del Nuevo Estudiante' }}</h5>
+              <button type="button" class="btn-close" (click)="mostrarFormulario = false"></button>
             </div>
-          }
-
-          <div class="col-12 d-flex justify-content-end">
-            <button type="submit" class="btn btn-success" [disabled]="procesando || studentForm.invalid">
-              @if (procesando) {
-                <span class="spinner-border spinner-border-sm"></span> Guardando...
-              } @else {
-                Guardar
-              }
-            </button>
-          </div>
-
-        </form>
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nombres</label>
+                  <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.nombres" name="nombres" placeholder="Ej. Juan Carlos" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Apellidos</label>
+                  <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.apellidos" name="apellidos" placeholder="Ej. Pérez López" required>
+                </div>
+                @if (!UpdateEdicion) {
+                  <div class="col-12">
+                    <label class="form-label">Código de Progreso</label>
+                    <input type="text" class="form-control" [(ngModel)]="nuevoEstudiante.codigoProgreso" name="codigoProgreso" placeholder="8 caracteres" required minlength="8" maxlength="8">
+                  </div>
+                }
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" (click)="mostrarFormulario = false">Cancelar</button>
+              <button type="submit" class="btn btn-primary" [disabled]="procesando || !studentForm.form.valid">
+                @if (procesando) {
+                  <span class="spinner-border spinner-border-sm"></span> Guardando...
+                } @else {
+                  Guardar
+                }
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   }

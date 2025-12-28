@@ -111,10 +111,8 @@ export class VistaGrado implements OnInit {
     });
   }
 
-  // Resetear formulario (para el botón "Inscribir")
-  iniciarInscripcion() {
-    this.UpdateEdicion = false;
-    this.mostrarFormulario = !this.mostrarFormulario;
+  // Resetear formulario
+  resetFormulario() {
     this.nuevoEstudiante = {
       id: null,
       nombres: '',
@@ -122,6 +120,13 @@ export class VistaGrado implements OnInit {
       gradoId: this.gradoId,
       codigoProgreso: ''
     };
+  }
+
+  // Iniciar inscripción
+  iniciarInscripcion() {
+    this.UpdateEdicion = false;
+    this.resetFormulario();
+    this.mostrarFormulario = true;
   }
 
   //Guardar nuevo estudiante
@@ -161,14 +166,12 @@ export class VistaGrado implements OnInit {
     this.syncService.sincronizar();
   }
 
-
-
   // Helpers
   finalizarOperacion() {
     this.procesando = false;
     this.mostrarFormulario = false;
     this.cargarEstudiantes();
-    this.iniciarInscripcion(); // Limpiar campos
+    this.resetFormulario();
   }
 
   manejarError(err: any) {
