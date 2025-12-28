@@ -132,6 +132,12 @@ Frontend: `Guards` y decodificación de token (`jwt-decode`) para proteger rutas
 
 CORS: Configurado para permitir verbos GET, POST, PUT, DELETE, OPTIONS desde el cliente Angular.
 
+Cuenta para admin:
+       * nombre: "Admin"
+       * apellido: "Sistema"
+       * username: "admin@ejemplo.com"
+       * password: "1234" (codificada)
+
 ---
 
 ## Roadmap
