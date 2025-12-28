@@ -101,8 +101,8 @@ public class CalificacionController {
 
             planilla.add(PlanillaItemDTO.builder()
                     .estudianteId(est.getId())
-                    .nombreEstudiante(est.getNombre())
-                    .apellidoEstudiante(est.getApellido())
+                    .nombreEstudiante(est.getNombres())
+                    .apellidoEstudiante(est.getApellidos())
                     .calificacionId(notaEncontrada != null ? notaEncontrada.getId() : null)
                     .nota(notaEncontrada != null ? notaEncontrada.getNota() : null)
                     .observacion(notaEncontrada != null ? notaEncontrada.getObservacion() : null)

@@ -96,7 +96,7 @@ public class EstudianteController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Estudiante> getEstudianteById(@PathVariable Long id) {
+    public ResponseEntity<?> getEstudianteById(@PathVariable Long id) {
         Estudiante estudiante = estudianteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Estudiante no encontrado"));
         
@@ -218,7 +218,7 @@ public class EstudianteController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEstudiante(@PathVariable Long id) {
+    public ResponseEntity<?> deleteEstudiante(@PathVariable Long id) {
         Usuario user = getCurrentUser();
 
         // Fetch student first to check grade and permissions before deletion
