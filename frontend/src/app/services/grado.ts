@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LocalDbService, LocalGrado } from './local-db';
-import { environment } from '../environments/environment.prod';
+import { environment } from '../environments/environment';
 
 export interface Grado {
   id: number;
