@@ -11,7 +11,7 @@ export interface Trimestre {
   fechaInicio: Date;
   fechaFin: Date;
   anioEscolar: number;
-  estado:boolean;
+  activo: boolean;
   localId?: number;
   syncStatus?: string;
 }
@@ -38,7 +38,7 @@ export class TrimestreService {
               ...t,
               fechaInicio: t.fechaInicio?.toString(),
               fechaFin: t.fechaFin?.toString(),
-              estaActivo: t.estado,
+              estaActivo: t.activo,
               syncStatus: 'synced' as const
             }));
             await this.localDb.trimestres.bulkAdd(locales);
@@ -51,7 +51,7 @@ export class TrimestreService {
             fechaInicio: new Date(local.fechaInicio ?? ''),
             fechaFin: new Date(local.fechaFin ?? ''),
             anioEscolar: local.anioEscolar,
-            estado: local.estaActivo ?? false,
+            activo: local.estaActivo ?? false,
             localId: local.localId,
             syncStatus: local.syncStatus
           })) as Trimestre[]
@@ -65,7 +65,7 @@ export class TrimestreService {
           fechaInicio: new Date(local.fechaInicio ?? ''),
           fechaFin: new Date(local.fechaFin ?? ''),
           anioEscolar: local.anioEscolar,
-          estado: local.estaActivo ?? false,
+          activo: local.estaActivo ?? false,
           localId: local.localId,
           syncStatus: local.syncStatus
         }))
@@ -83,7 +83,7 @@ export class TrimestreService {
             fechaInicio: created.fechaInicio.toString(),
             fechaFin: created.fechaFin.toString(),
             anioEscolar: created.anioEscolar,
-            estaActivo: created.estado,
+            estaActivo: created.activo,
             syncStatus: 'synced'
           });
         })
@@ -95,7 +95,7 @@ export class TrimestreService {
           fechaInicio: trimestre.fechaInicio!.toString(),
           fechaFin: trimestre.fechaFin!.toString(),
           anioEscolar: trimestre.anioEscolar!,
-          estaActivo: trimestre.estado!,
+          estaActivo: trimestre.activo!,
           syncStatus: 'create'
       }).then((id: number) => ({ ...trimestre, localId: id } as Trimestre)));
     }
@@ -110,7 +110,7 @@ export class TrimestreService {
              fechaInicio: updated.fechaInicio.toString(),
              fechaFin: updated.fechaFin.toString(),
              anioEscolar: updated.anioEscolar,
-             estaActivo: updated.estado,
+             estaActivo: updated.activo,
              syncStatus: 'synced'
           });
         })
