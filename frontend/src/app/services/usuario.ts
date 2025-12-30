@@ -15,7 +15,6 @@ export interface Usuario {
   role: string;   
   syncStatus?: string;   
 }
-
 @Injectable({
   providedIn: 'root',
 })
@@ -134,4 +133,10 @@ export class UsuarioService {
     }
   }
   
+}
+
+export enum Role {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+  TEACHER = 'TEACHER'
 }

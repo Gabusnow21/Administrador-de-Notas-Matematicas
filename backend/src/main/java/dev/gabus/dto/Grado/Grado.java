@@ -1,10 +1,14 @@
 package dev.gabus.dto.Grado;
 
+import dev.gabus.dto.Usuario.Usuario;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -34,6 +38,10 @@ public class Grado {
     // (Opcional) Podemos añadir el año escolar si quieres mantener un historial
     @Column(name = "anio_escolar", nullable = false)
     private int anioEscolar; // Ejemplo: 2024, 2025
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "profesor_id")
+    private Usuario profesor;
 
     // Más adelante, aquí podemos añadir la relación con Estudiantes
     // @OneToMany(mappedBy = "grado")

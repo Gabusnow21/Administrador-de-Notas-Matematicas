@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import dev.gabus.Config.JwtService;
+import dev.gabus.dto.Usuario.Role;
 import dev.gabus.dto.Usuario.Usuario;
 import dev.gabus.dto.Usuario.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class AuthenticationService {
                 .apellido(request.getApellido())
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword())) // Encriptamos password
-                .role(request.getRole()) 
+                .role(request.getRole() != null ? request.getRole() : Role.USER) 
                 .build();
         
         return repository.save(user);

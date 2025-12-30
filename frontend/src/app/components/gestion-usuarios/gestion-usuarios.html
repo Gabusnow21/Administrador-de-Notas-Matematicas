@@ -1,54 +1,26 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 shadow-sm">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="/dashboard">
-      <i class="bi bi-mortarboard-fill me-2"></i>Gestor de Notas
+
+<div class="bg-primary text-white shadow-sm mb-4">
+  <div class="container-fluid d-flex justify-content-between align-items-center p-3">
+    <a routerLink="/dashboard" class="btn btn-outline-light rounded-circle" style="width: 40px; height: 40px; line-height: 24px;" title="Volver al Dashboard">
+      <i class="bi bi-arrow-left"></i>
     </a>
-
-    <div class="d-flex gap-2">
-
-      <!-- INDICADOR DE ESTADO DE RED / SYNC -->
-      <button class="btn btn-sm me-2" 
-              [class.btn-success]="syncService.isFullyOnline" 
-              [class.btn-warning]="!syncService.isFullyOnline && syncService.isOnline"
-              (click)="forzarSincronizacion()"
-              title="Clic para sincronizar ahora">
-        
-        @if (!syncService.isFullyOnline) {
-          <i class="bi bi-wifi-off"></i> Offline
-        } 
-        @else if (syncService.isSyncing()) {
-          <span class="spinner-border spinner-border-sm"></span> Sync...
-        } 
-        @else {
-          <i class="bi bi-cloud-check"></i> En Línea
-        }
-      </button>
-
-      <!-- Botón Cerrar Sesión (Visible para todos) -->
-      <button class="btn btn-light btn-sm text-primary fw-bold" (click)="logout()">
-        Cerrar Sesión <i class="bi bi-box-arrow-right ms-1"></i>
-      </button>
-    </div>
-  </div>
-</nav>
-<div class="container mt-4">
-  
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="text-primary"><i class="bi bi-people-fill me-2"></i>Gestión de Usuarios</h2>
-    
-    <div class="d-flex gap-2">
-      <button class="btn" 
+    <h1 class="h4 mb-0 fw-bold d-flex align-items-center mx-auto">
+      <i class="bi bi-award-fill me-2"></i>
+      Gestión de Usuarios
+    </h1>
+    <button class="btn" 
               [class.btn-success]="!mostrarFormulario" 
               [class.btn-danger]="mostrarFormulario"
               (click)="mostrarFormulario = !mostrarFormulario">
-        @if (!mostrarFormulario) { <i class="bi bi-person-plus-fill me-1"></i> Nuevo Usuario } 
+        @if (!mostrarFormulario) { <i class="bi bi-plus-lg me-1"></i> Nuevo Usuario } 
         @else { <i class="bi bi-x-lg me-1"></i> Cancelar }
       </button>
-
-      <a routerLink="/dashboard" class="btn btn-outline-secondary">Volver</a>
-    </div>
   </div>
+</div>
 
+
+<div class="container mt-4">
+  <!-- FORMULARIO DE CREACIÓN/EDICIÓN DE USUARIO -->
   @if (mostrarFormulario) {
     <div class="card mb-4 border-success bg-light animate__animated animate__fadeIn">
       <div class="card-body">

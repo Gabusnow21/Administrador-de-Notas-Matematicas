@@ -2,8 +2,12 @@ package dev.gabus.controller;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,8 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 import dev.gabus.dto.Actividad.Actividad;
 import dev.gabus.dto.Actividad.ActividadRepository;
 import dev.gabus.dto.Calificacion.CalificacionRepository;
+import dev.gabus.dto.Materia.Materia;
 import dev.gabus.dto.Materia.MateriaRepository;
 import dev.gabus.dto.Trimestre.TrimestreRepository;
+import dev.gabus.dto.Usuario.Role;
+import dev.gabus.dto.Usuario.Usuario;
+import dev.gabus.dto.Usuario.UsuarioRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +41,19 @@ public class ActividadController {
     private final MateriaRepository materiaRepository;
     private final TrimestreRepository trimestreRepository;
     private final CalificacionRepository calificacionRepository;
+    private final UsuarioRepository usuarioRepository;
+
+    private Usuario getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        return usuarioRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    private boolean canAccessMateria(Usuario user, Materia materia) {
+        if (user.getRole() == Role.ADMIN) return true;
+        if (materia.getProfesor() == null) return false;
+        return materia.getProfesor().getId().equals(user.getId());
+    }
 
     // Listar solo las actividades raíz (sin padre)
     @GetMapping
@@ -40,6 +61,13 @@ public class ActividadController {
             @RequestParam Long materiaId,
             @RequestParam Long trimestreId
     ) {
+        Materia materia = materiaRepository.findById(materiaId).orElseThrow(() -> new RuntimeException("Materia no encontrada"));
+        Usuario user = getCurrentUser();
+
+        if (!canAccessMateria(user, materia)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         List<Actividad> rootActivities = actividadRepository.findByMateriaIdAndTrimestreIdAndParentIsNull(materiaId, trimestreId);
         return ResponseEntity.ok(rootActivities);
     }
@@ -53,6 +81,11 @@ public class ActividadController {
         var materia = materiaRepository.findById(request.getMateriaId())
                 .orElseThrow(() -> new RuntimeException("Materia no encontrada"));
         
+        Usuario user = getCurrentUser();
+        if (!canAccessMateria(user, materia)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         var trimestre = trimestreRepository.findById(request.getTrimestreId())
                 .orElseThrow(() -> new RuntimeException("Trimestre no encontrado"));
 
@@ -107,6 +140,11 @@ public class ActividadController {
 
         var actividad = actividadRepository.findById(request.getId())
                 .orElseThrow(() -> new RuntimeException("Actividad no encontrada"));
+
+        Usuario user = getCurrentUser();
+        if (!canAccessMateria(user, actividad.getMateria())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         
         // --- Validación de Ponderación ---
         if (actividad.getParent() == null) { // Es una actividad raíz
@@ -150,6 +188,12 @@ public class ActividadController {
             return ResponseEntity.notFound().build();
         }
         
+        Actividad actividad = actividadRepository.findById(id).get();
+        Usuario user = getCurrentUser();
+        if (!canAccessMateria(user, actividad.getMateria())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         // 1. Eliminar calificaciones asociadas
         calificacionRepository.deleteByActividadId(id);
         
@@ -162,7 +206,17 @@ public class ActividadController {
     // Endpoint para Sincronización Total
     @GetMapping("/all")
     public ResponseEntity<List<Actividad>> getAll() {
-        return ResponseEntity.ok(actividadRepository.findAll());
+        Usuario user = getCurrentUser();
+        List<Actividad> allActivities = actividadRepository.findAll();
+        
+        if (user.getRole() == Role.ADMIN) {
+             return ResponseEntity.ok(allActivities);
+        } else {
+             List<Actividad> filtered = allActivities.stream()
+                .filter(a -> canAccessMateria(user, a.getMateria()))
+                .collect(Collectors.toList());
+             return ResponseEntity.ok(filtered);
+        }
     }
 
     // --- DTO para Peticiones ---

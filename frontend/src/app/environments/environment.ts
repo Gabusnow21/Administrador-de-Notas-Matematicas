@@ -1,6 +1,6 @@
 export const environment = {
     production: false,
-    apiUrl: 'http://localhost:8080/api',
+    apiUrl: 'http://localhost:8081/api',
     auth: {
       domain: 'AUTH0_DOMAIN', // Reemplaza con tu Dominio de Auth0
       clientId: 'AUTH0_CLIENT_ID', // Reemplaza con tu Client ID de Auth0

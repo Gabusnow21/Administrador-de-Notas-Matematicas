@@ -116,6 +116,7 @@ export class AuthService {
     const payload = btoa(JSON.stringify({ 
       sub: user.username, 
       role: user.role, 
+      nombre: user.nombre + " " + user.apellido,
       exp: 9999999999 // Expiración lejana
     }));
     const signature = "offline_signature";
@@ -201,5 +202,10 @@ export class AuthService {
   isTeacher(): boolean {
     const role = this.getRole();
     return role === 'USER';
+  }
+
+  getUserName(): string {
+    const decoded: any = this.getDecodedToken();
+    return decoded?.nombre || decoded?.sub || 'Usuario';
   }
 }
