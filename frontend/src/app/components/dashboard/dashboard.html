@@ -1,52 +1,12 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 shadow-sm">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="#">
-      <i class="bi bi-mortarboard-fill me-2"></i>Gestor de Notas
-    </a>
-
-    <div class="d-flex gap-2">
-      
-      <!-- ZONA ADMIN: Solo visible si es Administrador -->
-      @if (isAdmin) {
-        <div class="btn-group me-2">
-          <a routerLink="/configuracion/usuarios" class="btn btn-outline-light btn-sm" title="Gestionar Usuarios">
-            <i class="bi bi-people-fill"></i> <span class="d-none d-md-inline ms-1">Usuarios</span>
-          </a>
-        </div>
-      }
-
-                <a routerLink="/configuracion/materias" class="btn btn-outline-light btn-sm" title="Gestionar Materias">
-            <i class="bi bi-journal-bookmark-fill"></i> <span class="d-none d-md-inline ms-1">Materias</span>
-          </a>
-          <a routerLink="/configuracion/actividades" class="btn btn-outline-light btn-sm" title="Gestionar Actividades">
-            <i class="bi bi-list-check"></i> <span class="d-none d-md-inline ms-1">Actividades</span>
-          </a>
-          
-      <!-- INDICADOR DE ESTADO DE RED / SYNC -->
-      <button class="btn btn-sm me-2" 
-              [class.btn-success]="syncService.isFullyOnline" 
-              [class.btn-warning]="!syncService.isFullyOnline && syncService.isOnline"
-              (click)="forzarSincronizacion()"
-              title="Clic para sincronizar ahora">
-        
-        @if (!syncService.isFullyOnline) {
-          <i class="bi bi-wifi-off"></i> Offline
-        } 
-        @else if (syncService.isSyncing()) {
-          <span class="spinner-border spinner-border-sm"></span> Sync...
-        } 
-        @else {
-          <i class="bi bi-cloud-check"></i> En Línea
-        }
-      </button>
-
-      <!-- Botón Cerrar Sesión (Visible para todos) -->
-      <button class="btn btn-light btn-sm text-primary fw-bold" (click)="logout()">
-        Cerrar Sesión <i class="bi bi-box-arrow-right ms-1"></i>
-      </button>
+<div class="container mb-4">
+  <div class="alert alert-primary border-0 shadow-sm d-flex align-items-center">
+    <i class="bi bi-person-circle fs-3 me-3"></i>
+    <div>
+      <h4 class="alert-heading mb-0">¡Bienvenido, {{ userName }}!</h4>
+      <p class="mb-0 small text-primary-emphasis">Has ingresado correctamente al sistema.</p>
     </div>
   </div>
-</nav>
+</div>
 
 <div class="container">
   <div class="row">
@@ -54,8 +14,8 @@
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Mis Grados</h2>
         
-        <!-- SOLO ADMIN PUEDE CREAR GRADOS -->
-        @if (isAdmin) {
+        <!-- ADMIN Y PROFESOR PUEDEN CREAR GRADOS -->
+        @if (isAdmin || isTeacher) {
           <button class="btn btn-success btn-square shadow" 
                   (click)="iniciarCreacion()"
                   title="Nuevo Grado">
@@ -150,6 +110,43 @@
               </div>
             </div>
           </div>
+          
+          <!-- TARJETAS ESPECIALES (Admin y Profesor) -->
+          @if (isAdmin || isTeacher) {
+            <!-- GESTION DE RECOMPENSAS -->
+            <div class="col-md-6 col-lg-3 d-flex align-items-stretch">
+              <div class="card mb-4 w-100 border-0 shadow-sm bg-info text-white hover-effect" 
+                   style="aspect-ratio: 1 / 1; cursor: pointer;"
+                   [routerLink]="['/gestion-recompensas']">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center text-center h-100">
+                  <div class="mb-3">
+                    <i class="bi bi-award-fill display-1"></i>
+                  </div>
+                  <h4 class="fw-bold">Gestionar Recompensas</h4>
+                  <button class="btn btn-light text-info-emphasis fw-bold mt-3 rounded-pill px-4">
+                    Ir a Configurar <i class="bi bi-arrow-right-short"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- TERMINAL NFC -->
+            <div class="col-md-6 col-lg-3 d-flex align-items-stretch">
+              <div class="card mb-4 w-100 border-0 shadow-sm bg-success text-white hover-effect" 
+                   style="aspect-ratio: 1 / 1; cursor: pointer;"
+                   [routerLink]="['/nfc-terminal']">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center text-center h-100">
+                  <div class="mb-3">
+                    <i class="bi bi-broadcast display-1"></i>
+                  </div>
+                  <h4 class="fw-bold">Terminal NFC</h4>
+                  <button class="btn btn-light text-success fw-bold mt-3 rounded-pill px-4">
+                    Abrir Terminal <i class="bi bi-arrow-right-short"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
 
           <!-- TARJETAS DE GRADOS -->
           @for (grado of grados; track grado.id) { 
@@ -177,10 +174,10 @@
                   </small>
                 </div>
           
-                <!-- Pie: Acciones (SOLO ADMIN) -->
+                <!-- Pie: Acciones (ADMIN Y PROFESOR) -->
                 <div class="d-flex justify-content-start gap-2 position-absolute bottom-0 start-0 p-3"
                 (click)="$event.stopPropagation()">
-                  @if (isAdmin) {
+                  @if (isAdmin || isTeacher) {
                   <button class="btn btn-outline-warning btn-sm border-0 z-3" 
                   (click)="editarGrado(grado)" 
                   title="Editar Grado">

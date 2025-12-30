@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LocalDbService, LocalGrado } from './local-db';
+import { environment } from '../environments/environment.prod';
 
 export interface Grado {
   id: number;
@@ -20,7 +21,7 @@ export interface Grado {
 
 export class GradoService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/grados';
+  private apiUrl = `${environment.apiUrl}/grados`;
   private localDb = inject(LocalDbService);
 
   // Helper para verificar conexión

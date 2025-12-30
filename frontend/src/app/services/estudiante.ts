@@ -1,16 +1,20 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from } from 'rxjs';
+import { Observable, from, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LocalDbService, LocalEstudiante } from './local-db';
+import { environment } from '../environments/environment.prod';
 
 export interface Estudiante {
-  id: number;
-  nombre: string;
-  apellido: string;
+  id?: number;
+  nombres: string;
+  apellidos: string;
   email: string;
   gradoId: number;
-  grado?: any;   // Objeto completo si viene del API
+  codigoProgreso: string;
+  nfcId?: string;
+  saldoTokens?: number;
+  grado?: any;
   localId?: number;
   syncStatus?: string;
 }
@@ -19,17 +23,30 @@ export interface Estudiante {
   providedIn: 'root',
 })
 export class EstudianteService {
-  //Variables
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/estudiantes';
+  private apiUrl = `${environment.apiUrl}/estudiantes`;
   private localDb = inject(LocalDbService);
+  
+  private estudianteActual: Estudiante | null = null;
 
   private get isOnline(): boolean {
-  return navigator.onLine;
+    return navigator.onLine;
   }
 
+  getEstudiantePorCodigo(codigo: string): Observable<Estudiante> {
+    return this.http.get<Estudiante>(`${this.apiUrl}/progreso/${codigo}`);
+  }
 
-  // Obtener estudiantes de un grado específico
+  setEstudianteActual(estudiante: Estudiante): void {
+    this.estudianteActual = estudiante;
+  }
+
+  getEstudianteActual(): Estudiante | null {
+    const estudiante = this.estudianteActual;
+    this.estudianteActual = null; // Clear after retrieving
+    return estudiante;
+  }
+
   getEstudiantesPorGrado(gradoId: number): Observable<Estudiante[]> {
     if (this.isOnline) {
       return this.http.get<Estudiante[]>(`${this.apiUrl}/grado/${gradoId}`).pipe(
@@ -48,12 +65,24 @@ export class EstudianteService {
     } 
   }
   
-  // Crear estudiante (nos servirá pronto)
+  getEstudiantesSinNfc(): Observable<Estudiante[]> {
+    if (this.isOnline) {
+      return this.http.get<Estudiante[]>(`${this.apiUrl}/sin-nfc`).pipe(
+        catchError(err => {
+          console.warn('⚠️ [EstudianteService] Fallo API para sin-nfc. Usando local.');
+          return from(this.localDb.getEstudiantesSinNfc() as Promise<Estudiante[]>);
+        })
+      );
+    } else {
+      console.log('🔌 [EstudianteService] Offline. Usando local para sin-nfc.');
+      return from(this.localDb.getEstudiantesSinNfc() as Promise<Estudiante[]>);
+    } 
+  }
+
   createEstudiante(estudiante: any): Observable<Estudiante> {
         const guardarLocalmente = () => {
       console.log('🔌 [EstudianteService] Servidor no responde. Guardando Offline.');
       
-      // 👇 CORRECCIÓN: Definimos el objeto local explícitamente como any
       const estLocal: any = { 
         ...estudiante, 
         gradoId: estudiante.gradoId,
@@ -69,7 +98,6 @@ export class EstudianteService {
     if (this.isOnline) {
       return this.http.post<Estudiante>(this.apiUrl, estudiante).pipe(
         tap(e => {
-          // Éxito Online: Guardamos en local marcado como 'synced'
           this.localDb.estudiantes.put({
             ...e,
             gradoId: estudiante.gradoId,
@@ -87,7 +115,6 @@ export class EstudianteService {
 
   }
 
-  // Obtener estudiante por ID
   getEstudianteById(id: number): Observable<Estudiante> {
     if (this.isOnline) {
       return this.http.get<Estudiante>(`${this.apiUrl}/${id}`).pipe(
@@ -98,7 +125,6 @@ export class EstudianteService {
     }
   }
 
-  // Obtener estudiante local por ID
   private getLocalEstudiante(id: number): Observable<Estudiante> {
     return from(
       this.localDb.estudiantes.where('id').equals(id).first().then((result: LocalEstudiante | undefined) => {
@@ -111,17 +137,29 @@ export class EstudianteService {
     );
   }
 
-  //Actualizar estudiante
-  updateEstudiante(id: number, estudiante: any): Observable<any> {
+  updateEstudiante(estudiante: Estudiante): Observable<any> {
+    const id = estudiante.id;
+    const localId = estudiante.localId;
+
     const actualizarLocalmente = () => {
         console.log('🔌 Actualizando localmente...');
-        return from(this.localDb.estudiantes.where('id').equals(id).modify({
+        
+        let query;
+        if (id) {
+            query = this.localDb.estudiantes.where('id').equals(id);
+        } else if (localId) {
+            query = this.localDb.estudiantes.where('localId').equals(localId);
+        } else {
+            return of(null); // Should not happen
+        }
+
+        return from(query.modify({
             ...estudiante,
-            syncStatus: 'update' as const
+            syncStatus: estudiante.syncStatus === 'create' ? 'create' : 'update'
         }).then(() => estudiante));
     };
 
-    if (this.isOnline) {
+    if (this.isOnline && id) {
       return this.http.put(`${this.apiUrl}/${id}`, estudiante).pipe(
         tap(() => {
            this.localDb.estudiantes.where('id').equals(id).modify({
@@ -139,20 +177,44 @@ export class EstudianteService {
     }
   }
 
-  //Eliminar estudiante
-  deleteEstudiante(id: number): Observable<void> {
+  deleteEstudiante(estudiante: Estudiante): Observable<void> {
+    const id = estudiante.id;
+    const localId = estudiante.localId;
+
     const borrarLocalmente = () => {
         console.log('🔌 Borrando localmente...');
+        let query;
+        if (id) {
+            query = this.localDb.estudiantes.where('id').equals(id);
+        } else if (localId) {
+            query = this.localDb.estudiantes.where('localId').equals(localId);
+        } else {
+            return of(); // Should not happen
+        }
+
+        if (estudiante.syncStatus === 'create') {
+            return from(query.delete().then(() => {}));
+        }
+
         return from(
-            this.localDb.estudiantes.where('id').equals(id)
-            .modify({ syncStatus: 'delete' as const })
-            .then(() => {}) // 👇 CORRECCIÓN: Forzamos el retorno void
+            query.modify({ syncStatus: 'delete' as const })
+            .then(() => {})
         );
     };
 
-    if (this.isOnline) {
+    if (this.isOnline && id) {
       return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
-        tap(() => this.localDb.estudiantes.where('id').equals(id).delete()), 
+        tap(() => {
+            let query;
+            if (id) {
+                query = this.localDb.estudiantes.where('id').equals(id);
+            } else if (localId) {
+                query = this.localDb.estudiantes.where('localId').equals(localId);
+            }
+            if (query) {
+                query.delete();
+            }
+        }), 
         catchError(err => {
             console.warn('⚠️ Error DELETE API:', err);
             return borrarLocalmente();

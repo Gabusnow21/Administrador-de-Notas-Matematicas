@@ -1,0 +1,66 @@
+<div class="sidebar" [class.expanded]="isExpanded">
+  <div class="sidebar-header">
+    <button class="btn btn-link text-white p-0 me-2" (click)="toggle()" [title]="isExpanded ? 'Colapsar menú' : 'Expandir menú'">
+        <i class="bi bi-list fs-2"></i>
+    </button>
+    <a class="sidebar-brand fw-bold" href="/dashboard">
+      <i class="bi bi-mortarboard-fill me-2"></i>
+      <span class="brand-text">Gestor de Notas</span>
+    </a>
+  </div>
+
+  <ul class="nav nav-pills flex-column mb-auto">
+    <li class="nav-item">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-link" [title]="!isExpanded ? 'Dashboard' : ''">
+        <i class="bi bi-house-door-fill"></i>
+        <span class="link-text">Dashboard</span>
+      </a>
+    </li>
+
+    <!-- Admin Zone -->
+    @if (authService.isAdmin()) {
+      <li class="nav-item-header"><span class="link-text">ADMINISTRACIÓN</span></li>
+      <li class="nav-item">
+        <a routerLink="/configuracion/usuarios" routerLinkActive="active" class="nav-link" [title]="!isExpanded ? 'Usuarios' : ''">
+          <i class="bi bi-people-fill"></i>
+          <span class="link-text">Usuarios</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/configuracion/trimestres" routerLinkActive="active" class="nav-link" [title]="!isExpanded ? 'Trimestres' : ''">
+          <i class="bi bi-calendar-check"></i>
+          <span class="link-text">Trimestres</span>
+        </a>
+      </li>
+    }
+
+    <!-- Teacher & Admin Zone -->
+    @if (authService.isAdmin() || authService.isTeacher()) {
+      <li class="nav-item-header"><span class="link-text">GESTIÓN ACADÉMICA</span></li>
+      <li class="nav-item">
+        <a routerLink="/configuracion/materias" routerLinkActive="active" class="nav-link" [title]="!isExpanded ? 'Materias' : ''">
+          <i class="bi bi-journal-bookmark-fill"></i>
+          <span class="link-text">Materias</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/configuracion/actividades" routerLinkActive="active" class="nav-link" [title]="!isExpanded ? 'Actividades' : ''">
+          <i class="bi bi-list-check"></i>
+          <span class="link-text">Actividades</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/gestion-recompensas" routerLinkActive="active" class="nav-link" [title]="!isExpanded ? 'Recompensas' : ''">
+          <i class="bi bi-award-fill"></i>
+          <span class="link-text">Recompensas</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/nfc-terminal" routerLinkActive="active" class="nav-link" [title]="!isExpanded ? 'Terminal NFC' : ''">
+          <i class="bi bi-broadcast"></i>
+          <span class="link-text">Terminal NFC</span>
+        </a>
+      </li>
+    }
+  </ul>
+</div>

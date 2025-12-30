@@ -1,21 +1,26 @@
-<div class="container mt-4">
-  
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="text-primary"><i class="bi bi-people-fill me-2"></i>Gestión de Usuarios</h2>
-    
-    <div class="d-flex gap-2">
-      <button class="btn" 
+
+<div class="bg-primary text-white shadow-sm mb-4">
+  <div class="container-fluid d-flex justify-content-between align-items-center p-3">
+    <a routerLink="/dashboard" class="btn btn-outline-light rounded-circle" style="width: 40px; height: 40px; line-height: 24px;" title="Volver al Dashboard">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <h1 class="h4 mb-0 fw-bold d-flex align-items-center mx-auto">
+      <i class="bi bi-award-fill me-2"></i>
+      Gestión de Usuarios
+    </h1>
+    <button class="btn" 
               [class.btn-success]="!mostrarFormulario" 
               [class.btn-danger]="mostrarFormulario"
               (click)="mostrarFormulario = !mostrarFormulario">
-        @if (!mostrarFormulario) { <i class="bi bi-person-plus-fill me-1"></i> Nuevo Usuario } 
+        @if (!mostrarFormulario) { <i class="bi bi-plus-lg me-1"></i> Nuevo Usuario } 
         @else { <i class="bi bi-x-lg me-1"></i> Cancelar }
       </button>
-
-      <a routerLink="/dashboard" class="btn btn-outline-secondary">Volver</a>
-    </div>
   </div>
+</div>
 
+
+<div class="container mt-4">
+  <!-- FORMULARIO DE CREACIÓN/EDICIÓN DE USUARIO -->
   @if (mostrarFormulario) {
     <div class="card mb-4 border-success bg-light animate__animated animate__fadeIn">
       <div class="card-body">
@@ -59,7 +64,7 @@
             <button type="button" class="btn btn-outline-secondary me-2" (click)="cancelar()">Cancelar</button>
             <button type="submit" class="btn btn-success px-4" [disabled]="procesando">
               {{ esEdicion ? 'Actualizar Usuario' : 'Guardar Usuario' }}
-              @if (procesando) { <span class="spinner-border spinner-border-sm"></span> } 
+              @if (procesando) { <span class="spinner-border spinner-border-sm"></span> }
               @else { Guardar Usuario }
             </button>
           </div>
@@ -67,7 +72,7 @@
         </form>
       </div>
     </div>
-  }\
+  }
 
 
   <!-- TABLA DE USUARIOS -->

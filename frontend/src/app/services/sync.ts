@@ -199,20 +199,24 @@ const pendientes = await this.localDb.getPendientes(this.localDb.usuarios);
     const pendientes = await this.localDb.getPendientes(this.localDb.estudiantes);
     for (const p of pendientes) {
       try {
-        // Mapeo inverso: asegurarnos que mandamos el objeto como el backend lo espera
-        // Si el backend espera { grado: { id: X } }, lo construimos aquí
-        const payload = { ...p, grado: { id: p.gradoId } };
+        const payload = {
+            nombres: p.nombre,
+            apellidos: p.apellido,
+            email: p.email,
+            gradoId: p.gradoId,
+            codigoProgreso: p.codigoProgreso
+        };
 
         if (p.syncStatus === 'create') {
           const guardado = await firstValueFrom(this.estudianteService.createEstudiante(payload));
           await this.localDb.estudiantes.update(p.localId!, { id: guardado.id, syncStatus: 'synced' });
         } 
         else if (p.syncStatus === 'update') {
-          await firstValueFrom(this.estudianteService.updateEstudiante(p.id!, payload));
+          await firstValueFrom(this.estudianteService.updateEstudiante(p));
           await this.localDb.estudiantes.update(p.localId!, { syncStatus: 'synced' });
         }
         else if (p.syncStatus === 'delete') {
-          if (p.id) await firstValueFrom(this.estudianteService.deleteEstudiante(p.id));
+          if (p.id) await firstValueFrom(this.estudianteService.deleteEstudiante(p));
           await this.localDb.estudiantes.delete(p.localId!);
         }
       } catch (err) {

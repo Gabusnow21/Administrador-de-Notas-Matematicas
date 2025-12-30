@@ -7,6 +7,8 @@ import { Materia, MateriaService } from '../../services/materia';
 import { Trimestre, TrimestreService } from '../../services/trimestre';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { SyncService } from '../../services/sync';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-registro-notas',
@@ -24,6 +26,8 @@ export class RegistroNotas implements OnInit {
   private actividadService = inject(ActividadService);
   private calificacionService = inject(CalificacionService);
   private route = inject(ActivatedRoute);
+  public syncService = inject(SyncService);
+  private authService = inject(AuthService);
 
   // Catálogos
   grados: Grado[] = [];
@@ -109,7 +113,8 @@ export class RegistroNotas implements OnInit {
     this.calificacionService.obtenerPlanilla(this.selGrado, this.selActividad)
       .subscribe({
         next: (data) => {
-          this.planilla = data;
+          const uniqueData = Array.from(new Map(data.map(item => [item.estudianteId, item])).values());
+          this.planilla = uniqueData;
           this.loading = false;
         },
         error: (err) => {
@@ -117,6 +122,10 @@ export class RegistroNotas implements OnInit {
           this.loading = false;
         }
       });
+  }
+
+  forzarSincronizacion() {
+    this.syncService.sincronizar();
   }
 
   // Marcar fila como modificada cuando el usuario escribe
@@ -164,4 +173,7 @@ export class RegistroNotas implements OnInit {
     });
   }
 
+  logout() {
+    this.authService.logout();
+  }
 }

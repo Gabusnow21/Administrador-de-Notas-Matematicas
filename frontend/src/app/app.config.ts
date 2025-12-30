@@ -3,12 +3,14 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './interceptors/auth.interceptors';
+import { ReactiveFormsModule } from '@angular/forms';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing : true }),
     provideRouter(routes),
     provideHttpClient(
-     withInterceptors([authInterceptor])) // <--- Habilita el cliente HTTP
+     withInterceptors([authInterceptor])),
+    ReactiveFormsModule // <--- Habilita formularios reactivos
   ]
 };

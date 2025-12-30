@@ -1,8 +1,9 @@
 import  {HttpClient} from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, from } from 'rxjs';
+import { Observable, from, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LocalDbService } from './local-db';
+import { environment } from '../environments/environment.prod';
 
 export interface Trimestre {
   id: number;
@@ -20,7 +21,7 @@ export interface Trimestre {
 })
 export class TrimestreService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/trimestres';
+  private apiUrl = `${environment.apiUrl}/trimestres`;
   private localDb = inject(LocalDbService);
 
   private get isOnline(): boolean { return navigator.onLine; }
@@ -69,6 +70,66 @@ export class TrimestreService {
           syncStatus: local.syncStatus
         }))
       ));
+    }
+  }
+
+  crear(trimestre: Partial<Trimestre>): Observable<Trimestre> {
+    if (this.isOnline) {
+      return this.http.post<Trimestre>(this.apiUrl, trimestre).pipe(
+        tap(async (created) => {
+          await this.localDb.trimestres.add({
+            id: created.id,
+            nombre: created.nombre,
+            fechaInicio: created.fechaInicio.toString(),
+            fechaFin: created.fechaFin.toString(),
+            anioEscolar: created.anioEscolar,
+            estaActivo: created.estado,
+            syncStatus: 'synced'
+          });
+        })
+      );
+    } else {
+      // Offline: crear localmente
+      return from(this.localDb.trimestres.add({
+          nombre: trimestre.nombre!,
+          fechaInicio: trimestre.fechaInicio!.toString(),
+          fechaFin: trimestre.fechaFin!.toString(),
+          anioEscolar: trimestre.anioEscolar!,
+          estaActivo: trimestre.estado!,
+          syncStatus: 'create'
+      }).then((id: number) => ({ ...trimestre, localId: id } as Trimestre)));
+    }
+  }
+
+  actualizar(trimestre: Trimestre): Observable<Trimestre> {
+    if (this.isOnline) {
+      return this.http.put<Trimestre>(this.apiUrl, trimestre).pipe(
+        tap(async (updated) => {
+          await this.localDb.trimestres.where('id').equals(updated.id).modify({
+             nombre: updated.nombre,
+             fechaInicio: updated.fechaInicio.toString(),
+             fechaFin: updated.fechaFin.toString(),
+             anioEscolar: updated.anioEscolar,
+             estaActivo: updated.estado,
+             syncStatus: 'synced'
+          });
+        })
+      );
+    } else {
+       // Offline logic placeholder
+       return throwError(() => new Error('Edición offline no implementada completamente'));
+    }
+  }
+
+  borrar(id: number): Observable<void> {
+    if (this.isOnline) {
+      return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+        tap(async () => {
+          await this.localDb.trimestres.where('id').equals(id).delete();
+        })
+      );
+    } else {
+      return throwError(() => new Error('Borrado offline no implementado'));
     }
   }
   

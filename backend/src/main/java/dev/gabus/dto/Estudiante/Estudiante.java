@@ -9,6 +9,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -22,32 +23,36 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "estudiante")
+@Table(name = "estudiante", indexes = {
+    @Index(name = "idx_codigo_progreso", columnList = "codigo_progreso", unique = true)
+})
 public class Estudiante {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String nombre;
+    private String nombres;
 
     @Column(nullable = false)
-    private String apellido;
+    private String apellidos;
 
-    // (Opcional) Puedes añadir más campos si los necesitas, ej:
-    // private String codigoEstudiante;
-    // private String emailAcudiente;
+    @Column(name="email", nullable = true, unique = true)
+    private String email;
 
-    // --- Relación con Grado ---
-    // Muchos estudiantes pueden pertenecer a Un Grado.
-    @ManyToOne(fetch = FetchType.LAZY) // LAZY = Solo carga el Grado cuando se acceda a él
-    @JoinColumn(name = "grado_id", nullable = false) // Esta será la columna FK en la tabla 'estudiante'
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Evita problemas de serialización con Hibernate
+    @Column(name="codigo_progreso", unique = true, nullable = false, length = 8)
+    private String codigoProgreso;
+
+    @Column(unique = true)
+    private String nfcId;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer saldoTokens = 0;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "grado_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Grado grado;
 
-    // Más adelante, aquí podemos añadir la relación con Calificaciones
-    // @OneToMany(mappedBy = "estudiante")
-    // private List<Calificacion> calificaciones;
-
-    
 }

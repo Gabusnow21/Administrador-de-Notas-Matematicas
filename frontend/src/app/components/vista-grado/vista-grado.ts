@@ -3,6 +3,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EstudianteService, Estudiante } from '../../services/estudiante';
 import { FormsModule } from '@angular/forms';
 import { Grado, GradoService } from '../../services/grado';
+import { SyncService } from '../../services/sync';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-vista-grado',
@@ -17,7 +19,9 @@ export class VistaGrado implements OnInit {
   //Inyecciones de servicios
   private route = inject(ActivatedRoute)
   private estudianteService = inject(EstudianteService);
-  private gradoService = inject(GradoService); 
+  private gradoService = inject(GradoService);
+  public syncService = inject(SyncService);
+  private authService = inject(AuthService); 
 
   //Variables
   estudiantes: Estudiante[] = [];
@@ -33,9 +37,10 @@ export class VistaGrado implements OnInit {
   //Modelo para el nuevo estudiante
   nuevoEstudiante: any = {
     id: null,
-    nombre: '',
-    apellido: '',
-    gradoId: 0 
+    nombres: '',
+    apellidos: '',
+    gradoId: 0,
+    codigoProgreso: ''
   };
 
   ngOnInit(): void {
@@ -87,17 +92,18 @@ export class VistaGrado implements OnInit {
     // Copiamos los datos para no editar la tabla en vivo
     this.nuevoEstudiante = { 
       id: est.id,
-      nombre: est.nombre,
-      apellido: est.apellido,
-      gradoId: this.gradoId // Mantenemos el mismo grado
+      nombres: est.nombres,
+      apellidos: est.apellidos,
+      gradoId: this.gradoId, // Mantenemos el mismo grado
+      codigoProgreso: est.codigoProgreso
     };
   }
 
   // Eliminar estudiante
   eliminarEstudiante(est: Estudiante) {
-    if (!confirm(`¿Eliminar a ${est.nombre} ${est.apellido}? Se borrarán sus notas.`)) return;
+    if (!confirm(`¿Eliminar a ${est.nombres} ${est.apellidos}? Se borrarán sus notas.`)) return;
 
-    this.estudianteService.deleteEstudiante(est.id).subscribe({
+    this.estudianteService.deleteEstudiante(est).subscribe({
       next: () => {
         this.cargarEstudiantes(); // Recargar tabla
       },
@@ -105,16 +111,22 @@ export class VistaGrado implements OnInit {
     });
   }
 
-  // Resetear formulario (para el botón "Inscribir")
-  iniciarInscripcion() {
-    this.UpdateEdicion = false;
-    this.mostrarFormulario = !this.mostrarFormulario;
+  // Resetear formulario
+  resetFormulario() {
     this.nuevoEstudiante = {
       id: null,
-      nombre: '',
-      apellido: '',
-      gradoId: this.gradoId
+      nombres: '',
+      apellidos: '',
+      gradoId: this.gradoId,
+      codigoProgreso: ''
     };
+  }
+
+  // Iniciar inscripción
+  iniciarInscripcion() {
+    this.UpdateEdicion = false;
+    this.resetFormulario();
+    this.mostrarFormulario = true;
   }
 
   //Guardar nuevo estudiante
@@ -124,14 +136,16 @@ export class VistaGrado implements OnInit {
     this.nuevoEstudiante.gradoId = this.gradoId;
     if (this.UpdateEdicion) {
       // MODO ACTUALIZAR
-      this.estudianteService.updateEstudiante(this.nuevoEstudiante.id, this.nuevoEstudiante).subscribe({
+      this.estudianteService.updateEstudiante(this.nuevoEstudiante).subscribe({
         next: () => this.finalizarOperacion(),
         error: (err) => this.manejarError(err)
       });
     } else {
       // MODO CREAR
       this.estudianteService.createEstudiante(this.nuevoEstudiante).subscribe({
-        next: () => this.finalizarOperacion(),
+        next: () => {
+          this.finalizarOperacion();
+        },
         error: (err) => this.manejarError(err)
       });
     }
@@ -148,19 +162,30 @@ export class VistaGrado implements OnInit {
     });
   }
 
+  forzarSincronizacion() {
+    this.syncService.sincronizar();
+  }
 
   // Helpers
   finalizarOperacion() {
     this.procesando = false;
     this.mostrarFormulario = false;
     this.cargarEstudiantes();
-    this.iniciarInscripcion(); // Limpiar campos
+    this.resetFormulario();
   }
 
   manejarError(err: any) {
     console.error(err);
     this.procesando = false;
-    alert('Ocurrió un error.');
+    if (err.error?.message?.includes('constraint')) {
+      alert('Error: El código de progreso ya está en uso.');
+    } else {
+      alert('Ocurrió un error al guardar el estudiante.');
+    }
+  }
+
+  logout() {
+    this.authService.logout();
   }
 
 }
