@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LocalDbService, LocalEstudiante } from './local-db';
-import { environment } from '../environments/environment.prod';
+import { environment } from '../environments/environment';
 
 export interface Estudiante {
   id?: number;

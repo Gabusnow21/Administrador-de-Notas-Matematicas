@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, from, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LocalDbService } from './local-db';
-import { environment } from '../environments/environment.prod';
+import { environment } from '../environments/environment';
 
 export interface Trimestre {
   id: number;

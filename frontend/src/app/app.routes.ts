@@ -11,6 +11,7 @@ import { adminGuard } from './guards/admin-guard';
 import { teacherGuard } from './guards/teacher-guard';
 import { GestionUsuarios } from './components/gestion-usuarios/gestion-usuarios';
 import { GestionRecompensasComponent } from './components/gestion-recompensas/gestion-recompensas';
+import { GestionAsistenciaComponent } from './components/gestion-asistencia/gestion-asistencia';
 import { NfcTerminalComponent } from './components/nfc-terminal/nfc-terminal';
 import { GestionTrimestres } from './components/gestion-trimestres/gestion-trimestres';
 import { LayoutComponent } from './components/layout/layout';
@@ -57,6 +58,11 @@ export const routes: Routes = [
             {
                 path: 'gestion-recompensas',
                 component: GestionRecompensasComponent,
+                canActivate: [teacherGuard]
+            },
+            {
+                path: 'gestion-asistencia',
+                component: GestionAsistenciaComponent,
                 canActivate: [teacherGuard]
             },
             {

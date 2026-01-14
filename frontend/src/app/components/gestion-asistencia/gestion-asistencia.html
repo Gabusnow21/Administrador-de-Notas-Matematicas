@@ -1,0 +1,89 @@
+<div class="container">
+  <div class="header">
+    <h1>Gestión de Asistencia</h1>
+  </div>
+
+  <div class="nfc-panel" *ngIf="isNfcSupported">
+    <div>
+      <h3>Escaneo Rápido</h3>
+      <p>Activa el lector NFC para registrar asistencia automáticamente.</p>
+    </div>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+      <div *ngIf="nfcMessage" class="nfc-status" [ngClass]="nfcMessageType">
+        {{ nfcMessage }}
+      </div>
+      <button class="btn-nfc" (click)="startScan()" [disabled]="isScanning">
+        <span *ngIf="!isScanning">Activar Lector NFC</span>
+        <span *ngIf="isScanning">Escaneando...</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="form-group">
+      <label>Grado</label>
+      <select class="form-control" [(ngModel)]="selectedGradoId" (change)="onGradoChange($event)">
+        <option [ngValue]="null">Seleccione un grado</option>
+        <option *ngFor="let grado of grados" [value]="grado.id">
+          {{ grado.nivel }} - {{ grado.seccion }}
+        </option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Fecha</label>
+      <input type="date" class="form-control" [(ngModel)]="selectedDate" (change)="onDateChange($event)">
+    </div>
+  </div>
+
+  <div class="table-container" *ngIf="selectedGradoId">
+    <div *ngIf="isLoading" style="padding: 2rem; text-align: center;">
+      Cargando...
+    </div>
+
+    <table *ngIf="!isLoading && studentsList.length > 0">
+      <thead>
+        <tr>
+          <th>Estudiante</th>
+          <th>Estado</th>
+          <th>Observación</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of studentsList">
+          <td>
+            {{ item.estudiante.apellidos }}, {{ item.estudiante.nombres }}
+            <span *ngIf="item.estudiante.codigoProgreso" style="color: #666; font-size: 0.85em;">
+              ({{ item.estudiante.codigoProgreso }})
+            </span>
+          </td>
+          <td>
+            <div class="status-buttons">
+              <button *ngFor="let estado of estados"
+                      class="btn-status"
+                      [class.active]="item.asistencia?.estado === estado"
+                      [class.presente]="estado === 'PRESENTE'"
+                      [class.ausente]="estado === 'AUSENTE'"
+                      [class.tarde]="estado === 'TARDE'"
+                      [class.excusa]="estado === 'EXCUSA'"
+                      (click)="updateAsistencia(item, estado)"
+                      [disabled]="item.isLoading">
+                {{ estado }}
+              </button>
+            </div>
+            <div *ngIf="item.isLoading" style="font-size: 0.8em; color: #666; margin-top: 0.25rem;">
+              Guardando...
+            </div>
+          </td>
+          <td>
+            <span *ngIf="item.asistencia?.observacion">{{ item.asistencia?.observacion }}</span>
+            <span *ngIf="!item.asistencia?.observacion" style="color: #ccc;">-</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!isLoading && studentsList.length === 0" style="padding: 2rem; text-align: center;">
+      No hay estudiantes en este grado.
+    </div>
+  </div>
+</div>

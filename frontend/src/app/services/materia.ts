@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { LocalDbService, SyncStatus } from './local-db';
 import { tap, catchError } from 'rxjs/operators';
-import { environment } from '../environments/environment.prod';
+import { environment } from '../environments/environment';
 
 export interface Materia {
   id: number;
