@@ -51,7 +51,7 @@ public class UsuarioController {
                 .apellido(request.getApellido())
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole() != null ? request.getRole() : Role.USER)
+                .role(request.getRole() != null ? request.getRole() : Role.TEACHER)
                 .build();
         
         return ResponseEntity.ok(usuarioRepository.save(user));

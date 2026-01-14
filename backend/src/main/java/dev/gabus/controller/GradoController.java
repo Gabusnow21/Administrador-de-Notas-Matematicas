@@ -73,8 +73,9 @@ public class GradoController {
         if (user.getRole() != Role.ADMIN) {
             grado.setProfesor(user);
         } else {
-            if (grado.getProfesor() == null) {
-                grado.setProfesor(user);
+            // ADMIN MUST assign a teacher.
+            if (grado.getProfesor() == null || grado.getProfesor().getId() == null) {
+                return ResponseEntity.badRequest().build(); // Or return a more descriptive error
             }
         }
         return ResponseEntity.ok(gradoRepository.save(grado));
