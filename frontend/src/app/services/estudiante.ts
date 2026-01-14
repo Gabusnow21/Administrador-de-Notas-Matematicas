@@ -130,7 +130,8 @@ export class EstudianteService {
       this.localDb.estudiantes.where('id').equals(id).first().then((result: LocalEstudiante | undefined) => {
         if (result) {
           return result as Estudiante;
-        } else {
+        }
+        else {
           throw new Error('Estudiante no encontrado en BD local');
         }
       })
@@ -208,7 +209,8 @@ export class EstudianteService {
             let query;
             if (id) {
                 query = this.localDb.estudiantes.where('id').equals(id);
-            } else if (localId) {
+            }
+            else if (localId) {
                 query = this.localDb.estudiantes.where('localId').equals(localId);
             }
             if (query) {

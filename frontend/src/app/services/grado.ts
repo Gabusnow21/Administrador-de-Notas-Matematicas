@@ -10,6 +10,7 @@ export interface Grado {
   nivel: string;    
   seccion: string;   
   anioEscolar: number;
+  profesor?: Usuario;
   // Campos para manejo offline
   localId?: number;
   syncStatus?: string;

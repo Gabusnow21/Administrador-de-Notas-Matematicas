@@ -25,7 +25,7 @@ public class AuthenticationService {
                 .apellido(request.getApellido())
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword())) // Encriptamos password
-                .role(request.getRole() != null ? request.getRole() : Role.USER) 
+                .role(request.getRole() != null ? request.getRole() : Role.TEACHER)
                 .build();
         
         return repository.save(user);

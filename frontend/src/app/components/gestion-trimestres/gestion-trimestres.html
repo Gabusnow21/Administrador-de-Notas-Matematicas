@@ -42,7 +42,7 @@
             </div>
 
             <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" [(ngModel)]="trimestreForm.estado" name="estado" id="estadoCheck">
+              <input class="form-check-input" type="checkbox" [(ngModel)]="trimestreForm.activo" name="activo" id="estadoCheck">
               <label class="form-check-label" for="estadoCheck">Activo</label>
             </div>
 
@@ -85,7 +85,7 @@
                       {{ t.fechaInicio | date:'shortDate' }} - {{ t.fechaFin | date:'shortDate' }}
                     </td>
                     <td>
-                      @if (t.estado) { <span class="badge bg-success">Activo</span> }
+                      @if (t.activo) { <span class="badge bg-success">Activo</span> }
                       @else { <span class="badge bg-secondary">Cerrado</span> }
                     </td>
                     <td class="text-end">
