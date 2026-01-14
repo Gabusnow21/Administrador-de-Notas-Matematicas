@@ -201,7 +201,12 @@ export class AuthService {
 
   isTeacher(): boolean {
     const role = this.getRole();
-    return role === 'USER';
+    return role === 'TEACHER';
+  }
+
+  isStudent(): boolean {
+    const role = this.getRole();
+    return role === 'STUDENT';
   }
 
   getUserName(): string {

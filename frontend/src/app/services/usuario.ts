@@ -136,7 +136,8 @@ export class UsuarioService {
 }
 
 export enum Role {
-  USER = 'USER',
   ADMIN = 'ADMIN',
-  TEACHER = 'TEACHER'
+  TEACHER = 'TEACHER',
+  STUDENT = 'STUDENT',
+  GUEST = 'GUEST'
 }
