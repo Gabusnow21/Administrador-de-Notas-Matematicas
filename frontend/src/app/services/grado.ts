@@ -4,7 +4,6 @@ import { Observable, from } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LocalDbService, LocalGrado } from './local-db';
 import { environment } from '../environments/environment';
-import { Usuario } from './usuario';
 
 export interface Grado {
   id: number;
