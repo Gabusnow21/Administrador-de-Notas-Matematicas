@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from} from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { LocalDbService } from './local-db';
-import { environment } from '../environments/environment.prod';
+import { environment } from '../environments/environment';
 
 export interface Usuario {
   id?: number;
@@ -136,7 +136,8 @@ export class UsuarioService {
 }
 
 export enum Role {
-  USER = 'USER',
   ADMIN = 'ADMIN',
-  TEACHER = 'TEACHER'
+  TEACHER = 'TEACHER',
+  STUDENT = 'STUDENT',
+  GUEST = 'GUEST'
 }
