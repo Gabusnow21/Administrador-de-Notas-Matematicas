@@ -17,6 +17,7 @@ import { LayoutComponent } from './components/layout/layout';
 import { VistaProgresoEstudiante } from './components/vista-progreso-estudiante/vista-progreso-estudiante';
 import { AccesoProgresoComponent } from './components/acceso-progreso/acceso-progreso';
 import { authGuard } from './guards/auth.guard';
+import { GestionAsistenciaComponent } from './components/gestion-asistencia/gestion-asistencia';
 
 export const routes: Routes = [
     { path: 'login', component: Login },
@@ -34,6 +35,7 @@ export const routes: Routes = [
             { path: 'registro-notas', component: RegistroNotas },
             { path: 'gestion-materias', component: GestionMaterias },
             { path: 'gestion-actividades', component: GestionActividades },
+            { path: 'gestion-asistencia', component: GestionAsistenciaComponent, canActivate: [teacherGuard] },
             {
                 path: 'configuracion/usuarios',
                 component: GestionUsuarios,

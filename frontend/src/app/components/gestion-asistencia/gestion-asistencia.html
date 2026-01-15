@@ -1,0 +1,106 @@
+<div class="container fade-in">
+    <div class="header-section">
+      <h2><i class="fas fa-calendar-check"></i> Gestión de Asistencia</h2>
+      <p>Registre la asistencia manual o mediante tarjetas NFC.</p>
+    </div>
+  
+    <div class="card controls-card">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Grado:</label>
+          <select [(ngModel)]="selectedGradoId" (change)="loadData()" class="form-control">
+            <option [ngValue]="null">-- Seleccionar Grado --</option>
+            <option *ngFor="let g of grados" [value]="g.id">
+              {{ g.nivel }} - {{ g.seccion }} ({{ g.anioEscolar }})
+            </option>
+          </select>
+        </div>
+  
+        <div class="form-group">
+          <label>Fecha:</label>
+          <input type="date" [(ngModel)]="selectedDate" (change)="loadData()" class="form-control">
+        </div>
+      </div>
+  
+      <div class="nfc-controls" *ngIf="selectedGradoId">
+        <button class="btn" [ngClass]="nfcMode ? 'btn-danger' : 'btn-primary'" (click)="toggleNfcMode()">
+          <i class="fas" [ngClass]="nfcMode ? 'fa-stop-circle' : 'fa-wifi'"></i>
+          {{ nfcMode ? 'Detener Escaneo NFC' : 'Iniciar Escaneo NFC' }}
+        </button>
+      </div>
+    </div>
+  
+    <div class="row" *ngIf="selectedGradoId">
+      <!-- Lista de Asistencia -->
+      <div class="col-list">
+        <div class="card">
+          <h3>Listado de Estudiantes</h3>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Estudiante</th>
+                  <th>Hora</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of asistenciaList" [class.presente]="item.estado === EstadoAsistencia.PRESENTE">
+                  <td>
+                    <div class="student-info">
+                      <span class="student-name">{{ item.estudiante.apellidos }}, {{ item.estudiante.nombres }}</span>
+                      <span class="student-code text-muted small">{{ item.estudiante.codigoProgreso }}</span>
+                    </div>
+                  </td>
+                  <td>{{ item.hora || '--:--' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="{
+                      'badge-success': item.estado === EstadoAsistencia.PRESENTE,
+                      'badge-warning': item.estado === EstadoAsistencia.TARDE,
+                      'badge-danger': item.estado === EstadoAsistencia.AUSENTE,
+                      'badge-info': item.estado === EstadoAsistencia.EXCUSADO,
+                      'badge-secondary': !item.estado
+                    }">
+                      {{ item.estado || 'NO REGISTRADO' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="btn-group" *ngIf="!item.loading">
+                      <button class="btn-icon present" title="Presente" (click)="registrarManual(item, EstadoAsistencia.PRESENTE)">
+                        <i class="fas fa-check"></i>
+                      </button>
+                      <button class="btn-icon late" title="Tarde" (click)="registrarManual(item, EstadoAsistencia.TARDE)">
+                        <i class="fas fa-clock"></i>
+                      </button>
+                      <button class="btn-icon absent" title="Ausente" (click)="registrarManual(item, EstadoAsistencia.AUSENTE)">
+                        <i class="fas fa-times"></i>
+                      </button>
+                      <button class="btn-icon excuse" title="Excusado" (click)="registrarManual(item, EstadoAsistencia.EXCUSADO)">
+                        <i class="fas fa-file-medical"></i>
+                      </button>
+                    </div>
+                    <div *ngIf="item.loading" class="spinner-small"></div>
+                  </td>
+                </tr>
+                <tr *ngIf="asistenciaList.length === 0">
+                  <td colspan="4" class="text-center">No hay estudiantes en este grado.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Logs NFC -->
+      <div class="col-logs" *ngIf="nfcMode">
+        <div class="card log-card">
+          <h3><i class="fas fa-history"></i> Registros NFC (En Vivo)</h3>
+          <ul class="log-list">
+            <li *ngFor="let log of nfcLogs">{{ log }}</li>
+            <li *ngIf="nfcLogs.length === 0" class="text-muted">Esperando lecturas...</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
