@@ -73,8 +73,15 @@ public class GradoController {
         if (user.getRole() != Role.ADMIN) {
             grado.setProfesor(user);
         } else {
+            // Si es ADMIN, puede enviar el profesor en el JSON. 
+            // Si no lo envía, se asigna a sí mismo por defecto (o podríamos dejarlo null si se prefiere)
             if (grado.getProfesor() == null) {
                 grado.setProfesor(user);
+            } else if (grado.getProfesor().getId() != null) {
+                // Validar que el profesor existe y tiene el rol correcto (opcional pero recomendado)
+                Usuario profesor = usuarioRepository.findById(grado.getProfesor().getId())
+                    .orElseThrow(() -> new RuntimeException("Profesor no encontrado"));
+                grado.setProfesor(profesor);
             }
         }
         return ResponseEntity.ok(gradoRepository.save(grado));
@@ -100,6 +107,16 @@ public class GradoController {
             }
             // Prevent changing professor
             grado.setProfesor(existing.getProfesor());
+        } else {
+            // Si es ADMIN, permitimos actualizar el profesor si viene en el request
+            if (grado.getProfesor() != null && grado.getProfesor().getId() != null) {
+                Usuario nuevoProfesor = usuarioRepository.findById(grado.getProfesor().getId())
+                    .orElseThrow(() -> new RuntimeException("Profesor no encontrado"));
+                grado.setProfesor(nuevoProfesor);
+            } else if (grado.getProfesor() == null) {
+                // Mantener el profesor existente si no se envía uno nuevo
+                grado.setProfesor(existing.getProfesor());
+            }
         }
         
         return ResponseEntity.ok(gradoRepository.save(grado)); 

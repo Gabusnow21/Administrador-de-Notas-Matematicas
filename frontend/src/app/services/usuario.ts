@@ -44,6 +44,10 @@ export class UsuarioService {
     }
   }
 
+  getTeachers(): Observable<Usuario[]> {
+    return this.http.get<Usuario[]>(`${this.apiUrl}/teachers`);
+  }
+
   // 👇 2. CREAR (¡Revisa esta parte!)
   crear(usuario: Usuario, fromSync = false): Observable<Usuario> {
     

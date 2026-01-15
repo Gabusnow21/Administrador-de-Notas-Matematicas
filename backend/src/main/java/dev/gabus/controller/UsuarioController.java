@@ -33,6 +33,11 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioRepository.findAll());
     }
 
+    @GetMapping("/teachers")
+    public ResponseEntity<List<Usuario>> getTeachers() {
+        return ResponseEntity.ok(usuarioRepository.findByRole(Role.USER));
+    }
+
     // 2. Crear un usuario nuevo (Desde el panel de Admin)
     @PostMapping
     public ResponseEntity<?> create(@RequestBody RegisterRequest request) {
