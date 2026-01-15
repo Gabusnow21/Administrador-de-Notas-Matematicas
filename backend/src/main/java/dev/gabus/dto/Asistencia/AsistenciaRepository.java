@@ -14,6 +14,6 @@ public interface AsistenciaRepository extends JpaRepository<Asistencia, Long> {
     
     Optional<Asistencia> findByEstudianteIdAndFecha(Long estudianteId, LocalDate fecha);
 
-    @Query("SELECT a FROM Asistencia a WHERE a.estudiante.grado.id = :gradoId AND a.fecha = :fecha")
+    @Query("SELECT a FROM Asistencia a JOIN a.estudiante e WHERE e.grado.id = :gradoId AND a.fecha = :fecha")
     List<Asistencia> findByGradoIdAndFecha(@Param("gradoId") Long gradoId, @Param("fecha") LocalDate fecha);
 }

@@ -42,7 +42,7 @@ public class Asistencia {
     @Column(nullable = false)
     private LocalDate fecha;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalTime hora;
 
     @Enumerated(EnumType.STRING)

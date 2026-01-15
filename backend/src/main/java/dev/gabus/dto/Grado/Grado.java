@@ -1,5 +1,7 @@
 package dev.gabus.dto.Grado;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import dev.gabus.dto.Usuario.Usuario;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -41,6 +43,7 @@ public class Grado {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "profesor_id")
+    @JsonIgnore
     private Usuario profesor;
 
     // Más adelante, aquí podemos añadir la relación con Estudiantes
