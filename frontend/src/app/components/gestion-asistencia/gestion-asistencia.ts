@@ -8,6 +8,7 @@ import { AsistenciaService } from '../../services/asistencia.service';
 import { Asistencia, EstadoAsistencia } from '../../services/asistencia';
 import { WebNfcService, NfcMessage } from '../../services/web-nfc.service';
 import { Subscription } from 'rxjs';
+import { NfcInteractionService } from '../../services/nfc-interaction.service';
 
 interface AsistenciaViewModel {
   estudiante: Estudiante;
@@ -28,6 +29,7 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
   estudianteService = inject(EstudianteService);
   asistenciaService = inject(AsistenciaService);
   webNfcService = inject(WebNfcService);
+  nfcInteractionService = inject(NfcInteractionService);
   ngZone = inject(NgZone);
 
   grados: Grado[] = [];
@@ -143,6 +145,23 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
           item.estado = asistencia.estado;
           item.hora = asistencia.hora;
         }
+
+        this.addLog(`Asignando 1 token de recompensa...`);
+        this.nfcInteractionService.realizarTransaccion({
+          nfcId: nfcId,
+          monto: 1,
+          descripcion: 'Recompensa por asistencia',
+          tipo: 'ACUMULACION'
+        }).subscribe({
+          next: (estudiante) => {
+            this.addLog(`💰 Token asignado. Nuevo saldo de ${estudiante.nombres}: ${estudiante.saldoTokens}`);
+          },
+          error: (err) => {
+            console.error('NFC Token Reward Error', err);
+            this.addLog(`❌ Error al asignar token: ${err.error?.message || 'Error de red'}`);
+          }
+        });
+
       },
       error: (err) => {
         console.error('NFC Registration Error', err);
