@@ -52,6 +52,18 @@
                   <input type="number" class="form-control" [(ngModel)]="nuevoGrado.anioEscolar" name="anio" required>
                 </div>
 
+                <!-- SELECCIÓN DE DOCENTE (Solo ADMIN) -->
+                <div class="col-12" *ngIf="isAdmin">
+                  <label class="form-label">Docente Responsable</label>
+                  <select class="form-select" [(ngModel)]="nuevoGrado.profesorId" name="profesorId">
+                    <option [ngValue]="null">-- Seleccionar Docente --</option>
+                    <option *ngFor="let p of profesores" [ngValue]="p.id">
+                      {{ p.nombre }} {{ p.apellido }} ({{ p.username }})
+                    </option>
+                  </select>
+                  <div class="form-text">Si no selecciona uno, se asignará usted por defecto.</div>
+                </div>
+
                 <button type="button" #btnCerrarModal class="d-none" data-bs-dismiss="modal"></button>
 
               </form>

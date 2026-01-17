@@ -1,0 +1,19 @@
+package dev.gabus.dto.Asistencia;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+public interface AsistenciaRepository extends JpaRepository<Asistencia, Long> {
+    
+    List<Asistencia> findByEstudianteId(Long estudianteId);
+    
+    Optional<Asistencia> findByEstudianteIdAndFecha(Long estudianteId, LocalDate fecha);
+
+    @Query("SELECT a FROM Asistencia a JOIN a.estudiante e WHERE e.grado.id = :gradoId AND a.fecha = :fecha")
+    List<Asistencia> findByGradoIdAndFecha(@Param("gradoId") Long gradoId, @Param("fecha") LocalDate fecha);
+}
