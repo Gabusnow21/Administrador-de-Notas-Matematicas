@@ -153,12 +153,18 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
           descripcion: 'Recompensa por asistencia',
           tipo: 'ACUMULACION'
         }).subscribe({
-          next: (estudiante) => {
-            this.addLog(`💰 Token asignado. Nuevo saldo de ${estudiante.nombres}: ${estudiante.saldoTokens}`);
+          next: (estudianteConSaldoActualizado) => {
+            this.addLog(`💰 RECOMPENSA! ${estudianteConSaldoActualizado.nombres} ha recibido 1 token.`);
+            this.addLog(`Nuevo saldo: ${estudianteConSaldoActualizado.saldoTokens} tokens.`);
+            
+            // Update local model
+            if (item) {
+                item.estudiante.saldoTokens = estudianteConSaldoActualizado.saldoTokens;
+            }
           },
           error: (err) => {
             console.error('NFC Token Reward Error', err);
-            this.addLog(`❌ Error al asignar token: ${err.error?.message || 'Error de red'}`);
+            this.addLog(`❌ Error al dar recompensa: ${err.error?.message || 'Error de servidor'}`);
           }
         });
 
