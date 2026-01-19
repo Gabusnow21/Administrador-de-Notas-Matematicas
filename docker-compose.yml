@@ -23,12 +23,14 @@ services:
     depends_on:
       - db
     environment:
+      # Perfil activo de Spring Boot
+      SPRING_PROFILES_ACTIVE: prod
       # Conexión a la base de datos (usando el nombre del servicio 'db')
       SPRING_DATASOURCE_URL: ${JDBC_DATABASE_URL}
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       # Configuración JWT
-      JWT_SECRET_KEY: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
     ports:
       - "8080:8080"
 
