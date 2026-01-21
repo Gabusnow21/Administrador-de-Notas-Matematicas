@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Grado, GradoService } from '../../services/grado';
 import { SyncService } from '../../services/sync';
 import { AuthService } from '../../services/auth';
+import { Reporte } from '../../services/reporte';
 
 @Component({
   selector: 'app-vista-grado',
@@ -22,11 +23,13 @@ export class VistaGrado implements OnInit {
   private gradoService = inject(GradoService);
   public syncService = inject(SyncService);
   private authService = inject(AuthService); 
+  private reporteService = inject(Reporte);
 
   //Variables
   estudiantes: Estudiante[] = [];
   gradoId: number = 0;
   loading: boolean = true;
+  descargando: boolean = false;
   nombreGrado: string = '';//Nombre del grado actual
   gradoActual: Grado | null = null;
 
@@ -164,6 +167,34 @@ export class VistaGrado implements OnInit {
 
   forzarSincronizacion() {
     this.syncService.sincronizar();
+  }
+
+  async descargarBoletines() {
+    if (this.descargando) return;
+    this.descargando = true;
+
+    for (const est of this.estudiantes) {
+      if (est.id) {
+        try {
+          const blob = await this.reporteService.descargarBoletin(est.id).toPromise();
+          if(blob){
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Boletin_${est.nombres}_${est.apellidos}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+          }
+        } catch (err) {
+          console.error(`Error descargando boletín para ${est.nombres}`, err);
+          alert(`No se pudo generar el reporte para ${est.nombres}.`);
+        }
+      }
+    }
+
+    this.descargando = false;
   }
 
   // Helpers
