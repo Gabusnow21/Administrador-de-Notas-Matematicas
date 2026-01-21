@@ -7,7 +7,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import dev.gabus.dto.Asistencia.Asistencia;
 import dev.gabus.dto.Asistencia.AsistenciaRepository;
 import dev.gabus.dto.Asistencia.EstadoAsistencia;
+import dev.gabus.dto.Asistencia.ReporteAsistenciaService;
 import dev.gabus.dto.Estudiante.Estudiante;
 import dev.gabus.dto.Estudiante.EstudianteRepository;
 import dev.gabus.dto.Grado.Grado;
@@ -41,6 +44,7 @@ public class AsistenciaController {
     private final EstudianteRepository estudianteRepository;
     private final GradoRepository gradoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ReporteAsistenciaService reporteAsistenciaService;
 
     private Usuario getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -133,6 +137,35 @@ public class AsistenciaController {
         }
 
         return ResponseEntity.ok(asistenciaRepository.findByEstudianteId(estudianteId));
+    }
+
+    @GetMapping("/reporte/mensual")
+    public ResponseEntity<byte[]> generarReporteMensual(
+            @RequestParam Long gradoId,
+            @RequestParam int month,
+            @RequestParam int year) {
+        try {
+            Usuario user = getCurrentUser();
+            Grado grado = gradoRepository.findById(gradoId).orElse(null);
+
+            if (grado == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            if (!canAccessGrado(user, grado)) {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
+
+            byte[] pdf = reporteAsistenciaService.generarReporteMensual(gradoId, month, year);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "reporte_asistencia.pdf");
+
+            return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Data

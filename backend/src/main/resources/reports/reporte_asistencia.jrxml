@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="reporte_asistencia" pageWidth="595" pageHeight="842" columnWidth="555"
+              leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20"
+              uuid="c3b2a5e4-1b2a-4c8d-9c3a-3b4a2d1e2f1a">
+
+    <parameter name="paramLeftLogo" class="java.awt.Image"/>
+    <parameter name="paramRightLogo" class="java.awt.Image"/>
+    <parameter name="grado" class="java.lang.String"/>
+    <parameter name="mes" class="java.lang.String"/>
+    <parameter name="anio" class="java.lang.String"/>
+    <parameter name="fechaGeneracion" class="java.util.Date"/>
+
+    <field name="codigoProgreso" class="java.lang.String"/>
+    <field name="nombreEstudiante" class="java.lang.String"/>
+    <field name="totalAsistencias" class="java.lang.Long"/>
+
+    <title>
+        <band height="120" splitType="Stretch">
+            <image>
+                <reportElement x="24" y="15" width="75" height="75"/>
+                <imageExpression><![CDATA[$P{paramLeftLogo}]]></imageExpression>
+            </image>
+            <image>
+                <reportElement x="471" y="15" width="75" height="75"/>
+                <imageExpression><![CDATA[$P{paramRightLogo}]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement x="80" y="20" width="400" height="20" uuid="a1b2c3d4-e5f6-4789-a1b2-c3d4e5f60001"/>
+                <textElement textAlignment="Center">
+                    <font fontName="SansSerif" size="12" isBold="true"/>
+                </textElement>
+                <text><![CDATA[CENTRO ESCOLAR CATÓLICO "MADRE CLARA QUIRÓS"]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="80" y="45" width="400" height="20"/>
+                <textElement textAlignment="Center">
+                    <font size="12" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Reporte de Asistencia Mensual - " + $P{mes} + " " + $P{anio}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="80" y="70" width="400" height="20"/>
+                <textElement textAlignment="Center">
+                    <font size="12" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Grado: " + $P{grado}]]></textFieldExpression>
+            </textField>
+            <textField pattern="dd/MM/yyyy HH:mm">
+                <reportElement x="455" y="100" width="100" height="20"/>
+                <textElement/>
+                <textFieldExpression><![CDATA[$P{fechaGeneracion}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="30" splitType="Stretch">
+            <staticText>
+                <reportElement x="30" y="0" width="150" height="30"/>
+                <box>
+                    <pen lineWidth="1.0"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[NIE]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="180" y="0" width="250" height="30"/>
+                <box>
+                    <pen lineWidth="1.0"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Nombre del Estudiante]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="430" y="0" width="100" height="30"/>
+                <box>
+                    <pen lineWidth="1.0"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <text><![CDATA[Total Asistencias]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="25" splitType="Stretch">
+            <textField>
+                <reportElement x="30" y="0" width="150" height="25"/>
+                <box>
+                    <pen lineWidth="1.0"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{codigoProgreso}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="180" y="0" width="250" height="25"/>
+                <box>
+                    <pen lineWidth="1.0"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{nombreEstudiante}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="430" y="0" width="100" height="25"/>
+                <box>
+                    <pen lineWidth="1.0"/>
+                </box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{totalAsistencias}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>

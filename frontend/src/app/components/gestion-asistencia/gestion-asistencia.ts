@@ -45,6 +45,17 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
   estados = Object.values(EstadoAsistencia);
   EstadoAsistencia = EstadoAsistencia;
 
+  // Propiedades para el reporte
+  reportMonth: number = new Date().getMonth() + 1;
+  reportYear: number = new Date().getFullYear();
+  reporteGenerandose = false;
+  months = [
+    { value: 1, name: 'Enero' }, { value: 2, name: 'Febrero' }, { value: 3, name: 'Marzo' },
+    { value: 4, name: 'Abril' }, { value: 5, name: 'Mayo' }, { value: 6, name: 'Junio' },
+    { value: 7, name: 'Julio' }, { value: 8, name: 'Agosto' }, { value: 9, name: 'Septiembre' },
+    { value: 10, name: 'Octubre' }, { value: 11, name: 'Noviembre' }, { value: 12, name: 'Diciembre' }
+  ];
+
   ngOnInit() {
     this.gradoService.getGrados().subscribe(grados => {
       this.grados = grados;
@@ -64,9 +75,6 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
   loadData() {
     if (!this.selectedGradoId) return;
 
-    // Load students and attendance in parallel (simple forkJoin or just separate subscribes)
-    // For simplicity, let's load students first, then attendance to merge.
-    
     this.estudianteService.getEstudiantesPorGrado(this.selectedGradoId).subscribe(estudiantes => {
       this.asistenciaService.getAsistenciaPorGrado(this.selectedGradoId!, this.selectedDate).subscribe(asistencias => {
         this.mergeData(estudiantes, asistencias);
@@ -79,7 +87,7 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
       const record = asistencias.find(a => a.estudiante.id === est.id);
       return {
         estudiante: est,
-        estado: record ? record.estado : null, // Default to null (not taken)
+        estado: record ? record.estado : null,
         hora: record ? record.hora : null,
         loading: false
       };
@@ -89,12 +97,12 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
   registrarManual(item: AsistenciaViewModel, estado: EstadoAsistencia) {
     item.loading = true;
     const now = new Date();
-    const timeString = now.toTimeString().split(' ')[0]; // HH:MM:SS
+    const timeString = now.toTimeString().split(' ')[0];
 
     this.asistenciaService.registrarAsistencia({
       estudianteId: item.estudiante.id,
       fecha: this.selectedDate,
-      hora: timeString, // Use current time or existing time? For manual, use current time if setting new status
+      hora: timeString,
       estado: estado
     }).subscribe({
       next: (res) => {
@@ -110,6 +118,33 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
     });
   }
 
+  generarReporteMensual() {
+    if (!this.selectedGradoId) {
+      alert('Por favor, seleccione un grado.');
+      return;
+    }
+    this.reporteGenerandose = true;
+    this.asistenciaService.generarReporteMensual(this.selectedGradoId, this.reportMonth, this.reportYear)
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `ReporteAsistencia_${this.reportMonth}_${this.reportYear}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          this.reporteGenerandose = false;
+        },
+        error: (err) => {
+          console.error('Error generando el reporte', err);
+          alert('No se pudo generar el reporte de asistencia.');
+          this.reporteGenerandose = false;
+        }
+      });
+  }
+
   toggleNfcMode() {
     this.nfcMode = !this.nfcMode;
     if (this.nfcMode) {
@@ -123,10 +158,6 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
   handleNfcScan(nfcId: string) {
     this.addLog(`Tag detectado: ${nfcId}... buscando estudiante`);
     
-    // We call register directly. The backend will look up the student by NFC ID.
-    // However, for the UI list update, we need to know WHICH student it was.
-    // The backend returns the Asistencia object which contains the Estudiante.
-    
     const now = new Date();
     const timeString = now.toTimeString().split(' ')[0];
 
@@ -139,7 +170,6 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
       next: (asistencia) => {
         this.addLog(`✅ Asistencia registrada: ${asistencia.estudiante.nombres} ${asistencia.estudiante.apellidos}`);
         
-        // Update the list if the student is in the current view
         const item = this.asistenciaList.find(i => i.estudiante.id === asistencia.estudiante.id);
         if (item) {
           item.estado = asistencia.estado;
@@ -157,7 +187,6 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
             this.addLog(`💰 RECOMPENSA! ${estudianteConSaldoActualizado.nombres} ha recibido 1 token.`);
             this.addLog(`Nuevo saldo: ${estudianteConSaldoActualizado.saldoTokens} tokens.`);
             
-            // Update local model
             if (item) {
                 item.estudiante.saldoTokens = estudianteConSaldoActualizado.saldoTokens;
             }

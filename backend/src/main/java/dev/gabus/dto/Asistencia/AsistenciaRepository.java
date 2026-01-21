@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface AsistenciaRepository extends JpaRepository<Asistencia, Long> {
+public interface AsistenciaRepository extends JpaRepository<Asistencia, Long>, AsistenciaRepositoryCustom {
     
     List<Asistencia> findByEstudianteId(Long estudianteId);
     
