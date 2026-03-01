@@ -42,6 +42,10 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
   nfcLogs: string[] = [];
   private nfcSubscription?: Subscription;
 
+  // Propiedades para la notificación
+  notification: { show: boolean, message: string, studentName: string } = { show: false, message: '', studentName: '' };
+  private notificationTimeout: any;
+
   estados = Object.values(EstadoAsistencia);
   EstadoAsistencia = EstadoAsistencia;
 
