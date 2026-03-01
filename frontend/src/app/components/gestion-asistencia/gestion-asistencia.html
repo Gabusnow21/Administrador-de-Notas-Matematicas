@@ -55,20 +55,17 @@
           </div>
           </div>
 
-          <!-- Toast de Notificación de Puntos -->
-          <div class="toast-container position-fixed bottom-0 start-50 translate-middle-x p-3 mb-4" style="z-index: 1080;">
-          <div class="toast show border-0 shadow-lg bg-dark text-white animate__animated animate__bounceInUp" role="alert" aria-live="assertive" aria-atomic="true" *ngIf="notification.show">
-          <div class="d-flex align-items-center p-3">
-            <div class="toast-icon me-3 bg-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-              <i class="fas fa-star text-dark"></i>
+          <!-- Modal Overlay de Notificación de Puntos (Rápido) -->
+          <div class="notification-overlay" *ngIf="notification.show">
+            <div class="notification-modal shadow-lg">
+              <div class="notification-icon">
+                <i class="fas fa-star"></i>
+              </div>
+              <div class="notification-content">
+                <h2 class="notification-title">{{ notification.message }}</h2>
+                <p class="notification-student">{{ notification.studentName }}</p>
+              </div>
             </div>
-            <div class="toast-body p-0 me-3">
-              <h6 class="mb-0 fw-bold text-warning">{{ notification.message }}</h6>
-              <small class="opacity-75 d-block">{{ notification.studentName }}</small>
-            </div>
-            <button type="button" class="btn-close btn-close-white ms-auto shadow-none" (click)="notification.show = false"></button>
-          </div>
-          </div>
           </div>
           </div>
     <div class="row g-4" *ngIf="selectedGradoId">

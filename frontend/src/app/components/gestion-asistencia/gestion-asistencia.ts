@@ -194,6 +194,9 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
             if (item) {
                 item.estudiante.saldoTokens = estudianteConSaldoActualizado.saldoTokens;
             }
+            
+            // Mostrar notificación tipo modal rápido
+            this.showNotification(`${estudianteConSaldoActualizado.nombres} ${estudianteConSaldoActualizado.apellidos}`, '+1 Punto Asignado');
           },
           error: (err) => {
             console.error('NFC Token Reward Error', err);
@@ -207,6 +210,21 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
         this.addLog(`❌ Error: ${err.error?.message || 'Estudiante no encontrado o error de red'}`);
       }
     });
+  }
+
+  showNotification(name: string, message: string) {
+    if (this.notificationTimeout) clearTimeout(this.notificationTimeout);
+    
+    this.notification = {
+      show: true,
+      studentName: name,
+      message: message
+    };
+
+    // Cerrar automáticamente después de 1 segundo (1000ms)
+    this.notificationTimeout = setTimeout(() => {
+      this.notification.show = false;
+    }, 1000);
   }
 
   addLog(msg: string) {
