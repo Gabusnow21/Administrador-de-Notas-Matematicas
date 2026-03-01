@@ -1,108 +1,122 @@
-<div class="container fade-in">
-    <div class="header-section">
-      <h2><i class="fas fa-calendar-check"></i> Gestión de Asistencia</h2>
-      <p>Registre la asistencia manual o mediante tarjetas NFC.</p>
-    </div>
-  
-    <div class="card controls-card">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Grado:</label>
-          <select [(ngModel)]="selectedGradoId" (change)="loadData()" class="form-control">
-            <option [ngValue]="null">-- Seleccionar Grado --</option>
-            <option *ngFor="let g of grados" [value]="g.id">
-              {{ g.nivel }} - {{ g.seccion }} ({{ g.anioEscolar }})
-            </option>
-          </select>
+<div class="container-fluid fade-in py-4">
+    <div class="header-section mb-4">
+      <div class="d-flex align-items-center mb-2">
+        <i class="fas fa-calendar-check fa-2x me-3 text-primary"></i>
+        <div>
+          <h2 class="mb-0">Gestión de Asistencia</h2>
+          <p class="text-muted mb-0">Registre la asistencia manual o mediante tarjetas NFC.</p>
         </div>
-  
-        <div class="form-group">
-          <label>Fecha:</label>
-          <input type="date" [(ngModel)]="selectedDate" (change)="loadData()" class="form-control">
-        </div>
-        
-        <!-- Controles para Reporte Mensual -->
-        <div class="form-group">
-          <label>Mes para Reporte:</label>
-          <select [(ngModel)]="reportMonth" class="form-control">
-            <option *ngFor="let month of months" [value]="month.value">{{ month.name }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Año para Reporte:</label>
-          <input type="number" [(ngModel)]="reportYear" class="form-control">
-        </div>
-        <div class="form-group">
-          <button class="btn btn-info" (click)="generarReporteMensual()" [disabled]="reporteGenerandose">
-            <i class="fas fa-file-pdf"></i>
-            {{ reporteGenerandose ? 'Generando...' : 'Generar Reporte' }}
-          </button>
-        </div>
-      </div>
-  
-      <div class="nfc-controls" *ngIf="selectedGradoId">
-        <button class="btn" [ngClass]="nfcMode ? 'btn-danger' : 'btn-primary'" (click)="toggleNfcMode()">
-          <i class="fas" [ngClass]="nfcMode ? 'fa-stop-circle' : 'fa-wifi'"></i>
-          {{ nfcMode ? 'Detener Escaneo NFC' : 'Iniciar Escaneo NFC' }}
-        </button>
       </div>
     </div>
   
-    <div class="row" *ngIf="selectedGradoId">
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <!-- Selección de Grado y Fecha -->
+          <div class="col-12 col-md-6 col-lg-3">
+            <label class="form-label fw-bold">Grado:</label>
+            <select [(ngModel)]="selectedGradoId" (change)="loadData()" class="form-select">
+              <option [ngValue]="null">-- Seleccionar Grado --</option>
+              <option *ngFor="let g of grados" [value]="g.id">
+                {{ g.nivel }} - {{ g.seccion }} ({{ g.anioEscolar }})
+              </option>
+            </select>
+          </div>
+  
+          <div class="col-12 col-md-6 col-lg-2">
+            <label class="form-label fw-bold">Fecha:</label>
+            <input type="date" [(ngModel)]="selectedDate" (change)="loadData()" class="form-control">
+          </div>
+          
+          <!-- Controles para Reporte Mensual -->
+          <div class="col-12 col-md-4 col-lg-2">
+            <label class="form-label fw-bold">Mes Reporte:</label>
+            <select [(ngModel)]="reportMonth" class="form-control">
+              <option *ngFor="let month of months" [value]="month.value">{{ month.name }}</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-4 col-lg-1">
+            <label class="form-label fw-bold">Año:</label>
+            <input type="number" [(ngModel)]="reportYear" class="form-control">
+          </div>
+          <div class="col-6 col-md-4 col-lg-2 d-flex align-items-end">
+            <button class="btn btn-outline-info w-100" (click)="generarReporteMensual()" [disabled]="reporteGenerandose">
+              <i class="fas fa-file-pdf me-1"></i>
+              {{ reporteGenerandose ? '...' : 'Reporte' }}
+            </button>
+          </div>
+
+          <div class="col-12 col-lg-2 d-flex align-items-end" *ngIf="selectedGradoId">
+            <button class="btn w-100" [ngClass]="nfcMode ? 'btn-danger' : 'btn-primary'" (click)="toggleNfcMode()">
+              <i class="fas me-1" [ngClass]="nfcMode ? 'fa-stop-circle' : 'fa-wifi'"></i>
+              {{ nfcMode ? 'Detener NFC' : 'Modo NFC' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <div class="row g-4" *ngIf="selectedGradoId">
       <!-- Lista de Asistencia -->
-      <div class="col-list">
-        <div class="card">
-          <h3>Listado de Estudiantes</h3>
+      <div [class]="nfcMode ? 'col-12 col-xl-8' : 'col-12'">
+        <div class="card shadow-sm border-0">
+          <div class="card-header bg-white py-3">
+            <h5 class="mb-0"><i class="fas fa-users me-2"></i>Listado de Estudiantes</h5>
+          </div>
           <div class="table-responsive">
-            <table class="table">
-              <thead>
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light text-secondary">
                 <tr>
-                  <th>Estudiante</th>
-                  <th>Hora</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
+                  <th class="ps-3">Estudiante</th>
+                  <th class="text-center">Hora</th>
+                  <th class="text-center">Estado</th>
+                  <th class="text-center pe-3">Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let item of asistenciaList" [class.presente]="item.estado === EstadoAsistencia.PRESENTE">
-                  <td>
-                    <div class="student-info">
-                      <span class="student-name">{{ item.estudiante.apellidos }}, {{ item.estudiante.nombres }}</span>
-                      <span class="student-code text-muted small">{{ item.estudiante.codigoProgreso }}</span>
+                <tr *ngFor="let item of asistenciaList" [class.presente-row]="item.estado === EstadoAsistencia.PRESENTE">
+                  <td class="ps-3" data-label="Estudiante">
+                    <div class="d-flex flex-column">
+                      <span class="fw-bold">{{ item.estudiante.apellidos }}, {{ item.estudiante.nombres }}</span>
+                      <small class="text-muted">{{ item.estudiante.codigoProgreso }}</small>
                     </div>
                   </td>
-                  <td>{{ item.hora || '--:--' }}</td>
-                  <td>
-                    <span class="badge" [ngClass]="{
-                      'badge-success': item.estado === EstadoAsistencia.PRESENTE,
-                      'badge-warning': item.estado === EstadoAsistencia.TARDE,
-                      'badge-danger': item.estado === EstadoAsistencia.AUSENTE,
-                      'badge-info': item.estado === EstadoAsistencia.EXCUSADO,
-                      'badge-secondary': !item.estado
+                  <td class="text-center" data-label="Hora">
+                    <span class="text-secondary small">{{ item.hora || '--:--' }}</span>
+                  </td>
+                  <td class="text-center" data-label="Estado">
+                    <span class="badge rounded-pill px-3 py-2" [ngClass]="{
+                      'bg-success': item.estado === EstadoAsistencia.PRESENTE,
+                      'bg-warning text-dark': item.estado === EstadoAsistencia.TARDE,
+                      'bg-danger': item.estado === EstadoAsistencia.AUSENTE,
+                      'bg-info text-white': item.estado === EstadoAsistencia.EXCUSADO,
+                      'bg-secondary': !item.estado
                     }">
-                      {{ item.estado || 'NO REGISTRADO' }}
+                      {{ item.estado || 'PENDIENTE' }}
                     </span>
                   </td>
-                  <td>
-                    <div class="btn-group" *ngIf="!item.loading">
-                      <button class="btn-icon present" title="Presente" (click)="registrarManual(item, EstadoAsistencia.PRESENTE)">
+                  <td class="pe-3" data-label="Acciones">
+                    <div class="d-flex justify-content-center gap-2" *ngIf="!item.loading">
+                      <button class="btn btn-sm btn-outline-success btn-action" title="Presente" (click)="registrarManual(item, EstadoAsistencia.PRESENTE)">
                         <i class="fas fa-check"></i>
                       </button>
-                      <button class="btn-icon late" title="Tarde" (click)="registrarManual(item, EstadoAsistencia.TARDE)">
+                      <button class="btn btn-sm btn-outline-warning btn-action" title="Tarde" (click)="registrarManual(item, EstadoAsistencia.TARDE)">
                         <i class="fas fa-clock"></i>
                       </button>
-                      <button class="btn-icon absent" title="Ausente" (click)="registrarManual(item, EstadoAsistencia.AUSENTE)">
+                      <button class="btn btn-sm btn-outline-danger btn-action" title="Ausente" (click)="registrarManual(item, EstadoAsistencia.AUSENTE)">
                         <i class="fas fa-times"></i>
                       </button>
-                      <button class="btn-icon excuse" title="Excusado" (click)="registrarManual(item, EstadoAsistencia.EXCUSADO)">
+                      <button class="btn btn-sm btn-outline-info btn-action" title="Excusado" (click)="registrarManual(item, EstadoAsistencia.EXCUSADO)">
                         <i class="fas fa-file-medical"></i>
                       </button>
                     </div>
-                    <div *ngIf="item.loading" class="spinner-small"></div>
+                    <div *ngIf="item.loading" class="text-center">
+                      <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    </div>
                   </td>
                 </tr>
                 <tr *ngIf="asistenciaList.length === 0">
-                  <td colspan="4" class="text-center">No hay estudiantes en este grado.</td>
+                  <td colspan="4" class="text-center py-4 text-muted">No hay estudiantes en este grado.</td>
                 </tr>
               </tbody>
             </table>
@@ -111,13 +125,21 @@
       </div>
   
       <!-- Logs NFC -->
-      <div class="col-logs" *ngIf="nfcMode">
-        <div class="card log-card">
-          <h3><i class="fas fa-history"></i> Registros NFC (En Vivo)</h3>
-          <ul class="log-list">
-            <li *ngFor="let log of nfcLogs">{{ log }}</li>
-            <li *ngIf="nfcLogs.length === 0" class="text-muted">Esperando lecturas...</li>
-          </ul>
+      <div class="col-12 col-xl-4" *ngIf="nfcMode">
+        <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+          <div class="card-header bg-dark text-white py-3">
+            <h5 class="mb-0"><i class="fas fa-history me-2 text-warning"></i>Logs NFC En Vivo</h5>
+          </div>
+          <div class="card-body p-0">
+            <ul class="list-group list-group-flush log-list-custom">
+              <li *ngFor="let log of nfcLogs" class="list-group-item small font-monospace border-start border-4 border-warning">
+                {{ log }}
+              </li>
+              <li *ngIf="nfcLogs.length === 0" class="list-group-item text-muted text-center py-4">
+                Esperando lecturas NFC...
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
