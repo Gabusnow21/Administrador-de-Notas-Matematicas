@@ -221,10 +221,10 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
       message: message
     };
 
-    // Cerrar automáticamente después de 1 segundo (1000ms)
+    // Cerrar automáticamente después de 2 segundos (2000ms)
     this.notificationTimeout = setTimeout(() => {
       this.notification.show = false;
-    }, 1000);
+    }, 2000);
   }
 
   addLog(msg: string) {
