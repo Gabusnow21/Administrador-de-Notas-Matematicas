@@ -13,7 +13,7 @@ import { AuthService } from '../../services/auth';
 export class SidebarComponent {
   public authService = inject(AuthService);
   
-  isExpanded = true;
+  isExpanded = false;
 
   toggle() {
     this.isExpanded = !this.isExpanded;
