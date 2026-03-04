@@ -1,16 +1,16 @@
 .main-content-wrapper {
   transition: margin-left 0.3s ease;
-  margin-left: 80px; /* Collapsed width */
+  margin-left: 0; /* Por defecto, sin margen en móvil (sidebar es overlay) */
   min-height: 100vh;
   background-color: #f8f9fa;
 }
 
 .main-content-wrapper.expanded {
-  margin-left: 250px; /* Expanded width */
+  /* En móvil, el sidebar es un overlay, el contenido principal no se desplaza */
 }
 
 .navbar {
-  height: 64px;
+  height: 4rem; /* 64px convertido a rem */
   padding: 0 1.5rem;
 }
 
@@ -19,7 +19,7 @@
   letter-spacing: 0.5px;
 }
 
-/* Estilos para el botón de usuario */
+/* Estilos para el botón de usuario: Asegurar tamaño táctil */
 .user-dropdown-btn {
   background: rgba(255, 255, 255, 0);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -30,6 +30,7 @@
   display: flex;
   align-items: center;
   text-decoration: none;
+  min-height: 3rem; /* 48px */
 }
 
 .user-dropdown-btn:hover {
@@ -53,7 +54,35 @@
   cursor: default;
 }
 
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+  z-index: 1029; /* Below sidebar (1030) but above main content */
+  transition: opacity 0.3s ease;
+}
+
 .dropdown-menu {
     border: none;
     border-radius: 12px;
+    min-width: 15.625rem; /* 250px convertido a rem */
+}
+
+/* Asegurar tamaño táctil para los botones dentro del dropdown */
+.dropdown-menu .btn {
+  min-height: 3rem; /* 48px */
+}
+
+/* Media Query para Tablet y Escritorio (min-width: 768px) */
+@media (min-width: 768px) {
+  .main-content-wrapper {
+    margin-left: 5rem; /* Ancho colapsado del sidebar (80px) */
+  }
+
+  .main-content-wrapper.expanded {
+    margin-left: 15.625rem; /* Ancho expandido del sidebar (250px) */
+  }
 }
