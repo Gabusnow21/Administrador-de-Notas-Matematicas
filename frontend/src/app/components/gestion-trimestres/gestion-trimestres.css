@@ -1,4 +1,115 @@
 /* gestion-trimestres.css */
+
+:host {
+  display: block;
+}
+
+.header-bar {
+  padding: 1rem; /* Usar rem para padding */
+}
+
+.back-button {
+  min-width: 48px; /* Asegurar tamaño táctil */
+  min-height: 48px; /* Asegurar tamaño táctil */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem; /* Ajustar tamaño de icono */
+}
+
+.page-title {
+  font-size: 1.25rem; /* rem para h4 en móvil */
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  text-align: center;
+  flex-grow: 1; /* Permitir que ocupe espacio y centre */
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column; /* Mobile-First: Columnas apiladas */
+  gap: 1.5rem; /* Espacio entre el formulario y la tabla */
+  padding: 1rem; /* Padding general para el contenido principal */
+}
+
+.form-card,
+.table-card {
+  width: 100%; /* Ocupar todo el ancho en móvil */
+}
+
 .card-header {
   border-bottom: 2px solid #f0f0f0;
+  padding: 1rem; /* Consistente con el nuevo espaciado */
+}
+
+.card-title {
+  font-size: 1.15rem; /* Ajustar tamaño de título de tarjeta */
+}
+
+/* Estilos de formulario */
+.form-label {
+  font-size: 0.95rem; /* Tamaño de texto para labels */
+}
+
+.form-control,
+.btn {
+  padding: 0.75rem 1rem; /* Aumentar padding para mejor toque */
+  font-size: 1rem; /* Tamaño base de fuente */
+}
+
+.form-check-label {
+  font-size: 0.95rem;
+}
+
+/* Tabla */
+.table {
+  font-size: 0.9rem; /* Tamaño de fuente para la tabla */
+}
+
+.table th,
+.table td {
+  padding: 0.8rem; /* Padding para celdas */
+  vertical-align: middle;
+}
+
+.table-responsive {
+  overflow-x: auto; /* Asegurar scroll horizontal para tablas en móvil */
+  -webkit-overflow-scrolling: touch; /* Suavizar scroll en iOS */
+}
+
+/* Botones de acción en tabla */
+.table-action-button {
+  min-width: 40px; /* Asegurar tamaño táctil mínimo para botones pequeños */
+  min-height: 40px;
+  padding: 0.5rem; /* Ajustar padding */
+  font-size: 0.9rem;
+}
+
+/* Media Query para Tablet y Escritorio */
+@media (min-width: 768px) {
+  .page-title {
+    font-size: 1.5rem; /* Ajustar tamaño para escritorio */
+  }
+
+  .main-content {
+    flex-direction: row; /* Diseño de columnas para escritorio */
+    align-items: flex-start; /* Alinear arriba los elementos */
+  }
+
+  .form-card {
+    flex: 0 0 32%; /* Aproximadamente 1/3 para el formulario */
+    max-width: 32%;
+  }
+
+  .table-card {
+    flex: 0 0 66%; /* Aproximadamente 2/3 para la tabla */
+    max-width: 66%;
+  }
+
+  .table-action-button {
+    min-width: unset; /* Eliminar min-width fijo para escritorio si no es necesario */
+    min-height: unset;
+    padding: 0.375rem 0.75rem; /* Padding estándar de btn-sm de Bootstrap */
+    font-size: 0.875rem;
+  }
 }

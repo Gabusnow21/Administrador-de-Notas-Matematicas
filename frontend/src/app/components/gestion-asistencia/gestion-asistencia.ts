@@ -9,6 +9,7 @@ import { Asistencia, EstadoAsistencia } from '../../services/asistencia';
 import { WebNfcService, NfcMessage } from '../../services/web-nfc.service';
 import { Subscription } from 'rxjs';
 import { NfcInteractionService } from '../../services/nfc-interaction.service';
+import { Reporte } from '../../services/reporte';
 
 interface AsistenciaViewModel {
   estudiante: Estudiante;
@@ -28,6 +29,7 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
   gradoService = inject(GradoService);
   estudianteService = inject(EstudianteService);
   asistenciaService = inject(AsistenciaService);
+  reporteService = inject(Reporte);
   webNfcService = inject(WebNfcService);
   nfcInteractionService = inject(NfcInteractionService);
   ngZone = inject(NgZone);
@@ -128,7 +130,7 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
       return;
     }
     this.reporteGenerandose = true;
-    this.asistenciaService.generarReporteMensual(this.selectedGradoId, this.reportMonth, this.reportYear)
+    this.reporteService.generarReporteAsistenciaMensual(this.selectedGradoId, this.reportMonth, this.reportYear)
       .subscribe({
         next: (blob) => {
           const url = window.URL.createObjectURL(blob);

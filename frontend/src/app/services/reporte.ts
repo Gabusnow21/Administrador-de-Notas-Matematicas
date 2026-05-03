@@ -17,18 +17,30 @@ const logoDerecha = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ8AAADHCAYAA
 export class Reporte {
   private http = inject(HttpClient);
   private localDb = inject(LocalDbService);
-  private apiUrl = `${environment.apiUrl}/reportes`;
+  private apiUrl = `${environment.apiUrl}`;
 
+  /**
+   * Genera el boletín de calificaciones directamente en el frontend.
+   * Se eliminó el intento de descarga desde el backend para cumplir con la directiva de usar la versión del frontend.
+   */
   descargarBoletin(estudianteId: number): Observable<Blob> {
-    // Intentar siempre la descarga online. Si falla, se activa el fallback a offline.
-    return this.http.get(`${this.apiUrl}/boletin/${estudianteId}`, {
+    return from(this.generarBoletinOffline(estudianteId));
+  }
+
+  /**
+   * Genera el reporte mensual de asistencia llamando al backend.
+   */
+  generarReporteAsistenciaMensual(gradoId: number, month: number, year: number): Observable<Blob> {
+    const params = {
+      gradoId: gradoId.toString(),
+      month: month.toString(),
+      year: year.toString()
+    };
+
+    return this.http.get(`${this.apiUrl}/asistencia/reporte/mensual`, {
+      params,
       responseType: 'blob'
-    }).pipe(
-      catchError(err => {
-        console.warn('API de reportes no disponible. Generando boletín en modo offline.', err);
-        return from(this.generarBoletinOffline(estudianteId));
-      })
-    );
+    });
   }
 
   async generarBoletinOffline(estudianteId: number): Promise<Blob> {
@@ -56,29 +68,35 @@ export class Reporte {
     const pageWidth = doc.internal.pageSize.getWidth();
 
     // --- Logos ---
-    doc.addImage(logoIzquierda, 'PNG', 15, 25, 35, 35);
-    doc.addImage(logoDerecha, 'PNG', pageWidth - 55, 25, 35, 35);
+    doc.addImage(logoIzquierda, 'PNG', 15, 14, 25, 25);
+    doc.addImage(logoDerecha, 'PNG', pageWidth - 40, 13, 25, 25);
 
     // --- Cabecera ---
     doc.setFont('sans-serif', 'bold');
     doc.setFontSize(12);
-    doc.text('CENTRO ESCOLAR CATÓLICO "MADRE CLARA QUIRÓS"', pageWidth / 2, 20, { align: 'center' });
+    doc.text('"CENTRO ESCOLAR CATÓLICO "MADRE CLARA QUIRÓS"', pageWidth / 2, 20, { align: 'center' });
     
     doc.setFont('sans-serif', 'normal');
     doc.setFontSize(10);
-    doc.text('cecmadreclaraquiros@yahoo.com', pageWidth / 2, 30, { align: 'center' });
-    doc.text('Final barrio la Cruz, La Palma Chalatenango.', pageWidth / 2, 40, { align: 'center' });
+    doc.text('cecmadreclaraquiros@yahoo.com', pageWidth / 2, 25, { align: 'center' });
+    doc.text('Final barrio la Cruz, La Palma Chalatenango.', pageWidth / 2, 30, { align: 'center' });
     
     doc.setFont('sans-serif', 'bold');
-    doc.text('Tel. 2305- 8432, 7187-7141', pageWidth / 2, 50, { align: 'center' });
+    doc.text('Tel. 2305- 8432, 7187-7141', pageWidth / 2, 35, { align: 'center' });
 
-    doc.setFontSize(11);
+    doc.setFont('serif', 'bold');
+    doc.setFontSize(16);
+    doc.text('"CENTRO ESCOLAR CATÓLICO "MADRE CLARA QUIRÓS"', pageWidth / 2, 45, { align: 'center' });
+    doc.text('Código:21276', pageWidth / 2, 50, { align: 'center' });
+
+    doc.setFontSize(12);
     doc.text('REGISTRO ACADÉMICO DE MATERIAS COMPLEMENTARIAS', pageWidth / 2, 70, { align: 'center' });
     doc.text('I, II, III CICLO', pageWidth / 2, 80, { align: 'center' });
 
     doc.setFontSize(11);
     doc.setTextColor('#003366'); // Color azul oscuro
     doc.text(`Estudiante:  ${estudiante.apellidos} ${estudiante.nombres}`, 14, 95);
+    doc.text(`NIE: ${estudiante.codigoProgreso || ''}`, pageWidth - 50, 95);
     doc.setTextColor('#000000'); // Reset color
     // --- Fin de la Cabecera ---
 
@@ -155,13 +173,65 @@ export class Reporte {
         5: { halign: 'center' }  // Promedio
       }
     });
-    //Sacar promedio final general
-    /*if (subjectCount > 0) {
-      const overallAverage = (finalAverage / subjectCount).toFixed(2);
-      const finalY = (doc as any).lastAutoTable.finalY;
-      doc.text(`Promedio Final General: ${overallAverage}`, 14, finalY + 10);
-    }*/
-  
+
+    const finalY = (doc as any).lastAutoTable.finalY;
+
+    // --- Tabla de Formato (Positivos y A Mejorar) ---
+    const footerData: any[] = [
+      // --- BLOQUE POSITIVOS ---
+      // Fila 1 (Header): Solo borde superior, izquierdo y derecho
+      [
+        { content: 'POSITIVOS', styles: { fontStyle: 'bold' as const, lineWidth: { top: 0.1, right: 0.1, bottom: 0, left: 0.1 } } }, 
+        { content: 'I', styles: { halign: 'center', fontStyle: 'bold' as const } }, 
+        { content: 'II', styles: { halign: 'center', fontStyle: 'bold' as const } }, 
+        { content: 'III', styles: { halign: 'center', fontStyle: 'bold' as const } }
+      ],
+      // Filas 2 al 5: Sin borde superior ni inferior
+      [{ content: '1.  Coopera y participa en las distintas actividades del aula y Centro Escolar.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, '', '', ''],
+      [{ content: '2.  Es respetuoso con todos los profesores, compañeros y demás personas.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, '', '', ''],
+      [{ content: '3.  Presenta sus trabajos completos, en orden, limpios y en la fecha indicada.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, '', '', ''],
+      [{ content: '4.  Es responsable y organizado en su trabajo.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, '', '', ''],
+      [{ content: '5.  Tiene hábito de estudio.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, '', '', ''],
+      // Fila 6 (Última del bloque): Le ponemos borde inferior para cerrar la caja
+      [{ content: '6.  Ha mejorado su rendimiento escolar.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0.1, left: 0.1 } } }, '', '', ''],
+
+      // --- BLOQUE A MEJORAR ---
+      // Fila 7 (Header): Solo borde superior, izquierdo y derecho
+      [
+        { content: 'A MEJORAR', styles: { fontStyle: 'bold' as const, lineWidth: { top: 0.1, right: 0.1, bottom: 0, left: 0.1 } } }, 
+        '', '', ''
+      ],
+      // Filas 8 al 14: Sin borde superior ni inferior
+      [{ content: '7.  Tiene ausencia sin justificación escrita.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, '', '', ''],
+      [{ content: '8.  Se presenta al Centro Escolar con uniforme incompleto.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, '', '', ''],
+      [{ content: '9.  No trae completos sus textos y útiles escolares.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, '', '', ''],
+      [{ content: '10. Usa vocabulario Soez.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, '', '', ''],
+      [{ content: '11. Interrumpe el desarrollo de las clases.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, '', '', ''],
+      [{ content: '12. Presenta sus tareas escolares incompletas y fuera del tiempo fijado.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, '', '', ''],
+      [{ content: '13. Usa tintes, maquillajes, joyas y celulares.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, '', '', ''],
+      [{ content: '14. Se presenta el estudiante con corte de cabello inadecuado.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, '', '', ''],
+      // Fila 15 (Última del bloque): Le ponemos borde inferior para cerrar la tabla
+      [{ content: '15. Tiene Deméritos', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0.1, left: 0.1 } } }, '', '', ''],
+    ];
+
+    autoTable(doc, {
+      body: footerData,
+      startY: finalY + 5,
+      theme: 'grid',
+      styles: {
+        fontSize: 7,
+        cellPadding: 1,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.1,
+      },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 25, halign: 'center' },
+        2: { cellWidth: 25, halign: 'center' },
+        3: { cellWidth: 25, halign: 'center' },
+      }
+    });
+
     return doc.output('blob');
   }
   
@@ -175,4 +245,6 @@ export class Reporte {
     });
     return totalPonderacion > 0 ? totalNota / totalPonderacion : 0;
   }
+
+  
 }
