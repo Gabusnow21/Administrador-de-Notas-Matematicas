@@ -26,16 +26,4 @@ export class AsistenciaService {
   getHistorialEstudiante(estudianteId: number): Observable<Asistencia[]> {
     return this.http.get<Asistencia[]>(`${this.apiUrl}/estudiante/${estudianteId}`);
   }
-
-  generarReporteMensual(gradoId: number, month: number, year: number): Observable<Blob> {
-    const params = new HttpParams()
-      .set('gradoId', gradoId.toString())
-      .set('month', month.toString())
-      .set('year', year.toString());
-    
-    return this.http.get(`${this.apiUrl}/reporte/mensual`, {
-      params,
-      responseType: 'blob'
-    });
-  }
 }

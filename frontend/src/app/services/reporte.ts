@@ -17,18 +17,30 @@ const logoDerecha = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ8AAADHCAYAA
 export class Reporte {
   private http = inject(HttpClient);
   private localDb = inject(LocalDbService);
-  private apiUrl = `${environment.apiUrl}/reportes`;
+  private apiUrl = `${environment.apiUrl}`;
 
+  /**
+   * Genera el boletín de calificaciones directamente en el frontend.
+   * Se eliminó el intento de descarga desde el backend para cumplir con la directiva de usar la versión del frontend.
+   */
   descargarBoletin(estudianteId: number): Observable<Blob> {
-    // Intentar siempre la descarga online. Si falla, se activa el fallback a offline.
-    return this.http.get(`${this.apiUrl}/boletin/${estudianteId}`, {
+    return from(this.generarBoletinOffline(estudianteId));
+  }
+
+  /**
+   * Genera el reporte mensual de asistencia llamando al backend.
+   */
+  generarReporteAsistenciaMensual(gradoId: number, month: number, year: number): Observable<Blob> {
+    const params = {
+      gradoId: gradoId.toString(),
+      month: month.toString(),
+      year: year.toString()
+    };
+
+    return this.http.get(`${this.apiUrl}/asistencia/reporte/mensual`, {
+      params,
       responseType: 'blob'
-    }).pipe(
-      catchError(err => {
-        console.warn('API de reportes no disponible. Generando boletín en modo offline.', err);
-        return from(this.generarBoletinOffline(estudianteId));
-      })
-    );
+    });
   }
 
   async generarBoletinOffline(estudianteId: number): Promise<Blob> {
