@@ -1,19 +1,19 @@
 
-  <div class="bg-primary text-white shadow-sm mb-4">
+  <div class="bg-primary text-white shadow-sm mb-4 header-bar">
     <div class="container-fluid d-flex justify-content-between align-items-center p-3">
-    <a routerLink="/dashboard" class="btn btn-outline-light rounded-circle" style="width: 40px; height: 40px; line-height: 24px;" title="Volver al Dashboard">
+    <a routerLink="/dashboard" class="btn btn-outline-light rounded-circle back-button" title="Volver al Dashboard">
       <i class="bi bi-arrow-left"></i>
     </a>
-      <h1 class="h4 mb-0 fw-bold d-flex align-items-center mx-auto">
+      <h1 class="h4 mb-0 fw-bold d-flex align-items-center page-title">
       <i class="bi bi-award-fill me-2"></i>
       Gestión de Trimestres
       </h1>
     </div>
   </div>
 
-  <div class="row">
+  <div class="main-content">
     <!-- Formulario -->
-    <div class="col-md-4 mb-4">
+    <div class="form-card">
       <div class="card shadow-sm">
         <div class="card-header bg-white py-3">
           <h5 class="card-title m-0 text-success">
@@ -60,7 +60,7 @@
     </div>
 
     <!-- Tabla -->
-    <div class="col-md-8">
+    <div class="table-card">
       @if (loading) {
         <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
       } @else {
@@ -89,10 +89,10 @@
                       @else { <span class="badge bg-secondary">Cerrado</span> }
                     </td>
                     <td class="text-end">
-                      <button class="btn btn-sm btn-outline-warning me-2" (click)="editar(t)">
+                      <button class="btn btn-sm btn-outline-warning me-2 table-action-button" (click)="editar(t)">
                         <i class="bi bi-pencil-fill"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-danger" (click)="eliminar(t)">
+                      <button class="btn btn-sm btn-outline-danger table-action-button" (click)="eliminar(t)">
                         <i class="bi bi-trash-fill"></i>
                       </button>
                     </td>
