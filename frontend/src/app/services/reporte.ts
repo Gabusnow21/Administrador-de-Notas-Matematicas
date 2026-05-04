@@ -111,6 +111,17 @@ export class Reporte {
         });
       }
     });
+
+    doc.setFontSize(12);
+    doc.text('ASPECTOS PARA EVALUAR', pageWidth / 2, 220, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text('Los marcados con un cheque son los vivenciados en la institución', pageWidth / 2, 225, { align: 'center' });
+
+    doc.setFont('sans-serif', 'normal');
+    doc.setFontSize(10);
+    doc.text('"Padres, no hagan enojar a sus hijos, sino más bien crienlos con disciplina e instrúyalos en el amor del señor. Efesios 6:4"', 
+      pageWidth / 2, 280, { align: 'center' });
+
   
     // Mapa para conducta (1-15)
     const conductMap = new Map<number, { [key: number]: string }>();
@@ -194,6 +205,7 @@ export class Reporte {
         5: { halign: 'center' }  // Promedio
       }
     });
+
 
     const finalY = (doc as any).lastAutoTable.finalY;
 
