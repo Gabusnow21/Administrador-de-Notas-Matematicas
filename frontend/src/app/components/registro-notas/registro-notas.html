@@ -18,7 +18,7 @@
       <!-- Grado -->
       <div class="col-md-3">
         <label class="form-label small fw-bold">Grado</label>
-        <select class="form-select" [(ngModel)]="selGrado" (change)="cargarPlanilla()">
+        <select class="form-select" [(ngModel)]="selGrado" (change)="modoConducta ? cargarPlanillaConducta() : cargarPlanilla()">
           <!-- Opciones de grados -->
           <option [ngValue]="0">-- Seleccionar --</option>
           @for (g of grados; track g.id) { 
@@ -36,7 +36,7 @@
           }
         </select>
       </div>
-      
+
       <!-- Trimestre -->
       <div class="col-md-3">
         <label class="form-label small fw-bold">Trimestre</label>
@@ -50,12 +50,23 @@
       <!-- Actividad -->
       <div class="col-md-3">
         <label class="form-label small fw-bold">Actividad</label>
-        <select class="form-select" [(ngModel)]="selActividad" (change)="cargarPlanilla()" [disabled]="actividades.length === 0">
+        <select class="form-select" [(ngModel)]="selActividad" (change)="cargarPlanilla()" [disabled]="actividades.length === 0 || modoConducta">
           <option [ngValue]="0">-- Seleccionar --</option>
           @for (a of actividades; track a.id) { 
             <option [ngValue]="a.id">{{ a.nombre }} ({{a.ponderacion}}%)</option> 
           }
         </select>
+      </div>
+
+      <!-- Toggle Modo Conducta -->
+      <div class="col-12 mt-2">
+        <button class="btn btn-sm d-flex align-items-center" 
+                [class.btn-outline-info]="!modoConducta" 
+                [class.btn-info]="modoConducta" 
+                (click)="toggleModoConducta()">
+          <i class="bi bi-grid-3x3-gap-fill me-2"></i>
+          {{ modoConducta ? 'Volver a Planilla Individual' : 'Activar Matriz de Conducta (1-15)' }}
+        </button>
       </div>
 
     </div>
@@ -65,7 +76,8 @@
     <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
   }
 
-  @if (!loading && planilla.length > 0) {
+  <!-- TABLA NORMAL -->
+  @if (!loading && !modoConducta && planilla.length > 0) {
     <div class="card shadow border-0">
       <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
         <h5 class="m-0 text-secondary">Estudiantes: {{ planilla.length }}</h5>
@@ -115,7 +127,123 @@
     </div>
   }
 
-  @if (!loading && planilla.length === 0 && selActividad !== 0) {
+  <!-- MATRIZ DE CONDUCTA -->
+  @if (!loading && modoConducta && planillaConducta.length > 0) {
+    
+    <!-- Guía de Aspectos (Leyenda) -->
+    <div class="card shadow-sm border-0 mb-4 animate__animated animate__fadeInDown">
+      <div class="card-header bg-dark text-white py-2">
+        <h6 class="m-0 small fw-bold"><i class="bi bi-list-check me-2"></i>Guía de Aspectos de Comportamiento</h6>
+      </div>
+      <div class="card-body p-3 bg-light">
+        <div class="row g-3">
+          <!-- Columna Positivos -->
+          <div class="col-md-6">
+            <div class="p-2 border-start border-success border-4 bg-white rounded shadow-sm h-100">
+              <h6 class="text-success fw-bold small mb-2">POSITIVOS (1-6)</h6>
+              <div class="small">
+                @for (desc of descripcionesConducta.slice(0, 6); track desc; let i = $index) {
+                  <div class="mb-1 d-flex">
+                    <span class="badge bg-success me-2" style="min-width: 25px;">{{ i + 1 }}</span>
+                    <span class="text-muted" style="font-size: 0.75rem;">{{ desc }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+          <!-- Columna A Mejorar -->
+          <div class="col-md-6">
+            <div class="p-2 border-start border-warning border-4 bg-white rounded shadow-sm h-100">
+              <h6 class="text-warning fw-bold small mb-2">A MEJORAR (7-15)</h6>
+              <div class="small">
+                @for (desc of descripcionesConducta.slice(6, 15); track desc; let i = $index) {
+                  <div class="mb-1 d-flex">
+                    <span class="badge bg-warning text-dark me-2" style="min-width: 25px;">{{ i + 7 }}</span>
+                    <span class="text-muted" style="font-size: 0.75rem;">{{ desc }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow border-0 animate__animated animate__fadeIn">
+      <div class="card-header bg-info text-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="m-0 fw-bold">
+          <i class="bi bi-person-badge me-2"></i>
+          Registro de Comportamiento Dinámico
+        </h5>
+        <button class="btn btn-light fw-bold" (click)="guardarConducta()" [disabled]="guardando">
+          @if (guardando) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          @else { <i class="bi bi-cloud-upload-fill me-1"></i> }
+          Guardar Matriz
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle mb-0 text-center">
+          <thead class="table-secondary">
+            <tr>
+              <th class="text-start ps-3" style="min-width: 220px;">Estudiante</th>
+              @for (item of itemsConducta; track item.id; let idx = $index) {
+                <th [title]="getDescConducta(getNumeroConducta(item.nombre) === '?' ? idx : (+(getNumeroConducta(item.nombre)) - 1))" 
+                    class="small pointer" 
+                    style="cursor: help;">
+                  <div class="d-flex flex-column align-items-center">
+                    <span class="badge bg-dark mb-1">{{ getNumeroConducta(item.nombre) }}</span>
+                    <i class="bi bi-info-circle text-info" style="font-size: 0.7rem;"></i>
+                  </div>
+                </th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (est of planillaConducta; track est.estudianteId) {
+              <tr [class.table-warning]="est.modificado">
+                <td class="text-start ps-3 fw-bold small text-muted">
+                  {{ est.nombre }}
+                </td>
+                @for (item of itemsConducta; track item.id) {
+                  <td class="px-1 text-center">
+                    <div class="form-check d-inline-block m-0">
+                      <input type="checkbox" 
+                             class="form-check-input" 
+                             style="width: 20px; height: 20px; cursor: pointer;"
+                             [ngModel]="est.notas[item.id!] >= 1" 
+                             (ngModelChange)="est.notas[item.id!] = $event ? 10 : 0; marcarCambioConducta(est)">
+                    </div>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer bg-light small text-muted">
+        <i class="bi bi-info-circle me-1"></i>
+        Marque la casilla si el estudiante cumple con el rasgo. El sistema guardará 10 si está marcado y 0 si no.
+      </div>
+    </div>
+  }
+
+  @if (!loading && planilla.length === 0 && !modoConducta && selActividad !== 0) {
     <div class="alert alert-info mt-3">No hay estudiantes inscritos en este grado.</div>
+  }
+
+  @if (!loading && modoConducta && planillaConducta.length === 0 && selMateria !== 0) {
+    <div class="alert alert-warning mt-3 shadow-sm border-start border-4 border-warning animate__animated animate__shakeX">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-warning"></i>
+        <div>
+          <h6 class="fw-bold mb-1">Actividades de conducta no encontradas</h6>
+          <p class="mb-2 small">Esta materia no tiene configurados los 15 rasgos de comportamiento para este trimestre.</p>
+          <button class="btn btn-sm btn-warning fw-bold shadow-sm" (click)="crearActividadesConducta()">
+            <i class="bi bi-magic me-1"></i>
+            Generar los 15 Rasgos Automáticamente
+          </button>
+        </div>
+      </div>
+    </div>
   }
 </div>
