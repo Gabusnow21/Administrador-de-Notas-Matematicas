@@ -113,9 +113,9 @@ export class Reporte {
     });
 
     doc.setFontSize(12);
-    doc.text('ASPECTOS PARA EVALUAR', pageWidth / 2, 220, { align: 'center' });
+    doc.text('ASPECTOS PARA EVALUAR', pageWidth / 2, 155, { align: 'center' });
     doc.setFontSize(10);
-    doc.text('Los marcados con un cheque son los vivenciados en la institución', pageWidth / 2, 225, { align: 'center' });
+    doc.text('Los marcados con un cheque son los vivenciados en la institución', pageWidth / 2, 160, { align: 'center' });
 
     doc.setFont('sans-serif', 'normal');
     doc.setFontSize(10);
@@ -243,7 +243,7 @@ export class Reporte {
 
     autoTable(doc, {
       body: footerData,
-      startY: finalY + 5,
+      startY: finalY + 20,
       theme: 'grid',
       styles: {
         fontSize: 7,
