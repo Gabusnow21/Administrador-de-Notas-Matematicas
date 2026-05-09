@@ -8,6 +8,9 @@
       Gestión de Grado
     </h1>
         <div class="d-flex gap-2">
+      <button class="btn btn-warning text-white" [routerLink]="['/descargar-boleta']">
+        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Boletas Temporales
+      </button>
       <button class="btn btn-success" (click)="iniciarInscripcion()">
         <i class="bi bi-person-plus-fill me-1"></i> Inscribir Estudiante
       </button>
