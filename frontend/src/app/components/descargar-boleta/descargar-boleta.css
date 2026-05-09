@@ -41,14 +41,22 @@ h2, h3 {
     margin-bottom: 1rem;
 }
 
+h4 {
+    margin: 15px 0 5px;
+    color: #444;
+    font-size: 1rem;
+    text-align: left;
+}
+
 p {
     color: #666;
     margin-bottom: 2rem;
 }
 
-.small {
+p.small {
     font-size: 0.85rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
+    text-align: left;
 }
 
 .form-group {
@@ -118,55 +126,77 @@ label {
     border: 1px solid #f5c6cb;
 }
 
-/* Path Browser Styles */
+/* Admin Config Styles */
 .admin-config {
     text-align: left;
 }
 
-.path-browser {
-    margin-bottom: 1.5rem;
-    border: 1px solid #eee;
+.config-section {
+    background: #f8f9fa;
+    padding: 15px;
     border-radius: 8px;
-    padding: 10px;
-    background: #fcfcfc;
+    margin-bottom: 15px;
+    border: 1px solid #e9ecef;
+}
+
+.file-count {
+    margin: 5px 0 0;
+    font-size: 0.8rem;
+    color: #27ae60;
+    text-align: left;
+}
+
+.path-browser {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+    background: white;
 }
 
 .current-path {
     display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
+    background: #eee;
+    padding: 5px;
+    gap: 5px;
+}
+
+.current-path button {
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .path-input {
-    font-family: monospace;
-    font-size: 0.9rem;
-    padding: 5px 10px;
+    border: none !important;
+    padding: 5px !important;
+    font-size: 0.8rem !important;
+    background: transparent;
 }
 
 .directory-list {
     list-style: none;
     padding: 0;
     margin: 0;
-    max-height: 200px;
+    max-height: 120px;
     overflow-y: auto;
-    border: 1px solid #eee;
-    border-radius: 4px;
-    background: white;
 }
 
 .directory-list li {
     padding: 8px 12px;
     cursor: pointer;
+    border-bottom: 1px solid #eee;
     font-size: 0.9rem;
-    border-bottom: 1px solid #f9f9f9;
+    transition: background 0.2s;
 }
 
 .directory-list li:hover {
-    background-color: #f0f7ff;
+    background: #f0f7ff;
 }
 
 .directory-list li.empty {
     color: #999;
     font-style: italic;
     cursor: default;
+    text-align: center;
 }
