@@ -25,6 +25,7 @@ export class DescargarBoleta implements OnInit {
   isAdmin = false;
   configPath = '';
   subDirectories: string[] = [];
+  selectedFiles: FileList | null = null;
 
   ngOnInit() {
     this.isAdmin = this.authService.isAdmin();
@@ -43,8 +44,16 @@ export class DescargarBoleta implements OnInit {
   }
 
   explorePath(path: string) {
+    if (!path) return;
     this.ticketService.listDirectories(path).subscribe({
-      next: (dirs) => this.subDirectories = dirs
+      next: (dirs) => {
+        this.subDirectories = dirs;
+        this.error = '';
+      },
+      error: (err) => {
+        console.error('Error al listar directorios:', err);
+        this.subDirectories = [];
+      }
     });
   }
 
@@ -54,20 +63,52 @@ export class DescargarBoleta implements OnInit {
   }
 
   goBack() {
+    if (!this.configPath || this.configPath === '/' || this.configPath === '.') return;
+    
     const lastSlash = this.configPath.lastIndexOf('/');
     if (lastSlash > 0) {
       this.configPath = this.configPath.substring(0, lastSlash);
-      this.explorePath(this.configPath);
+    } else if (lastSlash === 0) {
+      this.configPath = '/';
+    } else {
+      this.configPath = '.';
     }
+    this.explorePath(this.configPath);
+  }
+
+  onFolderSelected(event: any) {
+    this.selectedFiles = event.target.files;
   }
 
   saveConfig() {
+    if (this.selectedFiles && this.selectedFiles.length > 0) {
+      this.uploadAndSave();
+    } else {
+      this.updatePathOnly();
+    }
+  }
+
+  private uploadAndSave() {
+    this.loading = true;
+    this.ticketService.uploadFiles(this.selectedFiles!).subscribe({
+      next: () => {
+        this.updatePathOnly();
+      },
+      error: (err) => {
+        this.loading = false;
+        alert('Error al subir archivos: ' + (err.error?.message || err.message));
+      }
+    });
+  }
+
+  private updatePathOnly() {
     this.loading = true;
     this.ticketService.setConfigPath(this.configPath).subscribe({
       next: () => {
         this.loading = false;
-        alert('Ruta actualizada y guardada.');
-        this.ticketService.generateTickets().subscribe(); // Auto-generar tickets al cambiar ruta
+        alert('Configuración actualizada y boletas procesadas.');
+        this.selectedFiles = null;
+        this.ticketService.generateTickets().subscribe();
       },
       error: (err) => {
         this.loading = false;
@@ -92,7 +133,6 @@ export class DescargarBoleta implements OnInit {
         this.message = 'Validación exitosa. Descargando boleta...';
         const url = this.ticketService.getDownloadUrl(response.token);
         
-        // Disparar descarga
         const link = document.createElement('a');
         link.href = url;
         link.target = '_blank';

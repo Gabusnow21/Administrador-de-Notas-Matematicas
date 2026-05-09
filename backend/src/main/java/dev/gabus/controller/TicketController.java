@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.Map;
@@ -61,5 +62,16 @@ public class TicketController {
     public ResponseEntity<List<String>> listDirs(@RequestBody Map<String, String> request) {
         String path = request.get("path");
         return ResponseEntity.ok(ticketService.listDirectories(path));
+    }
+
+    @PostMapping("/tickets/upload")
+    public ResponseEntity<?> uploadFiles(@RequestParam("files") MultipartFile[] files) {
+        try {
+            ticketService.saveUploadedFiles(files);
+            ticketService.generateTokens();
+            return ResponseEntity.ok(Map.of("message", "Archivos subidos y procesados correctamente"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Error al subir archivos: " + e.getMessage()));
+        }
     }
 }

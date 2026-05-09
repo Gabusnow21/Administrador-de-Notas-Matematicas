@@ -38,25 +38,35 @@
         </div>
 
         <div *ngIf="showAdmin" class="admin-config">
-            <h3>Configuración de Directorio</h3>
-            <p class="small">Selecciona la carpeta donde están guardados los PDFs.</p>
+            <h3>Configuración de Boletas</h3>
             
-            <div class="path-browser">
-                <div class="current-path">
-                    <button (click)="goBack()" title="Volver atrás">⬆️</button>
-                    <input type="text" [(ngModel)]="configPath" (change)="explorePath(configPath)" class="form-control path-input">
+            <div class="config-section">
+                <h4>1. Cargar desde mi PC</h4>
+                <p class="small">Selecciona la carpeta local donde tienes los PDFs.</p>
+                <input type="file" (change)="onFolderSelected($event)" webkitdirectory directory multiple class="form-control">
+                <p *ngIf="selectedFiles" class="file-count">{{ selectedFiles.length }} archivos seleccionados.</p>
+            </div>
+
+            <div class="config-section">
+                <h4>2. Ubicación en el Servidor</h4>
+                <p class="small">Ruta donde se almacenarán las boletas.</p>
+                <div class="path-browser">
+                    <div class="current-path">
+                        <button (click)="goBack()" title="Volver atrás">⬆️</button>
+                        <input type="text" [(ngModel)]="configPath" (change)="explorePath(configPath)" class="form-control path-input">
+                    </div>
+                    
+                    <ul class="directory-list">
+                        <li *ngFor="let dir of subDirectories" (click)="selectDirectory(dir)">
+                            📁 {{ dir.split('/').pop() }}
+                        </li>
+                        <li *ngIf="subDirectories.length === 0" class="empty">No hay subcarpetas visibles.</li>
+                    </ul>
                 </div>
-                
-                <ul class="directory-list">
-                    <li *ngFor="let dir of subDirectories" (click)="selectDirectory(dir)">
-                        📁 {{ dir.split('/').pop() }}
-                    </li>
-                    <li *ngIf="subDirectories.length === 0" class="empty">No hay subcarpetas visibles.</li>
-                </ul>
             </div>
 
             <button (click)="saveConfig()" [disabled]="loading" class="btn-save">
-                Guardar y Escanear PDFs
+                {{ loading ? 'Procesando...' : (selectedFiles ? 'Subir y Guardar' : 'Guardar Configuración') }}
             </button>
         </div>
     </div>

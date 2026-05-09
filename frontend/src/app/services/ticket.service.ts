@@ -33,4 +33,12 @@ export class TicketService {
   listDirectories(path: string): Observable<string[]> {
     return this.http.post<string[]>(`${this.apiUrl}/tickets/config/list-dirs`, { path });
   }
+
+  uploadFiles(files: FileList): Observable<any> {
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
+    }
+    return this.http.post(`${this.apiUrl}/tickets/upload`, formData);
+  }
 }
