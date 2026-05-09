@@ -72,8 +72,11 @@ public class TicketController {
     }
 
     @PostMapping("/tickets/upload")
-    public ResponseEntity<?> uploadFiles(@RequestParam MultipartFile[] files) {
+    public ResponseEntity<?> uploadFiles(@RequestParam(value = "files", required = false) MultipartFile[] files) {
         try {
+            if (files == null || files.length == 0) {
+                return ResponseEntity.badRequest().body(Map.of("message", "No se recibieron archivos. Asegúrate de que el campo se llame 'files'"));
+            }
             ticketService.saveUploadedFiles(files);
             ticketService.generateTokens();
             return ResponseEntity.ok(Map.of("message", "Archivos subidos y procesados correctamente"));
