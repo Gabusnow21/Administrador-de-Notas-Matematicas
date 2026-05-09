@@ -18,12 +18,14 @@ import { VistaProgresoEstudiante } from './components/vista-progreso-estudiante/
 import { AccesoProgresoComponent } from './components/acceso-progreso/acceso-progreso';
 import { authGuard } from './guards/auth.guard';
 import { GestionAsistenciaComponent } from './components/gestion-asistencia/gestion-asistencia';
+import { DescargarBoleta } from './components/descargar-boleta/descargar-boleta';
 
 export const routes: Routes = [
     { path: 'login', component: Login },
     { path: 'info-recompensas', component: InfoRecompensasComponent },
     { path: 'mi-progreso', component: AccesoProgresoComponent },
     { path: 'mi-progreso/detalle', component: VistaProgresoEstudiante },
+    { path: 'descargar-boleta', component: DescargarBoleta },
     {
         path: '',
         component: LayoutComponent,

@@ -1,0 +1,63 @@
+<div class="download-container">
+    <div class="download-card">
+        <div class="header-actions" *ngIf="isAdmin">
+            <button class="btn-config-toggle" (click)="showAdmin = !showAdmin">
+                <i class="fas" [ngClass]="showAdmin ? 'fa-times' : 'fa-cog'"></i> ⚙️
+            </button>
+        </div>
+
+        <div *ngIf="!showAdmin">
+            <h2>Descargar Boleta de Notas</h2>
+            <p>Ingresa tu número de lista para obtener tu boleta en PDF.</p>
+            
+            <form (ngSubmit)="onSubmit()" #downloadForm="ngForm">
+                <div class="form-group">
+                    <label for="listNumber">Número de Lista</label>
+                    <input 
+                        type="number" 
+                        id="listNumber" 
+                        name="listNumber" 
+                        [(ngModel)]="studentListNumber" 
+                        placeholder="Ej: 15"
+                        required
+                        class="form-control">
+                </div>
+
+                <button type="submit" [disabled]="loading || !studentListNumber" class="btn-download">
+                    {{ loading ? 'Validando...' : 'Descargar PDF' }}
+                </button>
+            </form>
+
+            <div *ngIf="message" class="alert alert-success">
+                {{ message }}
+            </div>
+
+            <div *ngIf="error" class="alert alert-danger">
+                {{ error }}
+            </div>
+        </div>
+
+        <div *ngIf="showAdmin" class="admin-config">
+            <h3>Configuración de Directorio</h3>
+            <p class="small">Selecciona la carpeta donde están guardados los PDFs.</p>
+            
+            <div class="path-browser">
+                <div class="current-path">
+                    <button (click)="goBack()" title="Volver atrás">⬆️</button>
+                    <input type="text" [(ngModel)]="configPath" (change)="explorePath(configPath)" class="form-control path-input">
+                </div>
+                
+                <ul class="directory-list">
+                    <li *ngFor="let dir of subDirectories" (click)="selectDirectory(dir)">
+                        📁 {{ dir.split('/').pop() }}
+                    </li>
+                    <li *ngIf="subDirectories.length === 0" class="empty">No hay subcarpetas visibles.</li>
+                </ul>
+            </div>
+
+            <button (click)="saveConfig()" [disabled]="loading" class="btn-save">
+                Guardar y Escanear PDFs
+            </button>
+        </div>
+    </div>
+</div>
