@@ -42,50 +42,33 @@ public class TicketService {
         }
         File folder = new File(boletasPath);
         if (!folder.exists()) {
-            // Intentar crear el directorio si no existe (Recursivo)
             if (!folder.mkdirs()) {
                 throw new RuntimeException("No se pudo crear la ruta: " + boletasPath);
             }
-        }
-        if (!folder.isDirectory()) {
-            throw new RuntimeException("La ruta especificada no es un directorio: " + boletasPath);
         }
         this.boletasPath = boletasPath;
     }
 
     public List<String> listDirectories(String path) {
-        if (path == null || path.trim().isEmpty()) {
-            return new ArrayList<>();
-        }
+        if (path == null || path.trim().isEmpty()) return new ArrayList<>();
         File folder = new File(path);
-        if (!folder.exists() || !folder.isDirectory()) {
-            return new ArrayList<>();
-        }
+        if (!folder.exists() || !folder.isDirectory()) return new ArrayList<>();
         File[] subdirs = folder.listFiles(File::isDirectory);
         List<String> names = new ArrayList<>();
         if (subdirs != null) {
-            for (File d : subdirs) {
-                names.add(d.getAbsolutePath());
-            }
+            for (File d : subdirs) names.add(d.getAbsolutePath());
         }
         return names;
     }
 
     public void saveUploadedFiles(MultipartFile[] files) throws IOException {
         File folder = new File(boletasPath);
-        if (!folder.exists()) {
-            if (!folder.mkdirs()) {
-                throw new IOException("No se pudo crear el directorio de boletas: " + boletasPath);
-            }
-        }
+        if (!folder.exists()) folder.mkdirs();
 
         for (MultipartFile file : files) {
             if (file.isEmpty()) continue;
-            
-            // Solo guardamos si es PDF
             String originalFilename = file.getOriginalFilename();
             if (originalFilename != null && originalFilename.toLowerCase().endsWith(".pdf")) {
-                // Extraer solo el nombre del archivo (aplanar la estructura si viene de un webkitdirectory)
                 String fileName = new File(originalFilename).getName();
                 Path path = Paths.get(boletasPath, fileName);
                 Files.copy(file.getInputStream(), path, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
@@ -95,41 +78,57 @@ public class TicketService {
 
     @Transactional
     public List<DownloadToken> generateTokens() {
+        System.out.println("DEBUG: Iniciando generación de tokens en: " + boletasPath);
         File folder = new File(boletasPath);
         if (!folder.exists() || !folder.isDirectory()) {
-            throw new RuntimeException("La ruta de boletas no es válida: " + boletasPath);
+            System.out.println("DEBUG: La carpeta no existe o no es un directorio.");
+            return new ArrayList<>();
         }
 
-        // Listar todos los archivos PDF (insensible a mayúsculas)
         File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
+        if (files == null || files.length == 0) {
+            System.out.println("DEBUG: No se encontraron archivos PDF en la carpeta.");
+            return new ArrayList<>();
+        }
+        System.out.println("DEBUG: Se encontraron " + files.length + " archivos PDF.");
+
         List<DownloadToken> tokens = new ArrayList<>();
-        // Patrón más flexible: boleta_1.pdf, boleta-1.pdf, boleta1.pdf (insensible a mayúsculas)
-        Pattern pattern = Pattern.compile("boleta[_-]?(\\d+)\\.pdf", Pattern.CASE_INSENSITIVE);
+        // Patrón muy flexible: busca cualquier número en el nombre del archivo
+        Pattern pattern = Pattern.compile("(\\d+)"); 
 
-        if (files != null) {
-            for (File file : files) {
-                Matcher matcher = pattern.matcher(file.getName());
-                if (matcher.find()) {
-                    try {
-                        Integer listNumber = Integer.parseInt(matcher.group(1));
-                        
-                        // Evitar duplicados si ya existe uno activo
-                        Optional<DownloadToken> existing = repository.findByStudentListNumberAndIsUsedFalseAndExpiresAtAfter(listNumber, LocalDateTime.now());
-                        if (existing.isPresent()) continue;
-
-                        DownloadToken token = DownloadToken.builder()
-                                .studentListNumber(listNumber)
-                                .createdAt(LocalDateTime.now())
-                                .expiresAt(LocalDateTime.now().plusHours(expirationHours))
-                                .isUsed(false)
-                                .build();
-                        tokens.add(repository.save(token));
-                    } catch (NumberFormatException e) {
-                        // Ignorar si no se puede parsear el número
+        for (File file : files) {
+            String name = file.getName();
+            Matcher matcher = pattern.matcher(name);
+            
+            if (matcher.find()) {
+                try {
+                    Integer listNumber = Integer.parseInt(matcher.group(1));
+                    System.out.println("DEBUG: Procesando archivo " + name + " como número de lista " + listNumber);
+                    
+                    // Comprobar si ya existe un token activo (no usado y no expirado)
+                    Optional<DownloadToken> existing = repository.findByStudentListNumberAndIsUsedFalseAndExpiresAtAfter(listNumber, LocalDateTime.now());
+                    
+                    if (existing.isPresent()) {
+                        System.out.println("DEBUG: Ya existe un token activo para el número " + listNumber + ". Saltando...");
+                        continue;
                     }
+
+                    DownloadToken token = DownloadToken.builder()
+                            .studentListNumber(listNumber)
+                            .createdAt(LocalDateTime.now())
+                            .expiresAt(LocalDateTime.now().plusHours(expirationHours))
+                            .isUsed(false)
+                            .build();
+                    tokens.add(repository.save(token));
+                    System.out.println("DEBUG: Token generado para número " + listNumber);
+                } catch (NumberFormatException e) {
+                    System.out.println("DEBUG: No se pudo extraer un número válido de " + name);
                 }
+            } else {
+                System.out.println("DEBUG: El archivo " + name + " no contiene un número de lista.");
             }
         }
+        System.out.println("DEBUG: Total de tokens generados en esta tanda: " + tokens.size());
         return tokens;
     }
 
@@ -147,21 +146,24 @@ public class TicketService {
             throw new RuntimeException("El token ha expirado o ya fue utilizado");
         }
 
-        String fileName = "boleta_" + token.getStudentListNumber() + ".pdf";
-        File file = new File(boletasPath, fileName);
+        // Buscar el archivo físico que contenga el número de lista
+        File folder = new File(boletasPath);
+        File[] matches = folder.listFiles((dir, name) -> 
+            name.toLowerCase().endsWith(".pdf") && name.contains(String.valueOf(token.getStudentListNumber()))
+        );
 
-        if (!file.exists()) {
-            throw new RuntimeException("Archivo no encontrado en el servidor");
+        if (matches == null || matches.length == 0) {
+            throw new RuntimeException("Archivo físico no encontrado para el número " + token.getStudentListNumber());
         }
 
         // Marcar como usado
         token.setIsUsed(true);
         repository.save(token);
 
-        return file;
+        return matches[0]; // Retornar el primero que coincida
     }
 
-    @Scheduled(cron = "0 0 0 * * *") // Cada 24 horas a media noche
+    @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     public void cleanupTokens() {
         repository.deleteByExpiresAtBefore(LocalDateTime.now());
