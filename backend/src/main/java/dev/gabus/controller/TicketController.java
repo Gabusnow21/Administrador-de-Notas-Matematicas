@@ -75,13 +75,17 @@ public class TicketController {
     public ResponseEntity<?> uploadFiles(@RequestParam(value = "files", required = false) MultipartFile[] files) {
         try {
             if (files == null || files.length == 0) {
-                return ResponseEntity.badRequest().body(Map.of("message", "No se recibieron archivos. Asegúrate de que el campo se llame 'files'"));
+                return ResponseEntity.badRequest().body(Map.of("message", "No se recibieron archivos. Asegúrate de que el campo se llame 'files' y que hayas seleccionado una carpeta con archivos PDF."));
             }
             ticketService.saveUploadedFiles(files);
             ticketService.generateTokens();
             return ResponseEntity.ok(Map.of("message", "Archivos subidos y procesados correctamente"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Error al subir archivos: " + e.getMessage()));
+            e.printStackTrace(); // Para ver el error en los logs del servidor
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", "Error al subir archivos: " + e.getMessage(),
+                "error", e.getClass().getSimpleName()
+            ));
         }
     }
 }
