@@ -74,15 +74,19 @@ public class TicketService {
     public void saveUploadedFiles(MultipartFile[] files) throws IOException {
         File folder = new File(boletasPath);
         if (!folder.exists()) {
-            folder.mkdirs();
+            if (!folder.mkdirs()) {
+                throw new IOException("No se pudo crear el directorio de boletas: " + boletasPath);
+            }
         }
 
         for (MultipartFile file : files) {
             if (file.isEmpty()) continue;
             
             // Solo guardamos si es PDF
-            String fileName = file.getOriginalFilename();
-            if (fileName != null && fileName.toLowerCase().endsWith(".pdf")) {
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename != null && originalFilename.toLowerCase().endsWith(".pdf")) {
+                // Extraer solo el nombre del archivo (aplanar la estructura si viene de un webkitdirectory)
+                String fileName = new File(originalFilename).getName();
                 Path path = Paths.get(boletasPath, fileName);
                 Files.copy(file.getInputStream(), path, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             }
