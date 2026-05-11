@@ -51,7 +51,8 @@ export class DescargarBoleta implements OnInit {
         this.error = '';
       },
       error: (err) => {
-        console.error('Error al listar directorios:', err);
+        // Si el directorio no existe, no es un error crítico para el usuario, 
+        // simplemente vaciamos la lista de sugerencias.
         this.subDirectories = [];
       }
     });
@@ -63,17 +64,23 @@ export class DescargarBoleta implements OnInit {
   }
 
   goBack() {
-    if (!this.configPath || this.configPath === '/' || this.configPath === '.') return;
-    
-    const lastSlash = this.configPath.lastIndexOf('/');
-    if (lastSlash > 0) {
-      this.configPath = this.configPath.substring(0, lastSlash);
-    } else if (lastSlash === 0) {
-      this.configPath = '/';
-    } else {
-      this.configPath = '.';
+    // Si la ruta está vacía o es la raíz, no hacemos nada
+    if (!this.configPath || this.configPath === '/' || this.configPath === '.') {
+      this.configPath = '/'; // Asegurar que mostramos algo válido
+      this.explorePath(this.configPath);
+      return;
     }
-    this.explorePath(this.configPath);
+    
+    // Quitar la última parte de la ruta
+    const parts = this.configPath.split('/').filter(p => p.length > 0);
+    if (parts.length > 0) {
+      parts.pop();
+      this.configPath = '/' + parts.join('/');
+      this.explorePath(this.configPath);
+    } else {
+      this.configPath = '/';
+      this.explorePath(this.configPath);
+    }
   }
 
   onFolderSelected(event: any) {
@@ -82,17 +89,28 @@ export class DescargarBoleta implements OnInit {
 
   saveConfig() {
     if (this.selectedFiles && this.selectedFiles.length > 0) {
-      this.uploadAndSave();
+      // Primero asegurar que la ruta es la correcta en el servidor antes de subir
+      this.loading = true;
+      this.ticketService.setConfigPath(this.configPath).subscribe({
+        next: () => {
+          this.uploadAndSave();
+        },
+        error: (err) => {
+          this.loading = false;
+          alert('Error al establecer la ruta en el servidor: ' + (err.error?.message || err.message));
+        }
+      });
     } else {
       this.updatePathOnly();
     }
   }
 
   private uploadAndSave() {
-    this.loading = true;
     this.ticketService.uploadFiles(this.selectedFiles!).subscribe({
-      next: () => {
-        this.updatePathOnly();
+      next: (res) => {
+        this.loading = false;
+        alert(res.message || 'Archivos subidos correctamente.');
+        this.selectedFiles = null;
       },
       error: (err) => {
         this.loading = false;
@@ -104,11 +122,13 @@ export class DescargarBoleta implements OnInit {
   private updatePathOnly() {
     this.loading = true;
     this.ticketService.setConfigPath(this.configPath).subscribe({
-      next: () => {
+      next: (res) => {
         this.loading = false;
-        alert('Configuración actualizada y boletas procesadas.');
+        const msg = res.tokensGenerated !== undefined 
+          ? `Configuración actualizada. Se encontraron ${res.tokensGenerated} boletas.` 
+          : 'Configuración actualizada.';
+        alert(msg);
         this.selectedFiles = null;
-        this.ticketService.generateTickets().subscribe();
       },
       error: (err) => {
         this.loading = false;
