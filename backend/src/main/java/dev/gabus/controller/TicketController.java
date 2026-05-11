@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import dev.gabus.dto.Ticket.DownloadToken;
 import dev.gabus.dto.Ticket.TicketService;
 import lombok.RequiredArgsConstructor;
 
@@ -62,7 +63,11 @@ public class TicketController {
     public ResponseEntity<?> setPath(@RequestBody Map<String, String> request) {
         String newPath = request.get("path");
         ticketService.setBoletasPath(newPath);
-        return ResponseEntity.ok(Map.of("message", "Ruta actualizada correctamente"));
+        List<DownloadToken> tokens = ticketService.generateTokens();
+        return ResponseEntity.ok(Map.of(
+            "message", "Ruta actualizada correctamente",
+            "tokensGenerated", tokens.size()
+        ));
     }
 
     @PostMapping("/tickets/config/list-dirs")
@@ -78,8 +83,11 @@ public class TicketController {
                 return ResponseEntity.badRequest().body(Map.of("message", "No se recibieron archivos. Asegúrate de que el campo se llame 'files' y que hayas seleccionado una carpeta con archivos PDF."));
             }
             ticketService.saveUploadedFiles(files);
-            ticketService.generateTokens();
-            return ResponseEntity.ok(Map.of("message", "Archivos subidos y procesados correctamente"));
+            List<DownloadToken> tokens = ticketService.generateTokens();
+            return ResponseEntity.ok(Map.of(
+                "message", "Archivos subidos y procesados correctamente. Se generaron " + tokens.size() + " tokens de descarga.",
+                "tokensGenerated", tokens.size()
+            ));
         } catch (Exception e) {
             e.printStackTrace(); // Para ver el error en los logs del servidor
             return ResponseEntity.badRequest().body(Map.of(

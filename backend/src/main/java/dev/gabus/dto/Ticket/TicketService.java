@@ -42,9 +42,9 @@ public class TicketService {
         }
         File folder = new File(boletasPath);
         if (!folder.exists()) {
-            // Intentar crear el directorio si no existe
+            // Intentar crear el directorio si no existe (Recursivo)
             if (!folder.mkdirs()) {
-                throw new RuntimeException("La ruta no existe y no se pudo crear: " + boletasPath);
+                throw new RuntimeException("No se pudo crear la ruta: " + boletasPath);
             }
         }
         if (!folder.isDirectory()) {
@@ -100,27 +100,33 @@ public class TicketService {
             throw new RuntimeException("La ruta de boletas no es válida: " + boletasPath);
         }
 
-        File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf") && name.startsWith("boleta_"));
+        // Listar todos los archivos PDF (insensible a mayúsculas)
+        File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
         List<DownloadToken> tokens = new ArrayList<>();
-        Pattern pattern = Pattern.compile("boleta_(\\d+)\\.pdf");
+        // Patrón más flexible: boleta_1.pdf, boleta-1.pdf, boleta1.pdf (insensible a mayúsculas)
+        Pattern pattern = Pattern.compile("boleta[_-]?(\\d+)\\.pdf", Pattern.CASE_INSENSITIVE);
 
         if (files != null) {
             for (File file : files) {
                 Matcher matcher = pattern.matcher(file.getName());
                 if (matcher.find()) {
-                    Integer listNumber = Integer.parseInt(matcher.group(1));
-                    
-                    // Opcional: Evitar duplicados si ya existe uno activo
-                    Optional<DownloadToken> existing = repository.findByStudentListNumberAndIsUsedFalseAndExpiresAtAfter(listNumber, LocalDateTime.now());
-                    if (existing.isPresent()) continue;
+                    try {
+                        Integer listNumber = Integer.parseInt(matcher.group(1));
+                        
+                        // Evitar duplicados si ya existe uno activo
+                        Optional<DownloadToken> existing = repository.findByStudentListNumberAndIsUsedFalseAndExpiresAtAfter(listNumber, LocalDateTime.now());
+                        if (existing.isPresent()) continue;
 
-                    DownloadToken token = DownloadToken.builder()
-                            .studentListNumber(listNumber)
-                            .createdAt(LocalDateTime.now())
-                            .expiresAt(LocalDateTime.now().plusHours(expirationHours))
-                            .isUsed(false)
-                            .build();
-                    tokens.add(repository.save(token));
+                        DownloadToken token = DownloadToken.builder()
+                                .studentListNumber(listNumber)
+                                .createdAt(LocalDateTime.now())
+                                .expiresAt(LocalDateTime.now().plusHours(expirationHours))
+                                .isUsed(false)
+                                .build();
+                        tokens.add(repository.save(token));
+                    } catch (NumberFormatException e) {
+                        // Ignorar si no se puede parsear el número
+                    }
                 }
             }
         }
