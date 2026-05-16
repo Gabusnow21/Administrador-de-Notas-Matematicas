@@ -22,7 +22,7 @@ public class DownloadToken {
     private UUID id;
 
     @Column(nullable = false)
-    private Integer studentListNumber;
+    private String codigoProgreso;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
