@@ -10,6 +10,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,11 +37,17 @@ public class TicketController {
     }
 
     @PostMapping("/tickets/validate")
-    public ResponseEntity<?> validateTicket(@RequestBody Map<String, Integer> request) {
-        Integer listNumber = request.get("studentListNumber");
-        return ticketService.validateToken(listNumber)
+    public ResponseEntity<?> validateTicket(@RequestBody Map<String, String> request) {
+        String codigoProgreso = request.get("codigoProgreso");
+        return ticketService.validateToken(codigoProgreso)
                 .map(uuid -> ResponseEntity.ok(Map.of("token", uuid.toString())))
-                .orElse(ResponseEntity.status(404).body(Map.of("message", "No se encontró un token válido para este número de lista")));
+                .orElse(ResponseEntity.status(404).body(Map.of("message", "No se encontró un token válido para este código de progreso")));
+    }
+
+    @DeleteMapping("/tickets/clear")
+    public ResponseEntity<?> clearTokens() {
+        ticketService.clearAllTokens();
+        return ResponseEntity.ok(Map.of("message", "Todos los tokens han sido eliminados correctamente"));
     }
 
     @GetMapping("/download/{uuid}")

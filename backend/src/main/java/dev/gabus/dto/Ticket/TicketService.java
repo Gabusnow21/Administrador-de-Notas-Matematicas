@@ -29,7 +29,7 @@ public class TicketService {
     @Value("${report.boletas.path}")
     private String boletasPath;
 
-    @Value("${report.boletas.expiration-hours:24}")
+    @Value("${report.boletas.expiration-hours:2}")
     private int expirationHours;
 
     public String getBoletasPath() {
@@ -93,7 +93,7 @@ public class TicketService {
         System.out.println("DEBUG: Se encontraron " + files.length + " archivos PDF.");
 
         List<DownloadToken> tokens = new ArrayList<>();
-        // Patrón muy flexible: busca cualquier número en el nombre del archivo
+        // Patrón flexible: busca cualquier secuencia de dígitos que represente el código de progreso
         Pattern pattern = Pattern.compile("(\\d+)"); 
 
         for (File file : files) {
@@ -101,39 +101,35 @@ public class TicketService {
             Matcher matcher = pattern.matcher(name);
             
             if (matcher.find()) {
-                try {
-                    Integer listNumber = Integer.parseInt(matcher.group(1));
-                    System.out.println("DEBUG: Procesando archivo " + name + " como número de lista " + listNumber);
-                    
-                    // Comprobar si ya existe un token activo (no usado y no expirado)
-                    Optional<DownloadToken> existing = repository.findByStudentListNumberAndIsUsedFalseAndExpiresAtAfter(listNumber, LocalDateTime.now());
-                    
-                    if (existing.isPresent()) {
-                        System.out.println("DEBUG: Ya existe un token activo para el número " + listNumber + ". Saltando...");
-                        continue;
-                    }
-
-                    DownloadToken token = DownloadToken.builder()
-                            .studentListNumber(listNumber)
-                            .createdAt(LocalDateTime.now())
-                            .expiresAt(LocalDateTime.now().plusHours(expirationHours))
-                            .isUsed(false)
-                            .build();
-                    tokens.add(repository.save(token));
-                    System.out.println("DEBUG: Token generado para número " + listNumber);
-                } catch (NumberFormatException e) {
-                    System.out.println("DEBUG: No se pudo extraer un número válido de " + name);
+                String code = matcher.group(1);
+                System.out.println("DEBUG: Procesando archivo " + name + " como código de progreso " + code);
+                
+                // Comprobar si ya existe un token activo (no usado y no expirado)
+                Optional<DownloadToken> existing = repository.findByCodigoProgresoAndIsUsedFalseAndExpiresAtAfter(code, LocalDateTime.now());
+                
+                if (existing.isPresent()) {
+                    System.out.println("DEBUG: Ya existe un token activo para el código " + code + ". Saltando...");
+                    continue;
                 }
+
+                DownloadToken token = DownloadToken.builder()
+                        .codigoProgreso(code)
+                        .createdAt(LocalDateTime.now())
+                        .expiresAt(LocalDateTime.now().plusHours(expirationHours))
+                        .isUsed(false)
+                        .build();
+                tokens.add(repository.save(token));
+                System.out.println("DEBUG: Token generado para código " + code);
             } else {
-                System.out.println("DEBUG: El archivo " + name + " no contiene un número de lista.");
+                System.out.println("DEBUG: El archivo " + name + " no contiene un código de progreso.");
             }
         }
         System.out.println("DEBUG: Total de tokens generados en esta tanda: " + tokens.size());
         return tokens;
     }
 
-    public Optional<UUID> validateToken(Integer studentListNumber) {
-        return repository.findByStudentListNumberAndIsUsedFalseAndExpiresAtAfter(studentListNumber, LocalDateTime.now())
+    public Optional<UUID> validateToken(String codigoProgreso) {
+        return repository.findByCodigoProgresoAndIsUsedFalseAndExpiresAtAfter(codigoProgreso, LocalDateTime.now())
                 .map(DownloadToken::getId);
     }
 
@@ -146,14 +142,14 @@ public class TicketService {
             throw new RuntimeException("El token ha expirado o ya fue utilizado");
         }
 
-        // Buscar el archivo físico que contenga el número de lista
+        // Buscar el archivo físico que contenga el código de progreso
         File folder = new File(boletasPath);
         File[] matches = folder.listFiles((dir, name) -> 
-            name.toLowerCase().endsWith(".pdf") && name.contains(String.valueOf(token.getStudentListNumber()))
+            name.toLowerCase().endsWith(".pdf") && name.contains(token.getCodigoProgreso())
         );
 
         if (matches == null || matches.length == 0) {
-            throw new RuntimeException("Archivo físico no encontrado para el número " + token.getStudentListNumber());
+            throw new RuntimeException("Archivo físico no encontrado para el código " + token.getCodigoProgreso());
         }
 
         // Marcar como usado
@@ -167,5 +163,10 @@ public class TicketService {
     @Transactional
     public void cleanupTokens() {
         repository.deleteByExpiresAtBefore(LocalDateTime.now());
+    }
+
+    @Transactional
+    public void clearAllTokens() {
+        repository.deleteAll();
     }
 }
