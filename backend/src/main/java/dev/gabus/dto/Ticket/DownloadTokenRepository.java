@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface DownloadTokenRepository extends JpaRepository<DownloadToken, UUID> {
-    Optional<DownloadToken> findByStudentListNumberAndIsUsedFalseAndExpiresAtAfter(Integer studentListNumber, LocalDateTime now);
+    Optional<DownloadToken> findByCodigoProgresoAndIsUsedFalseAndExpiresAtAfter(String codigoProgreso, LocalDateTime now);
     List<DownloadToken> findAllByExpiresAtBefore(LocalDateTime now);
     void deleteByExpiresAtBefore(LocalDateTime now);
 }
