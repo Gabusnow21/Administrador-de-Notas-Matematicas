@@ -107,6 +107,24 @@ label {
     cursor: not-allowed;
 }
 
+.btn-danger-clear {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 10px;
+}
+
+.btn-danger-clear:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
 .alert {
     margin-top: 1.5rem;
     padding: 0.75rem;

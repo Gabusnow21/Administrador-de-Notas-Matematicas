@@ -10,12 +10,16 @@ export class TicketService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  validateTicket(studentListNumber: number): Observable<{ token: string }> {
-    return this.http.post<{ token: string }>(`${this.apiUrl}/tickets/validate`, { studentListNumber });
+  validateTicket(codigoProgreso: string): Observable<{ token: string }> {
+    return this.http.post<{ token: string }>(`${this.apiUrl}/tickets/validate`, { codigoProgreso });
   }
 
   generateTickets(): Observable<any> {
     return this.http.post(`${this.apiUrl}/tickets/generate`, {});
+  }
+
+  clearTokens(): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/tickets/clear`);
   }
 
   getDownloadUrl(token: string): string {

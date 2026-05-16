@@ -1,73 +1,94 @@
 <div class="download-container">
     <div class="download-card">
-        <div class="header-actions" *ngIf="isAdmin">
-            <button class="btn-config-toggle" (click)="showAdmin = !showAdmin">
-                <i class="fas" [ngClass]="showAdmin ? 'fa-times' : 'fa-cog'"></i> ⚙️
-            </button>
-        </div>
-
-        <div *ngIf="!showAdmin">
-            <h2>Descargar Boleta de Notas</h2>
-            <p>Ingresa tu número de lista para obtener tu boleta en PDF.</p>
-            
-            <form (ngSubmit)="onSubmit()" #downloadForm="ngForm">
-                <div class="form-group">
-                    <label for="listNumber">Número de Lista</label>
-                    <input 
-                        type="number" 
-                        id="listNumber" 
-                        name="listNumber" 
-                        [(ngModel)]="studentListNumber" 
-                        placeholder="Ej: 15"
-                        required
-                        class="form-control">
-                </div>
-
-                <button type="submit" [disabled]="loading || !studentListNumber" class="btn-download">
-                    {{ loading ? 'Validando...' : 'Descargar PDF' }}
+        @if (isAdmin) {
+            <div class="header-actions">
+                <button class="btn-config-toggle" (click)="showAdmin = !showAdmin">
+                    <i class="fas" [ngClass]="showAdmin ? 'fa-times' : 'fa-cog'"></i> ⚙️
                 </button>
-            </form>
-
-            <div *ngIf="message" class="alert alert-success">
-                {{ message }}
             </div>
+        }
 
-            <div *ngIf="error" class="alert alert-danger">
-                {{ error }}
-            </div>
-        </div>
-
-        <div *ngIf="showAdmin" class="admin-config">
-            <h3>Configuración de Boletas</h3>
-            
-            <div class="config-section">
-                <h4>1. Cargar desde mi PC</h4>
-                <p class="small">Selecciona la carpeta local donde tienes los PDFs.</p>
-                <input type="file" (change)="onFolderSelected($event)" webkitdirectory directory multiple class="form-control">
-                <p *ngIf="selectedFiles" class="file-count">{{ selectedFiles.length }} archivos seleccionados.</p>
-            </div>
-
-            <div class="config-section">
-                <h4>2. Ubicación en el Servidor</h4>
-                <p class="small">Ruta donde se almacenarán las boletas.</p>
-                <div class="path-browser">
-                    <div class="current-path">
-                        <button (click)="goBack()" title="Volver atrás">⬆️</button>
-                        <input type="text" [(ngModel)]="configPath" (change)="explorePath(configPath)" class="form-control path-input">
+        @if (!showAdmin) {
+            <div>
+                <h2>Descargar Boleta de Notas</h2>
+                <p>Ingresa el NIE de su hijo para obtener tu boleta en PDF.</p>
+                
+                <form (ngSubmit)="onSubmit()" #downloadForm="ngForm">
+                    <div class="form-group">
+                        <label for="codigoProgreso">Código de Progreso</label>
+                        <input 
+                            type="text" 
+                            id="codigoProgreso" 
+                            name="codigoProgreso" 
+                            [(ngModel)]="codigoProgreso" 
+                            placeholder="Ej: 12345"
+                            required
+                            class="form-control">
                     </div>
-                    
-                    <ul class="directory-list">
-                        <li *ngFor="let dir of subDirectories" (click)="selectDirectory(dir)">
-                            📁 {{ dir.split('/').pop() }}
-                        </li>
-                        <li *ngIf="subDirectories.length === 0" class="empty">No hay subcarpetas visibles.</li>
-                    </ul>
-                </div>
-            </div>
 
-            <button (click)="saveConfig()" [disabled]="loading" class="btn-save">
-                {{ loading ? 'Procesando...' : (selectedFiles ? 'Subir y Guardar' : 'Guardar Configuración') }}
-            </button>
-        </div>
+                    <button type="submit" [disabled]="loading || !codigoProgreso" class="btn-download">
+                        {{ loading ? 'Validando...' : 'Descargar PDF' }}
+                    </button>
+                </form>
+
+                @if (message) {
+                    <div class="alert alert-success">
+                        {{ message }}
+                    </div>
+                }
+
+                @if (error) {
+                    <div class="alert alert-danger">
+                        {{ error }}
+                    </div>
+                }
+            </div>
+        } @else {
+            <div class="admin-config">
+                <h3>Configuración de Boletas</h3>
+                
+                <div class="config-section">
+                    <h4>1. Cargar desde mi PC</h4>
+                    <p class="small">Selecciona la carpeta local donde tienes los PDFs.</p>
+                    <input type="file" (change)="onFolderSelected($event)" webkitdirectory directory multiple class="form-control">
+                    @if (selectedFiles) {
+                        <p class="file-count">{{ selectedFiles.length }} archivos seleccionados.</p>
+                    }
+                </div>
+
+                <div class="config-section">
+                    <h4>2. Ubicación en el Servidor</h4>
+                    <p class="small">Ruta donde se almacenarán las boletas.</p>
+                    <div class="path-browser">
+                        <div class="current-path">
+                            <button (click)="goBack()" title="Volver atrás">⬆️</button>
+                            <input type="text" [(ngModel)]="configPath" (change)="explorePath(configPath)" class="form-control path-input">
+                        </div>
+                        
+                        <ul class="directory-list">
+                            @for (dir of subDirectories; track dir) {
+                                <li (click)="selectDirectory(dir)">
+                                    📁 {{ dir.split('/').pop() }}
+                                </li>
+                            } @empty {
+                                <li class="empty">No hay subcarpetas visibles.</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h4>3. Gestión de Tokens</h4>
+                    <p class="small">Elimina todos los tokens generados para forzar una nueva validación.</p>
+                    <button (click)="clearTokens()" [disabled]="loading" class="btn-danger-clear">
+                        Borrar Todos los Tokens
+                    </button>
+                </div>
+
+                <button (click)="saveConfig()" [disabled]="loading" class="btn-save">
+                    {{ loading ? 'Procesando...' : (selectedFiles ? 'Subir y Guardar' : 'Guardar Configuración') }}
+                </button>
+            </div>
+        }
     </div>
 </div>
