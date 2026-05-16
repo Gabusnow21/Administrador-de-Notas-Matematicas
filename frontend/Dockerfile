@@ -1,18 +1,18 @@
 # ETAPA 1: Construcción (Build)
-FROM node:20-alpine AS build
+FROM node:20.24.1-alpine3.19 AS build
 WORKDIR /app
 
 # Copiamos package.json e instalamos dependencias
 COPY package*.json ./
-RUN npm install
+RUN pnpm install
 
 # Copiamos el código fuente
 COPY . .
 # Compilamos la aplicación para producción
-RUN npm run build -- --configuration production
+RUN pnpm run build -- --configuration production
 
 # ETAPA 2: Servidor Web (Nginx)
-FROM nginx:alpine
+FROM nginx:1.26.4-alpine
 
 # Copiamos los archivos compilados de Angular a la carpeta pública de Nginx
 # NOTA: Ajusta 'dist/gestor-frontend/browser' según tu angular.json (outputPath)
