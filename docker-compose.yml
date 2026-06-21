@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. BASE DE DATOS (PostgreSQL)
   db:
@@ -14,6 +12,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data # Persistencia de datos
+    networks:
+      - gestor_network
 
   # 2. BACKEND (Spring Boot)
   backend:
@@ -29,18 +29,45 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       # Configuración JWT
       JWT_SECRET_KEY: ${JWT_SECRET}
-    ports:
-      - "8080:8080"
+    networks:
+      - gestor_network
+      - proxy-network
+    #ports:
+     # - "8080:8080"
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=proxy-network'
+      # Configuración del subdominio para tu API (ej: api.gestor.tudominio.com)
+      - 'traefik.http.routers.gestor-backend.rule=Host(`api.gestor.edumathsv.work`)'
+      - 'traefik.http.routers.gestor-backend.entrypoints=web'
+      # Puerto interno en el que escucha tu aplicación de Spring Boot
+      - 'traefik.http.services.gestor-backend.loadbalancer.server.port=8080'
 
   # 3. FRONTEND (Angular + Nginx)
   frontend:
     build: ./frontend
     container_name: gestor_frontend
     restart: always
-    ports:
-      - "80:80" # Acceso por http://localhost
+   # ports:
+    #  - "80:80" # Acceso por http://localhost
     depends_on:
       - backend
-
+    networks:
+      - gestor_network # Opcional por si Angular necesita comunicación directa en entorno de red
+      - proxy-network  # Vital para que Traefik lo exponga al exterior
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=proxy-network'
+      # Configuración del subdominio para tu App Web (ej: gestor.tudominio.com)
+      - 'traefik.http.routers.gestor-frontend.rule=Host(`gestor.edumathsv.work`)'
+      - 'traefik.http.routers.gestor-frontend.entrypoints=web'
+      # Puerto interno del contenedor de Angular/Nginx (comúnmente el puerto 80)
+      - 'traefik.http.services.gestor-frontend.loadbalancer.server.port=80'
 volumes:
   postgres_data:
+
+networks:
+  gestor_network:
+    driver: bridge
+  proxy-network:
+    external: true
