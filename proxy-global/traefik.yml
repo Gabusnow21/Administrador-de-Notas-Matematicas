@@ -1,0 +1,23 @@
+api:
+  dashboard: true
+  insecure: true # Esto te permite ver el panel de Traefik en el puerto 8080
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false # Seguridad: solo expone los contenedores que tú le indiques explicitamente
+    network: proxy-network
+
+certificatesResolvers:
+  myresolver:
+    acme:
+      email: darkgabu123@gmail.com # Cambia esto por tu correo real para avisos de SSL
+      storage: "acme.json"
+      httpChallenge:
+        entryPoint: web
