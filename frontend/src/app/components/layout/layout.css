@@ -1,42 +1,46 @@
 .main-content-wrapper {
-  transition: margin-left 0.3s ease;
-  margin-left: 0; /* Por defecto, sin margen en móvil (sidebar es overlay) */
+  transition: margin-left var(--transition-slow);
+  margin-left: 0;
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: var(--color-bg);
 }
 
 .main-content-wrapper.expanded {
-  /* En móvil, el sidebar es un overlay, el contenido principal no se desplaza */
+  /* Mobile: sidebar is overlay, content doesn't shift */
 }
 
 .navbar {
-  height: 4rem; /* 64px convertido a rem */
-  padding: 0 1.5rem;
+  height: 4rem;
+  padding: 0 var(--space-6);
+  backdrop-filter: blur(8px);
+  background-color: rgba(13, 110, 253, 0.95) !important;
 }
 
 .navbar-brand {
-  font-size: 1.25rem;
-  letter-spacing: 0.5px;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
 }
 
-/* Estilos para el botón de usuario: Asegurar tamaño táctil */
 .user-dropdown-btn {
   background: rgba(255, 255, 255, 0);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-full);
   padding: 0.4rem 1rem;
-  transition: all 0.3s ease;
+  transition: all var(--transition-fast);
   color: white;
   display: flex;
   align-items: center;
   text-decoration: none;
-  min-height: 3rem; /* 48px */
+  min-height: 3rem;
+  font-size: var(--text-sm);
 }
 
 .user-dropdown-btn:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .user-dropdown-btn:active {
@@ -60,29 +64,45 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
-  z-index: 1029; /* Below sidebar (1030) but above main content */
-  transition: opacity 0.3s ease;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1029;
+  transition: opacity var(--transition-base);
+  backdrop-filter: blur(2px);
 }
 
 .dropdown-menu {
-    border: none;
-    border-radius: 12px;
-    min-width: 15.625rem; /* 250px convertido a rem */
+  border: none;
+  border-radius: var(--radius-xl);
+  min-width: 15.625rem;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-border-light);
+  padding: var(--space-2);
+  animation: dropdownEnter 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Asegurar tamaño táctil para los botones dentro del dropdown */
+@keyframes dropdownEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .dropdown-menu .btn {
-  min-height: 3rem; /* 48px */
+  min-height: 3rem;
+  border-radius: var(--radius-md);
 }
 
-/* Media Query para Tablet y Escritorio (min-width: 768px) */
+/* ── Desktop ───────────────────────────────────── */
 @media (min-width: 768px) {
   .main-content-wrapper {
-    margin-left: 5rem; /* Ancho colapsado del sidebar (80px) */
+    margin-left: 5rem;
   }
 
   .main-content-wrapper.expanded {
-    margin-left: 15.625rem; /* Ancho expandido del sidebar (250px) */
+    margin-left: 15.625rem;
   }
 }
