@@ -1,5 +1,242 @@
-/* You can add global styles to this file, and also import other style files */
-/* src/styles.css */
+/* src/styles.css — EduMath Design System */
 @import "bootstrap/dist/css/bootstrap.min.css";
-
 @import "bootstrap-icons/font/bootstrap-icons.css";
+
+:root {
+  /* ── Color Palette ────────────────────────────── */
+  --color-primary: #0d6efd;
+  --color-primary-hover: #0b5ed7;
+  --color-primary-light: rgba(13, 110, 253, 0.12);
+  --color-primary-dark: #1e3c72;
+  --color-primary-darker: #2a5298;
+
+  --color-accent: #6366f1;
+  --color-accent-dark: #4f46e5;
+  --color-accent-light: rgba(99, 102, 241, 0.12);
+
+  --color-success: #198754;
+  --color-success-light: rgba(25, 135, 84, 0.12);
+  --color-warning: #ffc107;
+  --color-warning-light: rgba(255, 193, 7, 0.12);
+  --color-danger: #dc3545;
+  --color-danger-light: rgba(220, 53, 69, 0.12);
+  --color-info: #0dcaf0;
+  --color-info-light: rgba(13, 202, 240, 0.12);
+
+  --color-bronze: #cd7f32;
+  --color-bronze-light: rgba(205, 127, 50, 0.12);
+  --color-silver: #f59e0b;
+  --color-gold: #ef4444;
+  --color-epic: #a855f7;
+
+  /* ── Surfaces ─────────────────────────────────── */
+  --color-bg: #f8f9fa;
+  --color-bg-alt: #f0f2f5;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-overlay: rgba(0, 0, 0, 0.5);
+
+  /* ── Text ──────────────────────────────────────── */
+  --color-text: #1e293b;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-text-light: #94a3b8;
+  --color-text-inverse: #ffffff;
+
+  /* ── Borders ───────────────────────────────────── */
+  --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
+
+  /* ── Shadows ───────────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.1);
+
+  /* ── Typography ────────────────────────────────── */
+  --font-body: 'Poppins', sans-serif;
+  --font-heading: 'DM Serif Display', 'Georgia', serif;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+
+  /* ── Spacing Scale ─────────────────────────────── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* ── Radii ─────────────────────────────────────── */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* ── Transitions ───────────────────────────────── */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+  --transition-slow: 0.35s ease;
+}
+
+/* ── Global Base Styles ─────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  line-height: var(--leading-normal);
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-text);
+  font-weight: 400;
+  line-height: var(--leading-tight);
+}
+
+h1 { font-size: var(--text-5xl); }
+h2 { font-size: var(--text-4xl); }
+h3 { font-size: var(--text-3xl); }
+h4 { font-size: var(--text-2xl); }
+h5 { font-size: var(--text-xl); }
+h6 { font-size: var(--text-lg); }
+
+/* Bootstrap overrides */
+.btn-primary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.bg-primary {
+  background-color: var(--color-primary) !important;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* ── Focus Ring (Accessibility) ─────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Geometric Background Pattern (Ludic Math) ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image:
+    radial-gradient(circle at center, rgba(13, 110, 253, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+/* ── Noise Texture Overlay ─────────────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  pointer-events: none;
+}
+
+/* ── Utility: Page Enter Animation ─────────────── */
+.page-enter {
+  animation: pageEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── Utility: Stagger children ─────────────────── */
+.stagger > * {
+  opacity: 0;
+  animation: pageEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger > *:nth-child(7) { animation-delay: 0.35s; }
+.stagger > *:nth-child(8) { animation-delay: 0.4s; }
+
+/* ── Utility: Skeleton Loading ─────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-bg) 25%, var(--color-bg-alt) 50%, var(--color-bg) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Utility: Fade In ──────────────────────────── */
+.fade-in-up {
+  animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
