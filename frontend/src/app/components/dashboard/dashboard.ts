@@ -4,21 +4,26 @@ import { Grado, GradoService } from '../../services/grado';
 import { RouterLink } from "@angular/router";
 import { FormsModule } from '@angular/forms';
 import { SyncService } from '../../services/sync';
+import { Usuario, UsuarioService } from '../../services/usuario';
+import { CommonModule } from '@angular/common';
+
 declare var bootstrap: any;
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [ RouterLink, FormsModule],
+  imports: [ RouterLink, FormsModule, CommonModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit, AfterViewInit {
   private authService = inject(AuthService);
   private gradoService = inject(GradoService);
+  private usuarioService = inject(UsuarioService);
   public syncService = inject(SyncService);
 
   grados: Grado[] = [];
+  profesores: Usuario[] = [];
   loading: boolean = true;
   procesando: boolean = false;
   updateEdicion: boolean = false;
@@ -27,7 +32,8 @@ export class Dashboard implements OnInit, AfterViewInit {
     id: null,
     nivel: '',
     seccion: '',
-    anioEscolar: new Date().getFullYear()
+    anioEscolar: new Date().getFullYear(),
+    profesorId: null
   };
 
   @ViewChild('modalGrado') private modalElement!: ElementRef;
@@ -47,6 +53,9 @@ export class Dashboard implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.cargarGrados();
+    if (this.isAdmin) {
+      this.cargarProfesores();
+    }
   }
 
   ngAfterViewInit(): void {
@@ -55,13 +64,23 @@ export class Dashboard implements OnInit, AfterViewInit {
     }
   }
 
+  cargarProfesores() {
+    this.usuarioService.getTeachers().subscribe({
+      next: (data) => this.profesores = data,
+      error: (err) => console.error('Error cargando profesores', err)
+    });
+  }
+
   forzarSincronizacion() {
     this.syncService.sincronizar();
   }
 
   editarGrado(grado: Grado) {
     this.updateEdicion = true;
-    this.nuevoGrado = { ...grado };
+    this.nuevoGrado = { 
+      ...grado,
+      profesorId: grado.profesor ? grado.profesor.id : null
+    };
     if (this.modalInstance) {
       this.modalInstance.show();
     }
@@ -73,7 +92,8 @@ export class Dashboard implements OnInit, AfterViewInit {
       id: null,
       nivel: '',
       seccion: '',
-      anioEscolar: new Date().getFullYear()
+      anioEscolar: new Date().getFullYear(),
+      profesorId: null
     };
     if (this.modalInstance) {
       this.modalInstance.show();
@@ -96,13 +116,22 @@ export class Dashboard implements OnInit, AfterViewInit {
   guardarGrado() {
     this.procesando = true;
 
+    // Convertir profesorId a objeto profesor para el backend
+    const gradoData = { ...this.nuevoGrado };
+    if (gradoData.profesorId) {
+      gradoData.profesor = { id: gradoData.profesorId };
+    } else {
+      gradoData.profesor = null;
+    }
+    delete gradoData.profesorId;
+
     if (this.updateEdicion) {
-      this.gradoService.actualizarGrado(this.nuevoGrado).subscribe({
+      this.gradoService.actualizarGrado(gradoData).subscribe({
         next: () => this.finalizarOperacion('Grado actualizado correctamente'),
         error: (err) => this.manejarError(err)
       });
     } else {
-      this.gradoService.crearGrado(this.nuevoGrado).subscribe({
+      this.gradoService.crearGrado(gradoData).subscribe({
         next: () => this.finalizarOperacion('Grado creado correctamente'),
         error: (err) => this.manejarError(err)
       });

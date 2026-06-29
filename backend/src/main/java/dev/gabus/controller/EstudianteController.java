@@ -84,7 +84,7 @@ public class EstudianteController {
         }
 
         // Fetch students for the grade
-        List<Estudiante> students = estudianteRepository.findByGradoId(gradoId);
+        List<Estudiante> students = estudianteRepository.findByGrado_Id(gradoId);
         
         // Defensive check: filter out students with null grades if any exist in DB despite entity constraint
         // This could happen if data integrity is compromised at the DB level.

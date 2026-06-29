@@ -24,7 +24,7 @@ export class GestionTrimestres implements OnInit {
   trimestreForm: Partial<Trimestre> = {
     nombre: '',
     anioEscolar: new Date().getFullYear(),
-    estado: true
+    activo: true
   };
 
   ngOnInit() {
@@ -83,7 +83,7 @@ export class GestionTrimestres implements OnInit {
     this.trimestreForm = {
       nombre: '',
       anioEscolar: new Date().getFullYear(),
-      estado: true
+      activo: true
     };
   }
 }

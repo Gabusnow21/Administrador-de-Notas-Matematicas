@@ -3,13 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LocalDbService, LocalGrado } from './local-db';
-import { environment } from '../environments/environment.prod';
+import { environment } from '../environments/environment';
+import { Usuario } from './usuario';
 
 export interface Grado {
   id: number;
   nivel: string;    
   seccion: string;   
   anioEscolar: number;
+  profesor?: Usuario;
   // Campos para manejo offline
   localId?: number;
   syncStatus?: string;

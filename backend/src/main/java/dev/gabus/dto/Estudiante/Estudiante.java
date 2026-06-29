@@ -52,7 +52,7 @@ public class Estudiante {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "grado_id", nullable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler","profesor"})
     private Grado grado;
 
 }

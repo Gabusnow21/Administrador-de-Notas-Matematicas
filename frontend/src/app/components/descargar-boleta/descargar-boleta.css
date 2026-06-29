@@ -1,0 +1,202 @@
+.download-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 20px;
+}
+
+.download-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    max-width: 450px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+}
+
+.header-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.btn-config-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #888;
+    padding: 5px;
+}
+
+.btn-config-toggle:hover {
+    color: #333;
+}
+
+h2, h3 {
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+h4 {
+    margin: 15px 0 5px;
+    color: #444;
+    font-size: 1rem;
+    text-align: left;
+}
+
+p {
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+p.small {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    text-align: left;
+}
+
+.form-group {
+    text-align: left;
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #444;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.btn-download, .btn-save {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-download:hover:not(:disabled), .btn-save:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.btn-download:disabled, .btn-save:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.alert {
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Admin Config Styles */
+.admin-config {
+    text-align: left;
+}
+
+.config-section {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #e9ecef;
+}
+
+.file-count {
+    margin: 5px 0 0;
+    font-size: 0.8rem;
+    color: #27ae60;
+    text-align: left;
+}
+
+.path-browser {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+    background: white;
+}
+
+.current-path {
+    display: flex;
+    background: #eee;
+    padding: 5px;
+    gap: 5px;
+}
+
+.current-path button {
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.path-input {
+    border: none !important;
+    padding: 5px !important;
+    font-size: 0.8rem !important;
+    background: transparent;
+}
+
+.directory-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.directory-list li {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.directory-list li:hover {
+    background: #f0f7ff;
+}
+
+.directory-list li.empty {
+    color: #999;
+    font-style: italic;
+    cursor: default;
+    text-align: center;
+}

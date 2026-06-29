@@ -3,27 +3,26 @@
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Transición suave */
   background-color: #fff;
   border: 1px solid rgba(0,0,0,0.08); /* Borde sutil base */
-  /* El borde izquierdo ya lo define Bootstrap, pero aquí aseguramos la transición */
 }
 
- /* Cursor pointer para indicar que toda la card es un link */
+/* Cursor pointer para indicar que toda la card es un link */
 .clickable-card {
   cursor: pointer;
   text-decoration: none; /* Quita subrayados de links por defecto */
 }
 
-/* Efecto Hover */
-.clickable-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 14px 28px rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.12) !important;
-  border-color: var(--bs-primary); /* Opcional: pinta todo el borde del color primario al pasar mouse */
-}
-
-/* Pequeño truco para mostrar el texto "Click para ver" solo al hacer hover (opcional) */
-.clickable-card:hover .d-hover-block {
+/* Base Mobile-First: .d-hover-block visible por defecto en móvil */
+.d-hover-block {
   display: block !important;
   animation: fadeIn 0.3s;
 }
+
+/* Asegurar tamaño mínimo para botones clickeables en cualquier tarjeta */
+.clickable-card .btn, .btn-square {
+  min-width: 3rem; /* Equivalente a 48px (1rem = 16px) */
+  min-height: 3rem; /* Equivalente a 48px */
+}
+
 
 /* Admin buttons: aseguramos que estén por encima visualmente */
 .z-3 {
@@ -35,34 +34,46 @@
   to { opacity: 1; }
 }
 
-/* Efecto al pasar el mouse (Hover) */
-.hover-effect:hover {
-  transform: translateY(-10px); /* Mueve la tarjeta hacia arriba */
-  box-shadow: 0 14px 28px rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.12) !important; /* Sombra profunda */
-  border-color: transparent; /* Opcional: limpia bordes grises para resaltar la sombra */
-}
-
-/* MICRO-INTERACCIÓN EXTRA: Mover la flecha del botón "Ver Estudiantes" */
-.hover-effect:hover .btn-primary i.bi-arrow-right {
-  transform: translateX(4px); /* Mueve la flechita a la derecha */
-  transition: transform 0.2s ease-in-out;
-}
-
-/* MICRO-INTERACCIÓN EXTRA: Resaltar el icono del calendario */
-.hover-effect:hover .bi-calendar-event {
-  color: var(--bs-primary); /* Cambia a color primario al hacer hover */
-  transform: scale(1.2);
-  display: inline-block; /* Necesario para transformar iconos */
-  transition: all 0.3s ease;
-}
-
+/* btn-square: Convertido a rem y asegurando el tamaño mínimo táctil */
 .btn-square {
-  width: 50px;           /* Ancho fijo */
-  height: 50px;          /* Alto fijo igual al ancho */
+  width: 3.125rem;           /* 50px */
+  height: 3.125rem;          /* 50px */
   padding: 0;            /* Quitamos padding para centrar bien */
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;    /* Un poco de borde redondeado (opcional) */
+  border-radius: 0.5rem;    /* 8px */
   font-size: 1.5rem;     /* Tamaño del ícono */
+}
+
+/* Media Query para Tablet y Escritorio (min-width: 768px) */
+@media (min-width: 768px) {
+  /* Efecto Hover para tarjetas */
+  .clickable-card:hover {
+    transform: translateY(-0.625rem); /* -10px */
+    box-shadow: 0 0.875rem 1.75rem rgba(0,0,0,0.15), 0 0.625rem 0.625rem rgba(0,0,0,0.12) !important; /* Sombras */
+    border-color: var(--bs-primary); /* Opcional: pinta todo el borde del color primario al pasar mouse */
+  }
+
+  /* Ocultar .d-hover-block en desktop por defecto, mostrar solo en hover */
+  .clickable-card .d-hover-block {
+    display: none !important;
+  }
+  .clickable-card:hover .d-hover-block {
+    display: block !important;
+  }
+
+  /* MICRO-INTERACCIÓN EXTRA: Mover la flecha del botón "Ver Estudiantes" */
+  .hover-effect:hover .btn-primary i.bi-arrow-right {
+    transform: translateX(0.25rem); /* 4px */
+    transition: transform 0.2s ease-in-out;
+  }
+
+  /* MICRO-INTERACCIÓN EXTRA: Resaltar el icono del calendario */
+  .hover-effect:hover .bi-calendar-event {
+    color: var(--bs-primary); /* Cambia a color primario al hacer hover */
+    transform: scale(1.2);
+    display: inline-block; /* Necesario para transformar iconos */
+    transition: all 0.3s ease;
+  }
 }

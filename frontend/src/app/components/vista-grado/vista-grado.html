@@ -7,9 +7,14 @@
       <i class="bi bi-award-fill me-2"></i>
       Gestión de Grado
     </h1>
-    <button class="btn btn-success" (click)="iniciarInscripcion()">
-      <i class="bi bi-person-plus-fill me-1"></i> Inscribir Estudiante
-    </button>
+        <div class="d-flex gap-2">
+      <button class="btn btn-warning text-white" [routerLink]="['/descargar-boleta']">
+        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Boletas Temporales
+      </button>
+      <button class="btn btn-success" (click)="iniciarInscripcion()">
+        <i class="bi bi-person-plus-fill me-1"></i> Inscribir Estudiante
+      </button>
+    </div>
   </div>
 </div>
 <div class="container mt-4">
@@ -25,6 +30,16 @@
       } @else {
         <p class="text-muted mb-0">Cargando información del grado...</p>
       }
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-info" (click)="descargarBoletines()" [disabled]="descargando">
+        <i class="bi bi-cloud-download-fill me-1"></i> 
+        @if (descargando) {
+          <span class="spinner-border spinner-border-sm"></span> Descargando...
+        } @else {
+          Descargar Boletines
+        }
+      </button>
     </div>
   </div>
 

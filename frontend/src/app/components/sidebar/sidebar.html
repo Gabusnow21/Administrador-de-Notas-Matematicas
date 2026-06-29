@@ -1,6 +1,6 @@
 <div class="sidebar" [class.expanded]="isExpanded">
   <div class="sidebar-header">
-    <button class="btn btn-link text-white p-0 me-2" (click)="toggle()" [title]="isExpanded ? 'Colapsar menú' : 'Expandir menú'">
+    <button class="btn btn-link text-white p-0 me-2 d-none d-md-block" (click)="toggle()" [title]="isExpanded ? 'Colapsar menú' : 'Expandir menú'">
         <i class="bi bi-list fs-2"></i>
     </button>
     <a class="sidebar-brand fw-bold" href="/dashboard">
@@ -47,6 +47,12 @@
         <a routerLink="/configuracion/actividades" routerLinkActive="active" class="nav-link" [title]="!isExpanded ? 'Actividades' : ''">
           <i class="bi bi-list-check"></i>
           <span class="link-text">Actividades</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/gestion-asistencia" routerLinkActive="active" class="nav-link" [title]="!isExpanded ? 'Asistencia' : ''">
+          <i class="bi bi-person-check-fill"></i>
+          <span class="link-text">Asistencia</span>
         </a>
       </li>
       <li class="nav-item">

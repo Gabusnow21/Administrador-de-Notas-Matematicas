@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { LocalActividad, LocalDbService, SyncStatus } from './local-db';
 import { tap, catchError, map } from 'rxjs/operators';
-import { environment } from '../environments/environment.prod';
+import { environment } from '../environments/environment';
 
 export interface Actividad {
   id?: number;

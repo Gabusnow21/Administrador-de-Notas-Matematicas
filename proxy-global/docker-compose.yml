@@ -1,0 +1,19 @@
+services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik_proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/traefik.yml:ro
+      - ./acme.json:/acme.json
+    networks:
+      - proxy-network
+
+networks:
+  proxy-network:
+    external: true

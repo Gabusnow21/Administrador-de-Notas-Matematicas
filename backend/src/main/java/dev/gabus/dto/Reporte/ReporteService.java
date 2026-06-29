@@ -101,6 +101,7 @@ public class ReporteService {
 
         Map<String, Object> parametros = new HashMap<>();
         parametros.put("nombreEstudiante", estudiante.getApellidos() + " " + estudiante.getNombres()); // Formato: Apellido Nombre
+        parametros.put("codigoProgreso", estudiante.getCodigoProgreso());
         parametros.put("paramLeftLogo", leftLogo);
         parametros.put("paramRightLogo", rightLogo);
 

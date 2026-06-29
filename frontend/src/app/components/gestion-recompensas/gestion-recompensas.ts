@@ -1,15 +1,16 @@
 import { Component, OnInit, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { Recompensa, RecompensaService } from '../../services/recompensa';
 import { Estudiante, EstudianteService } from '../../services/estudiante';
+import { Grado, GradoService } from '../../services/grado';
 import { Modal } from 'bootstrap';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-gestion-recompensas',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
   templateUrl: './gestion-recompensas.html',
   styleUrls: ['./gestion-recompensas.css']
 })
@@ -17,6 +18,7 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
   // Inyección de servicios
   private recompensaService = inject(RecompensaService);
   private estudianteService = inject(EstudianteService);
+  private gradoService = inject(GradoService);
   private fb = inject(FormBuilder);
 
   // Referencias a modales
@@ -29,6 +31,9 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
   // Propiedades del componente
   recompensas: Recompensa[] = [];
   estudiantesPuntos: Estudiante[] = [];
+  grados: Grado[] = [];
+  selectedGradoId: number | null = null;
+  
   recompensaForm: FormGroup;
   isEditMode = false;
   currentRecompensaId: number | null = null;
@@ -53,6 +58,7 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.cargarRecompensas();
+    this.cargarGrados();
   }
 
   ngAfterViewInit(): void {
@@ -73,24 +79,38 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
     });
   }
 
+  cargarGrados(): void {
+    this.gradoService.getGrados().subscribe(data => {
+      this.grados = data;
+    });
+  }
+
   cargarPuntosEstudiantes(): void {
+    if (!this.selectedGradoId) {
+      this.estudiantesPuntos = [];
+      return;
+    }
+
     this.isLoadingPuntos = true;
-    this.estudiantesPuntos = [];
-    // Nota: Usamos getEstudiantesSinNfc como placeholder para obtener una lista de ejemplo.
-    // En un sistema real, se debería usar un endpoint que devuelva todos los estudiantes con su saldo.
-    this.estudianteService.getEstudiantesSinNfc().subscribe({
+    this.estudianteService.getEstudiantesPorGrado(this.selectedGradoId).subscribe({
       next: (data) => {
         this.estudiantesPuntos = data.sort((a, b) => (b.saldoTokens || 0) - (a.saldoTokens || 0));
         this.isLoadingPuntos = false;
       },
       error: () => {
         this.isLoadingPuntos = false;
+        this.estudiantesPuntos = [];
       }
     });
   }
 
   openPuntosModal(): void {
-    this.cargarPuntosEstudiantes();
+    // Si ya hay un grado seleccionado, cargamos automáticamente
+    if (this.selectedGradoId) {
+      this.cargarPuntosEstudiantes();
+    } else {
+      this.estudiantesPuntos = [];
+    }
     this.puntosModalInstance?.show();
   }
 

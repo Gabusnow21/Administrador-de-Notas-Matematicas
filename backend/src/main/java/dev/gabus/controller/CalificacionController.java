@@ -84,7 +84,7 @@ public class CalificacionController {
             @RequestParam Long actividadId
     ) {
         // 1. Obtener todos los estudiantes del grado
-        List<Estudiante> estudiantes = estudianteRepository.findByGradoId(gradoId);
+        List<Estudiante> estudiantes = estudianteRepository.findByGrado_Id(gradoId);
         
         // 2. Obtener las notas existentes para esa actividad
         List<Calificacion> notasExistentes = calificacionRepository.findByActividadId(actividadId);

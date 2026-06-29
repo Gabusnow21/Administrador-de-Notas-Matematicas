@@ -1,0 +1,122 @@
+
+/* --- VARIABLES Y RESET --- */
+:host {
+  --primary-color: #0d6efd;
+  --touch-size: 3rem; /* 48px */
+  --transition-speed: 0.3s;
+  display: block;
+}
+
+/* --- HEADER --- */
+.btn-back {
+  width: var(--touch-size);
+  height: var(--touch-size);
+  border-radius: 50%;
+  padding: 0;
+}
+
+.header-title {
+  font-size: 1.1rem;
+}
+
+.btn-action {
+  min-height: var(--touch-size);
+  min-width: var(--touch-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.8rem;
+}
+
+/* --- FORMULARIO --- */
+.form-control-lg, .form-select-lg {
+  min-height: var(--touch-size);
+  font-size: 1rem;
+}
+
+/* --- LISTADO MOBILE-FIRST (Estilo Cards) --- */
+.users-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.user-row {
+  transition: transform var(--transition-speed) ease;
+  border-left: 4px solid var(--primary-color) !important;
+  background-color: #fff;
+}
+
+/* Ajuste de botones para pulgares (Mínimo 48px) */
+.btn-touch {
+  width: var(--touch-size);
+  height: var(--touch-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+/* --- TABLET Y ESCRITORIO (Media Query 768px+) --- */
+@media (min-width: 768px) {
+  .header-title {
+    font-size: 1.75rem;
+  }
+
+  /* Transformamos las cards en filas de tabla usando CSS Grid */
+  .users-header, 
+  .user-row .card-body {
+    display: grid !important;
+    grid-template-columns: 80px 1.5fr 1.5fr 1fr 120px;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .users-header {
+    background-color: #212529;
+    color: white;
+    padding: 1rem 0;
+    font-weight: bold;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .user-row {
+    border-left: none !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .user-row:hover {
+    background-color: rgba(0,0,0,0.02);
+  }
+
+  .user-row .card-body {
+    padding: 0.75rem 0 !important;
+  }
+
+  .user-actions {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+  }
+
+  .btn-touch {
+    width: 38px; /* En escritorio es aceptable algo más compacto */
+    height: 38px;
+    font-size: 1rem;
+  }
+}
+
+/* --- MEJORAS DE ACCESIBILIDAD TÁCTIL --- */
+@media (pointer: coarse) {
+  /* En dispositivos táctiles, aumentamos márgenes para evitar clicks accidentales */
+  .user-actions {
+    gap: 1.2rem;
+  }
+  
+  .btn-touch {
+    width: 3.2rem;
+    height: 3.2rem;
+  }
+}

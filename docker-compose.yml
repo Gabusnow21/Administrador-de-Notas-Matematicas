@@ -1,7 +1,4 @@
-version: '3.8'
-
 services:
-  # 1. BASE DE DATOS (PostgreSQL)
   db:
     image: postgres:15-alpine
     container_name: gestor_db
@@ -13,9 +10,10 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Persistencia de datos
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gestor_network
 
-  # 2. BACKEND (Spring Boot)
   backend:
     build: ./backend
     container_name: gestor_backend
@@ -23,24 +21,36 @@ services:
     depends_on:
       - db
     environment:
-      # Conexión a la base de datos (usando el nombre del servicio 'db')
+      SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: ${JDBC_DATABASE_URL}
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      # Configuración JWT
-      JWT_SECRET_KEY: ${JWT_SECRET}
-    ports:
-      - "8080:8080"
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - gestor_network
+      - proxy-network
 
-  # 3. FRONTEND (Angular + Nginx)
   frontend:
     build: ./frontend
     container_name: gestor_frontend
     restart: always
-    ports:
-      - "80:80" # Acceso por http://localhost
     depends_on:
       - backend
+    networks:
+      - gestor_network
+      - proxy-network
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=proxy-network'
+      - 'traefik.http.routers.gestor-frontend.rule=Host(`gestor.edumathsv.work`)'
+      - 'traefik.http.routers.gestor-frontend.entrypoints=web'
+      - 'traefik.http.services.gestor-frontend.loadbalancer.server.port=80'
 
 volumes:
   postgres_data:
+
+networks:
+  gestor_network:
+    driver: bridge
+  proxy-network:
+    external: true
