@@ -6,7 +6,7 @@ import { Actividad,ActividadService } from '../../services/actividad';
 import { Materia, MateriaService } from '../../services/materia';
 import { Trimestre, TrimestreService } from '../../services/trimestre';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { SyncService } from '../../services/sync';
 import { AuthService } from '../../services/auth';
 import { ToastService } from '../../services/toast.service';
@@ -14,7 +14,7 @@ import { ToastService } from '../../services/toast.service';
 @Component({
   selector: 'app-registro-notas',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule],
   templateUrl: './registro-notas.html',
   styleUrl: './registro-notas.css',
 })

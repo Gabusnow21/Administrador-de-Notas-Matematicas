@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { Calificacion, CalificacionRequest, CalificacionService } from '../../services/calificacion';
 import { EstudianteService } from '../../services/estudiante';
 import { PercentPipe } from '@angular/common';
@@ -14,7 +14,7 @@ import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-vista-calificaciones',
-  imports: [RouterLink, PercentPipe,FormsModule],
+  imports: [PercentPipe, FormsModule],
   standalone: true,
   templateUrl: './vista-calificaciones.html',
   styleUrl: './vista-calificaciones.css',

@@ -240,3 +240,18 @@ body::after {
     transform: translateY(0);
   }
 }
+
+/* ── Touch Target Sizing (44px minimum) ──────────── */
+@media (pointer: coarse) {
+  .btn-sm,
+  .table-action-button,
+  .student-actions .btn,
+  .crud-card-actions .btn,
+  .activity-actions .btn {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

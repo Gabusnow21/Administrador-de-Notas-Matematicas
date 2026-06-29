@@ -31,7 +31,7 @@
 /* ── Skeleton Loading ──────────────────────────── */
 .skeleton-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-4);
 }
 
@@ -39,6 +39,19 @@
   aspect-ratio: 1 / 1;
   border-radius: var(--radius-lg);
   overflow: hidden;
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .skeleton-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  .skeleton-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .skeleton-icon {

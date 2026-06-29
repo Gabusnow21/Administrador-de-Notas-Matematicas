@@ -1,6 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { Materia, MateriaService } from '../../services/materia';
 import { Trimestre, TrimestreService } from '../../services/trimestre';
 import { Actividad, ActividadService } from '../../services/actividad';
@@ -11,7 +10,7 @@ import { ToastService } from '../../services/toast.service';
 @Component({
   selector: 'app-gestion-actividades',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [FormsModule],
   templateUrl: './gestion-actividades.html',
   styleUrl: './gestion-actividades.css',
 })

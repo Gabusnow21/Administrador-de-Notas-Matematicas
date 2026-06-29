@@ -1,5 +1,4 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { Trimestre, TrimestreService } from '../../services/trimestre';
@@ -9,7 +8,7 @@ import { ToastService } from '../../services/toast.service';
 @Component({
   selector: 'app-gestion-trimestres',
   standalone: true,
-  imports: [RouterLink, FormsModule, DatePipe],
+  imports: [FormsModule, DatePipe],
   templateUrl: './gestion-trimestres.html',
   styleUrl: './gestion-trimestres.css'
 })

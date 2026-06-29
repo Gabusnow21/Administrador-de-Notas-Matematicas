@@ -1,6 +1,6 @@
 <app-sidebar #sidebar></app-sidebar>
 
-<!-- Sidebar Overlay for Mobile -->
+<!-- Sidebar Overlay for Mobile (triggered by "Más" in bottom nav) -->
 @if(sidebar.isExpanded) {
   <div class="sidebar-overlay d-block d-md-none" (click)="sidebar.toggle()"></div>
 }
@@ -9,18 +9,12 @@
   <nav class="navbar navbar-dark bg-primary shadow sticky-top">
     <div class="container-fluid">
       <div class="d-flex align-items-center">
-        <!-- Sidebar Toggle Button for Mobile -->
-        <button class="btn btn-link text-white p-0 me-2 d-block d-md-none" 
-                (click)="sidebar.toggle()" 
-                title="Toggle Sidebar">
-            <i class="bi bi-list fs-2"></i>
-        </button>
         <span class="navbar-brand mb-0 h1 fw-bold d-none d-sm-inline">Administrador de Notas Matemáticas</span>
       </div>
-      
+
       <div class="d-flex align-items-center position-relative">
-        <button class="user-dropdown-btn shadow-sm" 
-                (click)="toggleDropdown()" 
+        <button class="user-dropdown-btn shadow-sm"
+                (click)="toggleDropdown()"
                 type="button"
                 aria-expanded="false">
            <span class="me-2 d-none d-md-inline fw-semibold">Bienvenido</span>
@@ -28,10 +22,10 @@
         </button>
 
         <!-- Dropdown Menu -->
-        <div class="dropdown-menu dropdown-menu-end shadow p-3" 
-             [class.show]="isDropdownOpen" 
+        <div class="dropdown-menu dropdown-menu-end shadow p-3"
+             [class.show]="isDropdownOpen"
              style="position: absolute; top: 110%; right: 0; min-width: 250px; z-index: 1050;">
-          
+
           <div class="mb-3 text-center border-bottom pb-2">
             <i class="bi bi-person-circle fs-1 text-primary mb-2"></i>
             <h6 class="mb-0 fw-bold text-dark">Usuario</h6>
@@ -39,19 +33,19 @@
           </div>
 
           <div class="d-grid gap-2">
-             <button class="btn btn-sm w-100 text-start d-flex align-items-center justify-content-between" 
-                    [class.btn-success]="syncService.isFullyOnline" 
+             <button class="btn btn-sm w-100 text-start d-flex align-items-center justify-content-between"
+                    [class.btn-success]="syncService.isFullyOnline"
                     [class.btn-warning]="!syncService.isFullyOnline && syncService.isOnline"
                     [class.btn-outline-secondary]="!(!syncService.isFullyOnline && syncService.isOnline) && !syncService.isFullyOnline"
                     (click)="forzarSincronizacion()">
-              
+
               <div class="d-flex align-items-center">
                 @if (!syncService.isFullyOnline && !syncService.isSyncing()) {
                   <i class="bi bi-wifi-off me-2"></i> <span>Offline</span>
-                } 
+                }
                 @else if (syncService.isSyncing()) {
                   <span class="spinner-border spinner-border-sm me-2"></span> <span>Sincronizando...</span>
-                } 
+                }
                 @else {
                   <i class="bi bi-cloud-check me-2"></i> <span>En Línea</span>
                 }
@@ -65,7 +59,7 @@
           </div>
 
         </div>
-        
+
         <!-- Overlay para cerrar al hacer clic fuera -->
         @if(isDropdownOpen) {
           <div class="dropdown-overlay" (click)="isDropdownOpen = false"></div>
@@ -78,3 +72,72 @@
     <router-outlet></router-outlet>
   </main>
 </div>
+
+<!-- Bottom Navigation (Mobile only) -->
+<nav class="bottom-nav d-md-none" aria-label="Navegación móvil">
+  <!-- Slot 1 & 2: Role-aware (varía entre admin/teacher) -->
+  @if (authService.isAdmin()) {
+    <a routerLink="/configuracion/usuarios" routerLinkActive="active" class="bottom-nav-item">
+      <i class="bi bi-people-fill"></i>
+      <span>Usuarios</span>
+    </a>
+  } @else if (authService.isTeacher()) {
+    <a routerLink="/registro-notas" routerLinkActive="active" class="bottom-nav-item">
+      <i class="bi bi-grid-3x3-gap-fill"></i>
+      <span>Notas</span>
+    </a>
+  } @else {
+    <a routerLink="/dashboard" routerLinkActive="active" class="bottom-nav-item">
+      <i class="bi bi-bar-chart-fill"></i>
+      <span>Avance</span>
+    </a>
+  }
+
+  <!-- Slot 2: Role-aware -->
+  @if (authService.isAdmin()) {
+    <a routerLink="/configuracion/trimestres" routerLinkActive="active" class="bottom-nav-item">
+      <i class="bi bi-calendar-check"></i>
+      <span>Trim.</span>
+    </a>
+  } @else if (authService.isTeacher()) {
+    <a routerLink="/gestion-asistencia" routerLinkActive="active" class="bottom-nav-item">
+      <i class="bi bi-person-check-fill"></i>
+      <span>Asistencia</span>
+    </a>
+  } @else {
+    <a routerLink="/registro-notas" routerLinkActive="active" class="bottom-nav-item">
+      <i class="bi bi-grid-3x3-gap-fill"></i>
+      <span>Notas</span>
+    </a>
+  }
+
+  <!-- Slot 3: Dashboard — SIEMPRE CENTRO -->
+  <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="bottom-nav-item bottom-nav-home">
+    <i class="bi bi-house-door-fill"></i>
+    <span>Inicio</span>
+  </a>
+
+  <!-- Slot 4: Role-aware -->
+  @if (authService.isAdmin()) {
+    <a routerLink="/gestion-materias" routerLinkActive="active" class="bottom-nav-item">
+      <i class="bi bi-journal-bookmark-fill"></i>
+      <span>Materias</span>
+    </a>
+  } @else if (authService.isTeacher()) {
+    <a routerLink="/configuracion/materias" routerLinkActive="active" class="bottom-nav-item">
+      <i class="bi bi-journal-bookmark-fill"></i>
+      <span>Materias</span>
+    </a>
+  } @else {
+    <a routerLink="/mi-progreso" routerLinkActive="active" class="bottom-nav-item">
+      <i class="bi bi-trophy-fill"></i>
+      <span>Logros</span>
+    </a>
+  }
+
+  <!-- Slot 5: Más — always the plus button -->
+  <button class="bottom-nav-item bottom-nav-more" (click)="sidebar.toggle()" [class.active]="sidebar.isExpanded" aria-label="Más opciones de navegación">
+    <i class="bi fs-5" [class.bi-x-lg]="sidebar.isExpanded" [class.bi-plus-circle-fill]="!sidebar.isExpanded"></i>
+    <span>{{ sidebar.isExpanded ? 'Cerrar' : 'Más' }}</span>
+  </button>
+</nav>

@@ -5,13 +5,12 @@ import { Recompensa, RecompensaService } from '../../services/recompensa';
 import { Estudiante, EstudianteService } from '../../services/estudiante';
 import { Grado, GradoService } from '../../services/grado';
 import { Modal } from 'bootstrap';
-import { RouterLink } from '@angular/router';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-gestion-recompensas',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './gestion-recompensas.html',
   styleUrls: ['./gestion-recompensas.css']
 })
