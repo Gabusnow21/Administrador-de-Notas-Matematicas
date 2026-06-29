@@ -92,6 +92,7 @@
 .student-details {
   overflow: hidden;
   min-width: 0;
+  flex: 1;
 }
 
 .student-name {
@@ -129,7 +130,7 @@
 @media (max-width: 767px) {
   .student-card {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
   }
 
   .student-actions {
