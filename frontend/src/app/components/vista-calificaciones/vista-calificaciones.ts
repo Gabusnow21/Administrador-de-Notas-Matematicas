@@ -10,6 +10,7 @@ import { Actividad, ActividadService } from '../../services/actividad';
 import { Trimestre, TrimestreService } from '../../services/trimestre';
 import { SyncService } from '../../services/sync';
 import { AuthService } from '../../services/auth';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-vista-calificaciones',
@@ -29,6 +30,7 @@ export class VistaCalificaciones implements OnInit {
   private trimestreService = inject(TrimestreService);
   public syncService = inject(SyncService);
   private authService = inject(AuthService);
+  private toast = inject(ToastService);
 
 
   //Variables
@@ -113,7 +115,7 @@ export class VistaCalificaciones implements OnInit {
       },
       error: (err) => {
         console.error('Error guardando:', err);
-        alert('Error al guardar. Verifica que el ID de Actividad exista.');
+        this.toast.error('Error al guardar. Verifica que el ID de Actividad exista.');
         this.procesando = false;
       }
     });
@@ -142,7 +144,7 @@ export class VistaCalificaciones implements OnInit {
       },
       error: (err) => {
         console.error('Error descargando PDF', err);
-        alert('No se pudo generar el reporte.');
+        this.toast.error('No se pudo generar el reporte.');
         this.descargando = false;
       }
     });

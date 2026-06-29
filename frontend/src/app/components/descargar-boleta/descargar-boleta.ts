@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TicketService } from '../../services/ticket.service';
 import { AuthService } from '../../services/auth';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-descargar-boleta',
@@ -14,6 +15,7 @@ import { AuthService } from '../../services/auth';
 export class DescargarBoleta implements OnInit {
   private ticketService = inject(TicketService);
   private authService = inject(AuthService);
+  private toast = inject(ToastService);
 
   studentListNumber: number | null = null;
   loading = false;
@@ -97,7 +99,7 @@ export class DescargarBoleta implements OnInit {
         },
         error: (err) => {
           this.loading = false;
-          alert('Error al establecer la ruta en el servidor: ' + (err.error?.message || err.message));
+          this.toast.error('Error al establecer la ruta en el servidor: ' + (err.error?.message || err.message));
         }
       });
     } else {
@@ -109,12 +111,12 @@ export class DescargarBoleta implements OnInit {
     this.ticketService.uploadFiles(this.selectedFiles!).subscribe({
       next: (res) => {
         this.loading = false;
-        alert(res.message || 'Archivos subidos correctamente.');
+        this.toast.success(res.message || 'Archivos subidos correctamente.');
         this.selectedFiles = null;
       },
       error: (err) => {
         this.loading = false;
-        alert('Error al subir archivos: ' + (err.error?.message || err.message));
+        this.toast.error('Error al subir archivos: ' + (err.error?.message || err.message));
       }
     });
   }
@@ -124,15 +126,15 @@ export class DescargarBoleta implements OnInit {
     this.ticketService.setConfigPath(this.configPath).subscribe({
       next: (res) => {
         this.loading = false;
-        const msg = res.tokensGenerated !== undefined 
-          ? `Configuración actualizada. Se encontraron ${res.tokensGenerated} boletas.` 
+        const msg = res.tokensGenerated !== undefined
+          ? `Configuración actualizada. Se encontraron ${res.tokensGenerated} boletas.`
           : 'Configuración actualizada.';
-        alert(msg);
+        this.toast.success(msg);
         this.selectedFiles = null;
       },
       error: (err) => {
         this.loading = false;
-        alert('Error: ' + (err.error?.message || 'No se pudo guardar la ruta.'));
+        this.toast.error('Error: ' + (err.error?.message || 'No se pudo guardar la ruta.'));
       }
     });
   }

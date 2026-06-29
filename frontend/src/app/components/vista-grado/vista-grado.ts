@@ -6,6 +6,7 @@ import { Grado, GradoService } from '../../services/grado';
 import { SyncService } from '../../services/sync';
 import { AuthService } from '../../services/auth';
 import { Reporte } from '../../services/reporte';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-vista-grado',
@@ -22,8 +23,9 @@ export class VistaGrado implements OnInit {
   private estudianteService = inject(EstudianteService);
   private gradoService = inject(GradoService);
   public syncService = inject(SyncService);
-  private authService = inject(AuthService); 
+  private authService = inject(AuthService);
   private reporteService = inject(Reporte);
+  private toast = inject(ToastService);
 
   //Variables
   estudiantes: Estudiante[] = [];
@@ -108,9 +110,10 @@ export class VistaGrado implements OnInit {
 
     this.estudianteService.deleteEstudiante(est).subscribe({
       next: () => {
-        this.cargarEstudiantes(); // Recargar tabla
+        this.toast.success('Estudiante eliminado');
+        this.cargarEstudiantes();
       },
-      error: (err) => alert('Error al eliminar.')
+      error: (err) => this.toast.error('Error al eliminar.')
     });
   }
 
@@ -189,7 +192,7 @@ export class VistaGrado implements OnInit {
           }
         } catch (err) {
           console.error(`Error descargando boletín para ${est.nombres}`, err);
-          alert(`No se pudo generar el reporte para ${est.nombres}.`);
+          this.toast.error(`No se pudo generar el reporte para ${est.nombres}.`);
         }
       }
     }
@@ -209,9 +212,9 @@ export class VistaGrado implements OnInit {
     console.error(err);
     this.procesando = false;
     if (err.error?.message?.includes('constraint')) {
-      alert('Error: El código de progreso ya está en uso.');
+      this.toast.error('Error: El código de progreso ya está en uso.');
     } else {
-      alert('Ocurrió un error al guardar el estudiante.');
+      this.toast.error('Ocurrió un error al guardar el estudiante.');
     }
   }
 

@@ -6,6 +6,7 @@ import { Estudiante, EstudianteService } from '../../services/estudiante';
 import { Grado, GradoService } from '../../services/grado';
 import { Modal } from 'bootstrap';
 import { RouterLink } from '@angular/router';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-gestion-recompensas',
@@ -20,6 +21,7 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
   private estudianteService = inject(EstudianteService);
   private gradoService = inject(GradoService);
   private fb = inject(FormBuilder);
+  private toast = inject(ToastService);
 
   // Referencias a modales
   @ViewChild('recompensaModal') recompensaModalElement!: ElementRef;
@@ -165,6 +167,7 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
       
       this.recompensaService.updateRecompensa(this.currentRecompensaId, recompensaData).subscribe({
         next: () => {
+          this.toast.success('Recompensa actualizada');
           this.cargarRecompensas();
           this.modalInstance?.hide();
           this.isLoading = false;
@@ -172,12 +175,13 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
         error: (error) => {
           console.error('Error al actualizar:', error);
           this.isLoading = false;
-          alert('No tienes permisos para editar esta recompensa o ha ocurrido un error.');
+          this.toast.error('No tienes permisos para editar esta recompensa o ha ocurrido un error.');
         }
       });
     } else {
       this.recompensaService.createRecompensa(recompensaData).subscribe({
         next: () => {
+          this.toast.success('Recompensa creada');
           this.cargarRecompensas();
           this.modalInstance?.hide();
           this.isLoading = false;
@@ -185,7 +189,7 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
         error: (error) => {
           console.error('Error al crear:', error);
           this.isLoading = false;
-          alert('Error al crear la recompensa.');
+          this.toast.error('Error al crear la recompensa.');
         }
       });
     }
@@ -194,9 +198,12 @@ export class GestionRecompensasComponent implements OnInit, AfterViewInit {
   eliminarRecompensa(id: number): void {
     if (confirm('¿Estás seguro de que quieres eliminar esta recompensa?')) {
       this.isDeleting[id] = true;
-      this.recompensaService.deleteRecompensa(id).subscribe(() => {
-        this.cargarRecompensas();
-        delete this.isDeleting[id];
+      this.recompensaService.deleteRecompensa(id).subscribe({
+        next: () => {
+          this.toast.success('Recompensa eliminada');
+          this.cargarRecompensas();
+          delete this.isDeleting[id];
+        }
       });
     }
   }

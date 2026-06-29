@@ -4,6 +4,7 @@ import { RouterLink, Routes } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SyncService } from '../../services/sync';
 import { AuthService } from '../../services/auth';
+import { ToastService } from '../../services/toast.service';
 
 
 @Component({
@@ -18,6 +19,7 @@ export class GestionUsuarios implements OnInit {
   public syncService = inject(SyncService);
   private authService = inject(AuthService);
   private usuarioService = inject(UsuarioService);
+  private toast = inject(ToastService);
 
   usuarios: Usuario[] = [];
   loading: boolean = true;
@@ -55,25 +57,31 @@ export class GestionUsuarios implements OnInit {
       // MODO EDICIÓN
       this.usuarioService.actualizar(this.nuevoUsuario).subscribe({
         next: () => {
-          this.finalizarOperacion('Usuario actualizado');
+          this.toast.success('Usuario actualizado');
+          this.finalizarOperacion();
         },
-        error: () => { this.procesando = false; alert('Error al actualizar'); }
+        error: () => { this.procesando = false; this.toast.error('Error al actualizar'); }
       });
     } else {
-      // MODO CREACIÓN
       this.usuarioService.crear(this.nuevoUsuario).subscribe({
         next: () => {
-          this.finalizarOperacion('Usuario creado');
+          this.toast.success('Usuario creado');
+          this.finalizarOperacion();
         },
-        error: () => { this.procesando = false; alert('Error al crear'); }
+        error: () => { this.procesando = false; this.toast.error('Error al crear'); }
       });
     }
   }
 
   eliminar(id: number) {
     if(!confirm('¿Estás seguro de eliminar este usuario?')) return;
-    
-    this.usuarioService.borrar(this.usuarios.find(u => u.id === id)!).subscribe(() => this.cargarUsuarios());
+
+    this.usuarioService.borrar(this.usuarios.find(u => u.id === id)!).subscribe({
+      next: () => {
+        this.toast.success('Usuario eliminado');
+        this.cargarUsuarios();
+      }
+    });
   }
 
   // Al editar
@@ -100,9 +108,8 @@ export class GestionUsuarios implements OnInit {
     this.syncService.sincronizar();
   }
 
-    private finalizarOperacion(msg: string) {
+  private finalizarOperacion() {
     this.procesando = false;
-    alert(msg);
     this.cancelar();
     this.cargarUsuarios();
   }

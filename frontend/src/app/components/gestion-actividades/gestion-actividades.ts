@@ -6,6 +6,7 @@ import { Trimestre, TrimestreService } from '../../services/trimestre';
 import { Actividad, ActividadService } from '../../services/actividad';
 import { SyncService } from '../../services/sync';
 import { AuthService } from '../../services/auth';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-gestion-actividades',
@@ -20,6 +21,7 @@ export class GestionActividades implements OnInit {
   private actividadService = inject(ActividadService);
   public syncService = inject(SyncService);
   private authService = inject(AuthService);
+  private toast = inject(ToastService);
 
   materias: Materia[] = [];
   trimestres: Trimestre[] = [];
@@ -111,7 +113,7 @@ export class GestionActividades implements OnInit {
       .reduce((sum, act) => sum + (act.ponderacion || 0), 0);
 
     if (ponderacionOtrasRaices + formPonderacion > 100) {
-      alert('La ponderación total de las actividades principales no puede exceder el 100%.');
+      this.toast.warning('La ponderación total de las actividades principales no puede exceder el 100%.');
       this.procesando = false;
       return;
     }
@@ -140,11 +142,14 @@ export class GestionActividades implements OnInit {
 
   eliminar(actividad: Actividad) {
     if (!confirm('¿Eliminar actividad? Se borrarán las notas y sub-actividades asociadas.')) return;
-    this.actividadService.borrar(actividad).subscribe(() => {
-      if (this.selectedActividad) {
-        this.cerrarModal();
+    this.actividadService.borrar(actividad).subscribe({
+      next: () => {
+        this.toast.success('Actividad eliminada');
+        if (this.selectedActividad) {
+          this.cerrarModal();
+        }
+        this.cargarActividades();
       }
-      this.cargarActividades();
     });
   }
 
@@ -197,7 +202,7 @@ export class GestionActividades implements OnInit {
         .reduce((sum, sub) => sum + (sub.ponderacion || 0), 0);
 
       if (ponderacionHermanas + formPonderacion > (this.selectedActividad.ponderacion || 0)) {
-        alert(`La suma de ponderaciones de las sub-actividades no puede exceder la del padre (${this.selectedActividad.ponderacion}%).`);
+        this.toast.warning(`La suma de ponderaciones de las sub-actividades no puede exceder la del padre (${this.selectedActividad.ponderacion}%).`);
         this.procesando = false;
         return;
       }
@@ -237,7 +242,7 @@ export class GestionActividades implements OnInit {
   private handleError(e: any, accion: string) {
     console.error(e);
     this.procesando = false;
-    alert(`Error al ${accion}: ` + (e.error?.message || e.error || e.message));
+    this.toast.error(`Error al ${accion}: ` + (e.error?.message || e.error || e.message));
   }
 
   logout() {
