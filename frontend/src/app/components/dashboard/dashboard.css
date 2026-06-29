@@ -1,61 +1,101 @@
-/* Estilos para la tarjeta de grados */
+/* ── Dashboard Styles ──────────────────────────── */
+
+/* Card hover effects */
 .hover-effect {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Transición suave */
-  background-color: #fff;
-  border: 1px solid rgba(0,0,0,0.08); /* Borde sutil base */
+  transition: all var(--transition-base) cubic-bezier(0.25, 0.8, 0.25, 1);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-light);
 }
 
-/* Cursor pointer para indicar que toda la card es un link */
 .clickable-card {
   cursor: pointer;
-  text-decoration: none; /* Quita subrayados de links por defecto */
+  text-decoration: none;
 }
 
-/* Base Mobile-First: .d-hover-block visible por defecto en móvil */
+/* Mobile: action blocks visible by default */
 .d-hover-block {
   display: block !important;
-  animation: fadeIn 0.3s;
+  animation: fadeInUp 0.3s forwards;
 }
 
-/* Asegurar tamaño mínimo para botones clickeables en cualquier tarjeta */
+/* Touch-friendly buttons */
 .clickable-card .btn, .btn-square {
-  min-width: 3rem; /* Equivalente a 48px (1rem = 16px) */
-  min-height: 3rem; /* Equivalente a 48px */
+  min-width: 3rem;
+  min-height: 3rem;
 }
 
-
-/* Admin buttons: aseguramos que estén por encima visualmente */
 .z-3 {
   z-index: 3;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* ── Skeleton Loading ──────────────────────────── */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-4);
 }
 
-/* btn-square: Convertido a rem y asegurando el tamaño mínimo táctil */
-.btn-square {
-  width: 3.125rem;           /* 50px */
-  height: 3.125rem;          /* 50px */
-  padding: 0;            /* Quitamos padding para centrar bien */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.5rem;    /* 8px */
-  font-size: 1.5rem;     /* Tamaño del ícono */
+.skeleton-card {
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
 }
 
-/* Media Query para Tablet y Escritorio (min-width: 768px) */
+.skeleton-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-lg);
+  margin: 0 auto var(--space-4);
+}
+
+.skeleton-title {
+  height: 24px;
+  width: 70%;
+  margin: 0 auto var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-text {
+  height: 16px;
+  width: 50%;
+  margin: 0 auto;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Staggered Card Entry ──────────────────────── */
+.card-stagger {
+  opacity: 0;
+  animation: cardEnter 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.card-stagger:nth-child(1) { animation-delay: 0.05s; }
+.card-stagger:nth-child(2) { animation-delay: 0.1s; }
+.card-stagger:nth-child(3) { animation-delay: 0.15s; }
+.card-stagger:nth-child(4) { animation-delay: 0.2s; }
+.card-stagger:nth-child(5) { animation-delay: 0.25s; }
+.card-stagger:nth-child(6) { animation-delay: 0.3s; }
+.card-stagger:nth-child(7) { animation-delay: 0.35s; }
+.card-stagger:nth-child(8) { animation-delay: 0.4s; }
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Desktop ───────────────────────────────────── */
 @media (min-width: 768px) {
-  /* Efecto Hover para tarjetas */
   .clickable-card:hover {
-    transform: translateY(-0.625rem); /* -10px */
-    box-shadow: 0 0.875rem 1.75rem rgba(0,0,0,0.15), 0 0.625rem 0.625rem rgba(0,0,0,0.12) !important; /* Sombras */
-    border-color: var(--bs-primary); /* Opcional: pinta todo el borde del color primario al pasar mouse */
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: var(--color-primary);
   }
 
-  /* Ocultar .d-hover-block en desktop por defecto, mostrar solo en hover */
   .clickable-card .d-hover-block {
     display: none !important;
   }
@@ -63,17 +103,15 @@
     display: block !important;
   }
 
-  /* MICRO-INTERACCIÓN EXTRA: Mover la flecha del botón "Ver Estudiantes" */
   .hover-effect:hover .btn-primary i.bi-arrow-right {
-    transform: translateX(0.25rem); /* 4px */
-    transition: transform 0.2s ease-in-out;
+    transform: translateX(4px);
+    transition: transform var(--transition-fast) ease-in-out;
   }
 
-  /* MICRO-INTERACCIÓN EXTRA: Resaltar el icono del calendario */
   .hover-effect:hover .bi-calendar-event {
-    color: var(--bs-primary); /* Cambia a color primario al hacer hover */
-    transform: scale(1.2);
-    display: inline-block; /* Necesario para transformar iconos */
-    transition: all 0.3s ease;
+    color: var(--color-primary);
+    transform: scale(1.15);
+    display: inline-block;
+    transition: all var(--transition-fast) ease;
   }
 }
