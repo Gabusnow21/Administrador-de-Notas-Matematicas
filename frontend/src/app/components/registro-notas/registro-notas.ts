@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SyncService } from '../../services/sync';
 import { AuthService } from '../../services/auth';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-registro-notas',
@@ -28,6 +29,7 @@ export class RegistroNotas implements OnInit {
   private route = inject(ActivatedRoute);
   public syncService = inject(SyncService);
   private authService = inject(AuthService);
+  private toast = inject(ToastService);
 
   // Catálogos
   grados: Grado[] = [];
@@ -81,7 +83,7 @@ export class RegistroNotas implements OnInit {
 
   async cargarPlanillaConducta() {
     if (!this.selGrado || !this.selMateria || !this.selTrimestre) {
-        alert('Seleccione Grado, Materia y Trimestre primero.');
+        this.toast.warning('Seleccione Grado, Materia y Trimestre primero.');
         this.modoConducta = false;
         return;
     }
@@ -144,7 +146,7 @@ export class RegistroNotas implements OnInit {
     } catch (error) {
         console.error('Error cargando planilla de conducta:', error);
         this.loading = false;
-        alert('Error al cargar datos de conducta.');
+        this.toast.error('Error al cargar datos de conducta.');
     }
   }
 
@@ -167,7 +169,7 @@ export class RegistroNotas implements OnInit {
 
     if (aGuardar.length === 0) {
         this.guardando = false;
-        alert('No hay cambios para guardar');
+        this.toast.info('No hay cambios para guardar');
         return;
     }
 
@@ -191,7 +193,7 @@ export class RegistroNotas implements OnInit {
 
     if (requests.length === 0) {
         this.guardando = false;
-        alert('No hay notas válidas para guardar');
+        this.toast.info('No hay notas válidas para guardar');
         return;
     }
 
@@ -214,7 +216,7 @@ export class RegistroNotas implements OnInit {
     if (completados === total) {
         this.guardando = false;
         items.forEach(i => i.modificado = false);
-        alert('¡Cambios de conducta guardados correctamente!');
+        this.toast.success('Cambios de conducta guardados correctamente');
     }
   }
 
@@ -243,7 +245,7 @@ export class RegistroNotas implements OnInit {
             this.actividadService.getByMateriaAndTrimestre(this.selMateria, this.selTrimestre).subscribe(data => {
               this.actividades = data;
               this.cargarPlanillaConducta();
-              alert('¡Las 15 actividades de conducta han sido creadas con éxito!');
+              this.toast.success('Las 15 actividades de conducta han sido creadas con éxito');
             });
           }
         },
@@ -354,7 +356,7 @@ export class RegistroNotas implements OnInit {
 
     if (aGuardar.length === 0) {
       this.guardando = false;
-      alert('No hay cambios para guardar');
+      this.toast.info('No hay cambios para guardar');
       return;
     }
 
@@ -369,10 +371,10 @@ export class RegistroNotas implements OnInit {
       this.calificacionService.guardarCalificacion(request).subscribe({
         next: () => {
           procesados++;
-          item.modificado = false; // Limpiar flag
+          item.modificado = false;
           if (procesados === aGuardar.length) {
             this.guardando = false;
-            alert('¡Notas guardadas correctamente!');
+            this.toast.success('Notas guardadas correctamente');
           }
         },
         error: () => {

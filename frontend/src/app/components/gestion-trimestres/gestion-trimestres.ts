@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { Trimestre, TrimestreService } from '../../services/trimestre';
 import { AuthService } from '../../services/auth';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-gestion-trimestres',
@@ -15,6 +16,7 @@ import { AuthService } from '../../services/auth';
 export class GestionTrimestres implements OnInit {
   private trimestreService = inject(TrimestreService);
   public authService = inject(AuthService);
+  private toast = inject(ToastService);
 
   trimestres: Trimestre[] = [];
   loading = true;
@@ -59,7 +61,7 @@ export class GestionTrimestres implements OnInit {
       },
       error: (e) => {
         this.procesando = false;
-        alert('Error al guardar trimestre');
+        this.toast.error('Error al guardar trimestre');
         console.error(e);
       }
     });
@@ -73,8 +75,11 @@ export class GestionTrimestres implements OnInit {
   eliminar(t: Trimestre) {
     if (!confirm('¿Eliminar trimestre?')) return;
     this.trimestreService.borrar(t.id).subscribe({
-      next: () => this.cargarTrimestres(),
-      error: () => alert('Error al eliminar')
+      next: () => {
+        this.toast.success('Trimestre eliminado');
+        this.cargarTrimestres();
+      },
+      error: () => this.toast.error('Error al eliminar')
     });
   }
 

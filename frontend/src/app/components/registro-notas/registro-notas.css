@@ -1,0 +1,172 @@
+/* ── Registro de Notas (Grade Spreadsheet) ─────── */
+:host {
+  display: block;
+}
+
+.grades-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.grades-header h2 {
+  font-family: var(--font-heading);
+  font-size: var(--text-3xl);
+  margin: 0;
+}
+
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+}
+
+.filter-bar .form-select {
+  min-height: 3rem;
+  border-radius: var(--radius-lg);
+}
+
+/* Mode toggle */
+.mode-toggle {
+  display: flex;
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  padding: 3px;
+  margin-bottom: var(--space-6);
+  width: fit-content;
+}
+
+.mode-toggle button {
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  color: var(--color-text-muted);
+}
+
+.mode-toggle button.active {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Spreadsheet table */
+.spreadsheet-wrapper {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  background: var(--color-surface);
+}
+
+.spreadsheet {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.spreadsheet thead {
+  background: var(--color-text);
+  color: var(--color-text-inverse);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.spreadsheet th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.spreadsheet td {
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border-light);
+  vertical-align: middle;
+}
+
+.spreadsheet tbody tr:hover {
+  background: var(--color-bg);
+}
+
+.spreadsheet tbody tr.modified {
+  background: var(--color-primary-light);
+}
+
+/* Grade input */
+.grade-input {
+  width: 80px;
+  padding: 0.4rem 0.6rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.grade-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+  outline: none;
+}
+
+/* Conduct matrix */
+.conduct-matrix {
+  overflow-x: auto;
+}
+
+.conduct-cell {
+  min-width: 60px;
+  text-align: center;
+}
+
+.conduct-input {
+  width: 50px;
+  padding: 0.3rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  font-size: var(--text-sm);
+}
+
+.conduct-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+  outline: none;
+}
+
+/* Save bar */
+.save-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--color-surface);
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  z-index: 10;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .filter-bar {
+    flex-direction: column;
+  }
+
+  .filter-bar .form-select {
+    width: 100%;
+  }
+}

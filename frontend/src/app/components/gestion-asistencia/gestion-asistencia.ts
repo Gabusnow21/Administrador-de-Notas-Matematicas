@@ -10,6 +10,7 @@ import { WebNfcService, NfcMessage } from '../../services/web-nfc.service';
 import { Subscription } from 'rxjs';
 import { NfcInteractionService } from '../../services/nfc-interaction.service';
 import { Reporte } from '../../services/reporte';
+import { ToastService } from '../../services/toast.service';
 
 interface AsistenciaViewModel {
   estudiante: Estudiante;
@@ -33,6 +34,7 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
   webNfcService = inject(WebNfcService);
   nfcInteractionService = inject(NfcInteractionService);
   ngZone = inject(NgZone);
+  private toast = inject(ToastService);
 
   grados: Grado[] = [];
   selectedGradoId: number | null = null;
@@ -119,14 +121,14 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error registering attendance', err);
         item.loading = false;
-        alert('Error al registrar asistencia');
+        this.toast.error('Error al registrar asistencia');
       }
     });
   }
 
   generarReporteMensual() {
     if (!this.selectedGradoId) {
-      alert('Por favor, seleccione un grado.');
+      this.toast.warning('Por favor, seleccione un grado.');
       return;
     }
     this.reporteGenerandose = true;
@@ -145,7 +147,7 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error generando el reporte', err);
-          alert('No se pudo generar el reporte de asistencia.');
+          this.toast.error('No se pudo generar el reporte de asistencia.');
           this.reporteGenerandose = false;
         }
       });
