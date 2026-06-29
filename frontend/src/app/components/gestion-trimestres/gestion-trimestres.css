@@ -4,25 +4,8 @@
   display: block;
 }
 
-.header-bar {
-  padding: 1rem; /* Usar rem para padding */
-}
-
-.back-button {
-  min-width: 48px; /* Asegurar tamaño táctil */
-  min-height: 48px; /* Asegurar tamaño táctil */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.2rem; /* Ajustar tamaño de icono */
-}
-
 .page-title {
-  font-size: 1.25rem; /* rem para h4 en móvil */
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
-  text-align: center;
-  flex-grow: 1; /* Permitir que ocupe espacio y centre */
+  font-size: 1.25rem;
 }
 
 .main-content {
@@ -79,9 +62,9 @@
 
 /* Botones de acción en tabla */
 .table-action-button {
-  min-width: 40px; /* Asegurar tamaño táctil mínimo para botones pequeños */
-  min-height: 40px;
-  padding: 0.5rem; /* Ajustar padding */
+  min-width: 44px; /* Tamaño táctil mínimo (WCAG 2.2) */
+  min-height: 44px;
+  padding: 0.5rem;
   font-size: 0.9rem;
 }
 
