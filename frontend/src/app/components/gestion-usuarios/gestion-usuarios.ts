@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { Usuario, UsuarioService } from '../../services/usuario';
-import { RouterLink, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SyncService } from '../../services/sync';
 import { AuthService } from '../../services/auth';
@@ -10,7 +10,7 @@ import { ToastService } from '../../services/toast.service';
 @Component({
   selector: 'app-gestion-usuarios',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [FormsModule],
   templateUrl: './gestion-usuarios.html',
   styleUrl: './gestion-usuarios.css',
 })

@@ -1,5 +1,4 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Materia, MateriaService } from '../../services/materia';
 import { AuthService } from '../../services/auth';
@@ -14,7 +13,7 @@ export interface MateriaData {
 
 @Component({
   selector: 'app-gestion-materias',
-  imports: [RouterLink, FormsModule],
+  imports: [FormsModule],
   templateUrl: './gestion-materias.html',
   styleUrl: './gestion-materias.css',
 })

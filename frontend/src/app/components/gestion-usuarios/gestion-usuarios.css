@@ -8,13 +8,6 @@
 }
 
 /* --- HEADER --- */
-.btn-back {
-  width: var(--touch-size);
-  height: var(--touch-size);
-  border-radius: 50%;
-  padding: 0;
-}
-
 .header-title {
   font-size: 1.1rem;
 }
