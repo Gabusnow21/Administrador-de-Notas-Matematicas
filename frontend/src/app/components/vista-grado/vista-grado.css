@@ -103,6 +103,25 @@
   text-overflow: ellipsis;
 }
 
+@media (max-width: 767px) {
+  .student-name {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .student-comma {
+    display: none;
+  }
+  .student-surname::after {
+    content: ",";
+    margin-right: 0.25rem;
+  }
+  .student-given-name {
+    display: block;
+    padding-left: 1.25rem;
+  }
+}
+
 .student-code {
   font-size: var(--text-xs);
   color: var(--color-text-muted);

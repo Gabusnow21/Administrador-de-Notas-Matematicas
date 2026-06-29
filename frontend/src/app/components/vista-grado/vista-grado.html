@@ -157,7 +157,10 @@
           <div class="student-info">
             <div class="student-avatar">{{ $index + 1 }}</div>
             <div class="student-details">
-              <div class="student-name">{{ est.apellidos }}, {{ est.nombres }}</div>
+              <div class="student-name">
+                <span class="student-surname">{{ est.apellidos }}</span><span class="student-comma">,</span>
+                <span class="student-given-name">{{ est.nombres }}</span>
+              </div>
               <div class="student-code">{{ est.codigoProgreso }}</div>
             </div>
           </div>
