@@ -1,4 +1,13 @@
 /* ── Vista Grado (Student List) ────────────────── */
+
+@media (max-width: 575.98px) {
+  .header-buttons {
+    width: 100%;
+  }
+  .header-buttons .btn {
+    width: 100%;
+  }
+}
 :host {
   display: block;
 }
