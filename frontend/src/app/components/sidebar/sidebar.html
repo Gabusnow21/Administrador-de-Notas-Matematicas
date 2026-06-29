@@ -1,7 +1,7 @@
-<div class="sidebar" [class.expanded]="isExpanded">
+<div class="sidebar" [class.expanded]="isExpanded" id="sidebar" aria-label="Navegación principal">
   <div class="sidebar-header">
-    <button class="btn btn-link text-white p-0 me-2 d-none d-md-block" (click)="toggle()" [title]="isExpanded ? 'Colapsar menú' : 'Expandir menú'">
-        <i class="bi bi-list fs-2"></i>
+    <button class="btn btn-link text-white p-0 me-2" (click)="toggle()" [title]="isExpanded ? 'Cerrar menú' : 'Abrir menú'" [attr.aria-expanded]="isExpanded" aria-controls="sidebar">
+        <i class="bi fs-2" [class.bi-list]="!isExpanded" [class.bi-x]="isExpanded"></i>
     </button>
     <a class="sidebar-brand fw-bold" href="/dashboard">
       <i class="bi bi-mortarboard-fill me-2"></i>

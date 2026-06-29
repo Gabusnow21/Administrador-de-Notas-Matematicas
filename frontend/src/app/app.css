@@ -1,0 +1,10 @@
+/* app.css — Root layout base */
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+/* Smooth route transitions */
+.route-container {
+  position: relative;
+}

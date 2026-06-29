@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth';
@@ -8,7 +8,7 @@ import { SyncService } from '../../services/sync';
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, CommonModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, SidebarComponent, CommonModule],
   templateUrl: './layout.html',
   styleUrl: './layout.css'
 })
