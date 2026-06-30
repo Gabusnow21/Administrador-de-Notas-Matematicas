@@ -184,6 +184,8 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
           item.hora = asistencia.hora;
         }
 
+        this.showNotification(`${asistencia.estudiante.nombres} ${asistencia.estudiante.apellidos}`, '+1 Asistencia Registrada');
+
         this.addLog(`Asignando 1 token de recompensa...`);
         this.nfcInteractionService.realizarTransaccion({
           nfcId: nfcId,
@@ -198,9 +200,6 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
             if (item) {
                 item.estudiante.saldoTokens = estudianteConSaldoActualizado.saldoTokens;
             }
-            
-            // Mostrar notificación tipo modal rápido
-            this.showNotification(`${estudianteConSaldoActualizado.nombres} ${estudianteConSaldoActualizado.apellidos}`, '+1 Punto Asignado');
           },
           error: (err) => {
             console.error('NFC Token Reward Error', err);
@@ -212,6 +211,7 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('NFC Registration Error', err);
         this.addLog(`❌ Error: ${err.error?.message || 'Estudiante no encontrado o error de red'}`);
+        this.toast.error('Error al registrar asistencia NFC');
       }
     });
   }

@@ -54,20 +54,6 @@
           </div>
           </div>
           </div>
-
-          <!-- Modal Overlay de Notificación de Puntos (Rápido) -->
-          <div class="notification-overlay" *ngIf="notification.show">
-            <div class="notification-modal shadow-lg">
-              <div class="notification-icon">
-                <i class="fas fa-star"></i>
-              </div>
-              <div class="notification-content">
-                <h2 class="notification-title">{{ notification.message }}</h2>
-                <p class="notification-student">{{ notification.studentName }}</p>
-              </div>
-            </div>
-          </div>
-          </div>
     <div class="row g-4" *ngIf="selectedGradoId">
       <!-- Lista de Asistencia -->
       <div [class]="nfcMode ? 'col-12 col-xl-8' : 'col-12'">
@@ -152,6 +138,19 @@
               </li>
             </ul>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Overlay de Notificación de Puntos (Rápido) -->
+    <div class="notification-overlay" *ngIf="notification.show">
+      <div class="notification-modal shadow-lg">
+        <div class="notification-icon">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="notification-content">
+          <h2 class="notification-title">{{ notification.message }}</h2>
+          <p class="notification-student">{{ notification.studentName }}</p>
         </div>
       </div>
     </div>
