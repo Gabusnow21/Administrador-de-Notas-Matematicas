@@ -41,6 +41,14 @@
 }
 
 /* Action buttons */
+.btn-group-mobile {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
 .btn-action {
   width: 38px;
   height: 38px;
