@@ -95,16 +95,16 @@
                   </td>
                   <td class="pe-3" data-label="Acciones">
                     <div class="btn-group-mobile" *ngIf="!item.loading">
-                      <button class="btn btn-sm btn-outline-success btn-action" title="Presente" (click)="registrarManual(item, EstadoAsistencia.PRESENTE)">
+                      <button class="btn btn-sm btn-outline-success btn-action" title="Presente" (click)="registrarManual(item, EstadoAsistencia.PRESENTE)" [class.active]="activeButton?.estudianteId === item.estudiante.id && activeButton?.estado === EstadoAsistencia.PRESENTE">
                         <i class="fas fa-check"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-warning btn-action" title="Tarde" (click)="registrarManual(item, EstadoAsistencia.TARDE)">
+                      <button class="btn btn-sm btn-outline-warning btn-action" title="Tarde" (click)="registrarManual(item, EstadoAsistencia.TARDE)" [class.active]="activeButton?.estudianteId === item.estudiante.id && activeButton?.estado === EstadoAsistencia.TARDE">
                         <i class="fas fa-clock"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-danger btn-action" title="Ausente" (click)="registrarManual(item, EstadoAsistencia.AUSENTE)">
+                      <button class="btn btn-sm btn-outline-danger btn-action" title="Ausente" (click)="registrarManual(item, EstadoAsistencia.AUSENTE)" [class.active]="activeButton?.estudianteId === item.estudiante.id && activeButton?.estado === EstadoAsistencia.AUSENTE">
                         <i class="fas fa-times"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-info btn-action" title="Excusado" (click)="registrarManual(item, EstadoAsistencia.EXCUSADO)">
+                      <button class="btn btn-sm btn-outline-info btn-action" title="Excusado" (click)="registrarManual(item, EstadoAsistencia.EXCUSADO)" [class.active]="activeButton?.estudianteId === item.estudiante.id && activeButton?.estado === EstadoAsistencia.EXCUSADO">
                         <i class="fas fa-file-medical"></i>
                       </button>
                     </div>

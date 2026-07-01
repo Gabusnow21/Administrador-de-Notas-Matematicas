@@ -45,6 +45,7 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
   nfcMode = false;
   nfcLogs: string[] = [];
   private nfcSubscription?: Subscription;
+  activeButton: { estudianteId: number; estado: EstadoAsistencia } | null = null;
 
   // Propiedades para la notificación
   notification: { show: boolean, message: string, studentName: string } = { show: false, message: '', studentName: '' };
@@ -117,6 +118,7 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
         item.estado = res.estado;
         item.hora = res.hora;
         item.loading = false;
+        this.activeButton = { estudianteId: item.estudiante.id!, estado: estado };
       },
       error: (err) => {
         console.error('Error registering attendance', err);
