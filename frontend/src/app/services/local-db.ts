@@ -207,10 +207,15 @@ export class LocalDbService extends Dexie {
   }
 
   async getEstudiantesPorGrado(gradoId: number) {
-    return await this.estudiantes
+    const estudiantes = await this.estudiantes
       .where('gradoId').equals(gradoId)
       .filter(e => e.syncStatus !== 'delete')
       .toArray();
+
+    return estudiantes.sort((a, b) => {
+      const porApellidos = (a.apellidos || '').localeCompare(b.apellidos || '', 'es', { sensitivity: 'base' });
+      return porApellidos !== 0 ? porApellidos : (a.nombres || '').localeCompare(b.nombres || '', 'es', { sensitivity: 'base' });
+    });
   }
 
   async getEstudiantesSinNfc(): Promise<LocalEstudiante[]> {

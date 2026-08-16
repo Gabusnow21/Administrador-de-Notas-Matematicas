@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EstudianteRepository extends JpaRepository<Estudiante, Long> {
 
-    List<Estudiante> findByGrado_Id(Long gradoId);
+    List<Estudiante> findByGrado_IdOrderByApellidosAsc(Long gradoId);
     
     Optional<Estudiante> findByNfcId(String nfcId);
 
