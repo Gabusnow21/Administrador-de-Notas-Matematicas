@@ -123,7 +123,7 @@ export class CalificacionService {
     });
 
     // 4. Cruzar
-    return estudiantes.map((est: LocalEstudiante) => {
+    const planilla = estudiantes.map((est: LocalEstudiante) => {
       const idReal = est.id ? Number(est.id) : -1;
       const idLocal = est.localId ? Number(est.localId) : -1;
 
@@ -139,6 +139,14 @@ export class CalificacionService {
         modificado: false
       };
     });
+
+    // Ordenar ascendentemente por apellidos (y nombres como desempate)
+    planilla.sort((a, b) => {
+      const porApellidos = (a.apellidoEstudiante || '').localeCompare(b.apellidoEstudiante || '', 'es', { sensitivity: 'base' });
+      return porApellidos !== 0 ? porApellidos : (a.nombreEstudiante || '').localeCompare(b.nombreEstudiante || '', 'es', { sensitivity: 'base' });
+    });
+
+    return planilla;
   }
 
   // ==========================================

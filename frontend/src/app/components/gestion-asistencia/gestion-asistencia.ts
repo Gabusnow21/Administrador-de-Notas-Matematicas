@@ -75,7 +75,12 @@ export class GestionAsistenciaComponent implements OnInit, OnDestroy {
   }
 
   mergeData(estudiantes: Estudiante[], asistencias: Asistencia[]) {
-    this.asistenciaList = estudiantes.map(est => {
+    const ordenados = [...estudiantes].sort((a, b) => {
+      const porApellidos = (a.apellidos || '').localeCompare(b.apellidos || '', 'es', { sensitivity: 'base' });
+      return porApellidos !== 0 ? porApellidos : (a.nombres || '').localeCompare(b.nombres || '', 'es', { sensitivity: 'base' });
+    });
+
+    this.asistenciaList = ordenados.map(est => {
       const record = asistencias.find(a => a.estudiante.id === est.id);
       return {
         estudiante: est,
