@@ -1,9 +1,9 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Materia, MateriaService } from '../../services/materia';
 import { AuthService } from '../../services/auth';
 import { SyncService } from '../../services/sync';
+import { ToastService } from '../../services/toast.service';
 
 export interface MateriaData {
   id?: number;
@@ -13,7 +13,7 @@ export interface MateriaData {
 
 @Component({
   selector: 'app-gestion-materias',
-  imports: [RouterLink, FormsModule],
+  imports: [FormsModule],
   templateUrl: './gestion-materias.html',
   styleUrl: './gestion-materias.css',
 })
@@ -21,6 +21,7 @@ export class GestionMaterias implements OnInit {
   private materiaService = inject(MateriaService);
   public authService = inject(AuthService);
   public syncService = inject(SyncService);
+  private toast = inject(ToastService);
 
   materias: Materia[] = [];
   loading: boolean = true;
@@ -67,25 +68,28 @@ export class GestionMaterias implements OnInit {
     if (this.esEdicion) {
       this.materiaService.actualizar(this.materiaForm as Materia).subscribe({
         next: () => this.finalizarOperacion(),
-        error: () => { this.procesando = false; alert('Error al actualizar'); }
+        error: () => { this.procesando = false; this.toast.error('Error al actualizar'); }
       });
     } else {
       this.materiaService.crear(this.materiaForm as Materia).subscribe({
         next: () => this.finalizarOperacion(),
-        error: () => { this.procesando = false; alert('Error al crear'); }
+        error: () => { this.procesando = false; this.toast.error('Error al crear'); }
       });
     }
   }
-  // Eliminar materia
-  eliminar(materia: Materia) { 
+
+  eliminar(materia: Materia) {
     if(!confirm('¿Eliminar esta materia?')) return;
-  
+
     const idParaBorrar = materia.id || materia.localId;
 
     if (idParaBorrar) {
         this.materiaService.borrar(idParaBorrar).subscribe({
-          next: () => this.cargarMaterias(),
-          error: () => alert('No se pudo eliminar offline.')
+          next: () => {
+            this.toast.success('Materia eliminada');
+            this.cargarMaterias();
+          },
+          error: () => this.toast.error('No se pudo eliminar offline.')
         });
     }
   }

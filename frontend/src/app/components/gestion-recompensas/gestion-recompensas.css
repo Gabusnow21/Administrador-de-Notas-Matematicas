@@ -1,0 +1,59 @@
+.hover-effect {
+  transition: background-color 0.2s ease;
+}
+
+.hover-effect:hover {
+  background-color: rgba(0, 123, 255, 0.02);
+}
+
+.bg-brown {
+  background-color: #cd7f32 !important;
+  color: white !important;
+}
+
+.ranking-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Custom scrollbar para el ranking */
+.ranking-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ranking-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.ranking-container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.ranking-container::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
+}
+
+/* Ajustes para móviles */
+@media (max-width: 576px) {
+  .modal-body {
+    padding: 1.25rem !important;
+  }
+  
+  .h4 {
+    font-size: 1.1rem;
+  }
+  
+  .badge {
+    font-size: 0.75rem;
+  }
+}

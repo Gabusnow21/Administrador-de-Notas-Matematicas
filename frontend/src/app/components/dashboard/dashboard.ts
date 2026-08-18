@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { SyncService } from '../../services/sync';
 import { Usuario, UsuarioService } from '../../services/usuario';
 import { CommonModule } from '@angular/common';
+import { ToastService } from '../../services/toast.service';
 
 declare var bootstrap: any;
 
@@ -20,6 +21,7 @@ export class Dashboard implements OnInit, AfterViewInit {
   private authService = inject(AuthService);
   private gradoService = inject(GradoService);
   private usuarioService = inject(UsuarioService);
+  private toast = inject(ToastService);
   public syncService = inject(SyncService);
 
   grados: Grado[] = [];
@@ -139,20 +141,22 @@ export class Dashboard implements OnInit, AfterViewInit {
   }
 
   eliminarGrado(grado: Grado) {
-    const confirmacion = confirm(`¿Estás seguro de eliminar el ${grado.nivel}?`);
-    if (!confirmacion) return;
+    if (!confirm(`¿Estás seguro de eliminar el ${grado.nivel}?`)) return;
 
     this.gradoService.deleteGrado(grado).subscribe({
-      next: () => this.cargarGrados(),
+      next: () => {
+        this.toast.success('Grado eliminado correctamente');
+        this.cargarGrados();
+      },
       error: (err) => {
         console.error(err);
-        alert('No se pudo eliminar el grado.');
+        this.toast.error('No se pudo eliminar el grado.');
       }
     });
   }
 
   finalizarOperacion(mensaje: string) {
-    console.log(mensaje);
+    this.toast.success(mensaje);
     this.procesando = false;
     this.cargarGrados();
     if (this.modalInstance) {
@@ -162,7 +166,7 @@ export class Dashboard implements OnInit, AfterViewInit {
 
   manejarError(err: any) {
     console.error(err);
-    alert('Ocurrió un error. Revisa la consola.');
+    this.toast.error('Ocurrió un error. Revisa la consola.');
     this.procesando = false;
   }
 

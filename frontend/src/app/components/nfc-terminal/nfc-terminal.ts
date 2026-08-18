@@ -2,7 +2,6 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { RouterLink } from '@angular/router';
 
 // Servicios y Modelos
 import { WebNfcService, NfcMessage } from '../../services/web-nfc.service';
@@ -14,7 +13,7 @@ import { ConfiguracionService } from '../../services/configuracion.service';
 @Component({
   selector: 'app-nfc-terminal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './nfc-terminal.html',
   styleUrls: ['./nfc-terminal.css']
 })

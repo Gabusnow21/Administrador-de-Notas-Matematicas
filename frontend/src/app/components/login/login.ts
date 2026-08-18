@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { UsuarioService, Usuario } from '../../services/usuario';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -17,6 +18,7 @@ export class Login {
   private authService = inject(AuthService);
   private router = inject(Router);
   private usuarioService = inject(UsuarioService);
+  private toast = inject(ToastService);
 
   isRegistering = false;
 
@@ -85,9 +87,8 @@ export class Login {
     this.usuarioService.crear(newUser).subscribe({
       next: () => {
         this.isLoading = false;
-        this.isRegistering = false; // Vuelve a la vista de login
-        // Opcional: podrías mostrar un mensaje de éxito
-        alert('Registro exitoso! Ahora puedes iniciar sesión.');
+        this.isRegistering = false;
+        this.toast.success('Registro exitoso! Ahora puedes iniciar sesión.');
         this.loginForm.reset();
       },
       error: (err) => {

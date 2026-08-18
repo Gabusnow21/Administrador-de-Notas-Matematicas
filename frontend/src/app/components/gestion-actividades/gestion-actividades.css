@@ -1,0 +1,117 @@
+/* ── Gestión de Actividades ────────────────────── */
+:host {
+  display: block;
+}
+
+.crud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.crud-header h2 {
+  font-family: var(--font-heading);
+  font-size: var(--text-3xl);
+  margin: 0;
+}
+
+/* Activity tree */
+.activity-tree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.activity-item {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  padding: var(--space-5);
+  transition: all var(--transition-fast);
+  border-left: 4px solid var(--color-accent);
+}
+
+.activity-item:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.activity-item.child {
+  margin-left: var(--space-8);
+  border-left-color: var(--color-border);
+}
+
+.activity-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.activity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+}
+
+.activity-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-light);
+}
+
+/* Ponderacion bar */
+.ponderacion-bar {
+  height: 6px;
+  background: var(--color-bg);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-top: var(--space-2);
+}
+
+.ponderacion-fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: var(--radius-full);
+  transition: width var(--transition-base);
+}
+
+/* Form */
+.crud-form {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border-light);
+  margin-bottom: var(--space-6);
+  animation: fadeInUp 0.3s ease;
+}
+
+/* Filter selects */
+.filter-bar {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+}
+
+.filter-bar .form-select {
+  min-height: 3rem;
+  border-radius: var(--radius-lg);
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .activity-item.child {
+    margin-left: var(--space-12);
+  }
+}

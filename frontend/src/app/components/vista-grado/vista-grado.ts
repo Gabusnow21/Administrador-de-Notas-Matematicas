@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { Grado, GradoService } from '../../services/grado';
 import { SyncService } from '../../services/sync';
 import { AuthService } from '../../services/auth';
+import { Reporte } from '../../services/reporte';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-vista-grado',
@@ -21,12 +23,15 @@ export class VistaGrado implements OnInit {
   private estudianteService = inject(EstudianteService);
   private gradoService = inject(GradoService);
   public syncService = inject(SyncService);
-  private authService = inject(AuthService); 
+  private authService = inject(AuthService);
+  private reporteService = inject(Reporte);
+  private toast = inject(ToastService);
 
   //Variables
   estudiantes: Estudiante[] = [];
   gradoId: number = 0;
   loading: boolean = true;
+  descargando: boolean = false;
   nombreGrado: string = '';//Nombre del grado actual
   gradoActual: Grado | null = null;
 
@@ -105,9 +110,10 @@ export class VistaGrado implements OnInit {
 
     this.estudianteService.deleteEstudiante(est).subscribe({
       next: () => {
-        this.cargarEstudiantes(); // Recargar tabla
+        this.toast.success('Estudiante eliminado');
+        this.cargarEstudiantes();
       },
-      error: (err) => alert('Error al eliminar.')
+      error: (err) => this.toast.error('Error al eliminar.')
     });
   }
 
@@ -166,6 +172,34 @@ export class VistaGrado implements OnInit {
     this.syncService.sincronizar();
   }
 
+  async descargarBoletines() {
+    if (this.descargando) return;
+    this.descargando = true;
+
+    for (const est of this.estudiantes) {
+      if (est.id) {
+        try {
+          const blob = await this.reporteService.descargarBoletin(est.id).toPromise();
+          if(blob){
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Boletin_${est.nombres}_${est.apellidos}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+          }
+        } catch (err) {
+          console.error(`Error descargando boletín para ${est.nombres}`, err);
+          this.toast.error(`No se pudo generar el reporte para ${est.nombres}.`);
+        }
+      }
+    }
+
+    this.descargando = false;
+  }
+
   // Helpers
   finalizarOperacion() {
     this.procesando = false;
@@ -178,9 +212,9 @@ export class VistaGrado implements OnInit {
     console.error(err);
     this.procesando = false;
     if (err.error?.message?.includes('constraint')) {
-      alert('Error: El código de progreso ya está en uso.');
+      this.toast.error('Error: El código de progreso ya está en uso.');
     } else {
-      alert('Ocurrió un error al guardar el estudiante.');
+      this.toast.error('Ocurrió un error al guardar el estudiante.');
     }
   }
 

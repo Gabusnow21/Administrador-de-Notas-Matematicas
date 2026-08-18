@@ -3,6 +3,7 @@ package dev.gabus;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -14,6 +15,7 @@ import dev.gabus.dto.Usuario.Usuario;
 import dev.gabus.dto.Usuario.UsuarioRepository;
 
 @SpringBootApplication
+@EnableScheduling
 public class GabusApplication {
 
 	public static void main(String[] args) {

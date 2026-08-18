@@ -83,9 +83,14 @@ public class CalificacionController {
             @RequestParam Long gradoId,
             @RequestParam Long actividadId
     ) {
-        // 1. Obtener todos los estudiantes del grado
-        List<Estudiante> estudiantes = estudianteRepository.findByGrado_Id(gradoId);
-        
+        // 1. Obtener todos los estudiantes del grado (ordenados ascendentemente por apellidos)
+        List<Estudiante> estudiantes = estudianteRepository.findByGrado_IdOrderByApellidosAsc(gradoId);
+
+        estudiantes.sort((e1, e2) -> {
+            int porApellidos = e1.getApellidos().compareToIgnoreCase(e2.getApellidos());
+            return porApellidos != 0 ? porApellidos : e1.getNombres().compareToIgnoreCase(e2.getNombres());
+        });
+
         // 2. Obtener las notas existentes para esa actividad
         List<Calificacion> notasExistentes = calificacionRepository.findByActividadId(actividadId);
 

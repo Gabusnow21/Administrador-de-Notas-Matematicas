@@ -1,21 +1,50 @@
 .login-container {
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); /* Azul profundo y profesional */
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary-darker) 100%);
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: var(--space-5);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Geometric pattern overlay — Math/Grid dots */
+.login-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 48px 48px, 32px 32px;
+  pointer-events: none;
+}
+
+/* Floating geometric accent */
+.login-container::after {
+  content: '';
+  position: absolute;
+  top: -15%;
+  right: -10%;
+  width: 50%;
+  height: 70%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(16px);
+  border-radius: var(--radius-2xl);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   overflow: hidden;
   max-width: 450px;
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .brand-logo {
@@ -26,73 +55,93 @@
 }
 
 .form-floating > label {
-  color: #6c757d;
+  color: var(--color-text-muted);
 }
 
 .form-floating > .form-control:focus ~ label,
 .form-floating > .form-control:not(:placeholder-shown) ~ label {
-  color: #1e3c72;
+  color: var(--color-primary-dark);
   font-weight: 600;
 }
 
 .form-control {
-  border-radius: 10px;
-  border: 1px solid #ced4da;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--color-border);
   padding-left: 1rem;
+  transition: all var(--transition-fast);
 }
 
 .form-control:focus {
-  border-color: #2a5298;
-  box-shadow: 0 0 0 0.25rem rgba(42, 82, 152, 0.15);
+  border-color: var(--color-primary-darker);
+  box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.12);
 }
 
 .btn-primary-gradient {
-  background: linear-gradient(to right, #1e3c72, #2a5298);
+  background: linear-gradient(to right, var(--color-primary-dark), var(--color-primary-darker));
   border: none;
-  border-radius: 10px;
-  padding: 12px;
+  border-radius: var(--radius-lg);
+  padding: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.5px;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary-gradient::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(255,255,255,0.1), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
 }
 
 .btn-primary-gradient:hover {
-  background: linear-gradient(to right, #2a5298, #1e3c72);
+  background: linear-gradient(to right, var(--color-primary-darker), var(--color-primary-dark));
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(30, 60, 114, 0.3);
+  box-shadow: 0 8px 25px rgba(30, 60, 114, 0.35);
+}
+
+.btn-primary-gradient:hover::after {
+  opacity: 1;
 }
 
 .btn-primary-gradient:disabled {
-  background: #ccc;
+  background: var(--color-border);
   transform: none;
   box-shadow: none;
 }
 
 .toggle-link {
-  color: #1e3c72;
+  color: var(--color-primary-dark);
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color var(--transition-fast);
 }
 
 .toggle-link:hover {
-  color: #2a5298;
+  color: var(--color-primary-darker);
   text-decoration: underline;
 }
 
-/* Animaciones */
+/* ── Animations ────────────────────────────────── */
 .fade-in {
   animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes fadeIn {
-  from { 
-    opacity: 0; 
-    transform: translateY(20px); 
+  from {
+    opacity: 0;
+    transform: translateY(16px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
+
+/* Stagger children inside form */
+.glass-card .form-floating:nth-child(1) { animation-delay: 0.1s; }
+.glass-card .form-floating:nth-child(2) { animation-delay: 0.2s; }

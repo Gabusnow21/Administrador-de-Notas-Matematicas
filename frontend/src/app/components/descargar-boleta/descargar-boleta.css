@@ -1,0 +1,18 @@
+/* ── Descargar Boleta ──────────────────────────── */
+.download-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: var(--space-5);
+}
+
+.download-container .card {
+  max-width: 500px;
+  width: 100%;
+  border-radius: var(--radius-2xl);
+}
+
+.hover-bg-light:hover {
+  background-color: var(--color-bg) !important;
+}

@@ -17,18 +17,30 @@ const logoDerecha = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ8AAADHCAYAA
 export class Reporte {
   private http = inject(HttpClient);
   private localDb = inject(LocalDbService);
-  private apiUrl = `${environment.apiUrl}/reportes`;
+  private apiUrl = `${environment.apiUrl}`;
 
+  /**
+   * Genera el boletín de calificaciones directamente en el frontend.
+   * Se eliminó el intento de descarga desde el backend para cumplir con la directiva de usar la versión del frontend.
+   */
   descargarBoletin(estudianteId: number): Observable<Blob> {
-    // Intentar siempre la descarga online. Si falla, se activa el fallback a offline.
-    return this.http.get(`${this.apiUrl}/boletin/${estudianteId}`, {
+    return from(this.generarBoletinOffline(estudianteId));
+  }
+
+  /**
+   * Genera el reporte mensual de asistencia llamando al backend.
+   */
+  generarReporteAsistenciaMensual(gradoId: number, month: number, year: number): Observable<Blob> {
+    const params = {
+      gradoId: gradoId.toString(),
+      month: month.toString(),
+      year: year.toString()
+    };
+
+    return this.http.get(`${this.apiUrl}/asistencia/reporte/mensual`, {
+      params,
       responseType: 'blob'
-    }).pipe(
-      catchError(err => {
-        console.warn('API de reportes no disponible. Generando boletín en modo offline.', err);
-        return from(this.generarBoletinOffline(estudianteId));
-      })
-    );
+    });
   }
 
   async generarBoletinOffline(estudianteId: number): Promise<Blob> {
@@ -56,29 +68,35 @@ export class Reporte {
     const pageWidth = doc.internal.pageSize.getWidth();
 
     // --- Logos ---
-    doc.addImage(logoIzquierda, 'PNG', 15, 25, 35, 35);
-    doc.addImage(logoDerecha, 'PNG', pageWidth - 55, 25, 35, 35);
+    doc.addImage(logoIzquierda, 'PNG', 15, 14, 25, 25);
+    doc.addImage(logoDerecha, 'PNG', pageWidth - 40, 13, 25, 25);
 
     // --- Cabecera ---
     doc.setFont('sans-serif', 'bold');
     doc.setFontSize(12);
-    doc.text('CENTRO ESCOLAR CATÓLICO "MADRE CLARA QUIRÓS"', pageWidth / 2, 20, { align: 'center' });
+    doc.text('"CENTRO ESCOLAR CATÓLICO "MADRE CLARA QUIRÓS"', pageWidth / 2, 20, { align: 'center' });
     
     doc.setFont('sans-serif', 'normal');
     doc.setFontSize(10);
-    doc.text('cecmadreclaraquiros@yahoo.com', pageWidth / 2, 30, { align: 'center' });
-    doc.text('Final barrio la Cruz, La Palma Chalatenango.', pageWidth / 2, 40, { align: 'center' });
+    doc.text('cecmadreclaraquiros@yahoo.com', pageWidth / 2, 25, { align: 'center' });
+    doc.text('Final barrio la Cruz, La Palma Chalatenango.', pageWidth / 2, 30, { align: 'center' });
     
     doc.setFont('sans-serif', 'bold');
-    doc.text('Tel. 2305- 8432, 7187-7141', pageWidth / 2, 50, { align: 'center' });
+    doc.text('Tel. 2305- 8432, 7187-7141', pageWidth / 2, 35, { align: 'center' });
 
-    doc.setFontSize(11);
+    doc.setFont('serif', 'bold');
+    doc.setFontSize(16);
+    doc.text('"CENTRO ESCOLAR CATÓLICO "MADRE CLARA QUIRÓS"', pageWidth / 2, 45, { align: 'center' });
+    doc.text('Código:21276', pageWidth / 2, 50, { align: 'center' });
+
+    doc.setFontSize(12);
     doc.text('REGISTRO ACADÉMICO DE MATERIAS COMPLEMENTARIAS', pageWidth / 2, 70, { align: 'center' });
     doc.text('I, II, III CICLO', pageWidth / 2, 80, { align: 'center' });
 
     doc.setFontSize(11);
     doc.setTextColor('#003366'); // Color azul oscuro
     doc.text(`Estudiante:  ${estudiante.apellidos} ${estudiante.nombres}`, 14, 95);
+    doc.text(`NIE: ${estudiante.codigoProgreso || ''}`, pageWidth - 50, 95);
     doc.setTextColor('#000000'); // Reset color
     // --- Fin de la Cabecera ---
 
@@ -93,10 +111,42 @@ export class Reporte {
         });
       }
     });
+
+    doc.setFontSize(12);
+    doc.text('ASPECTOS PARA EVALUAR', pageWidth / 2, 155, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text('Los marcados con un cheque son los vivenciados en la institución', pageWidth / 2, 160, { align: 'center' });
+
+    doc.setFont('sans-serif', 'normal');
+    doc.setFontSize(10);
+    doc.text('"Padres, no hagan enojar a sus hijos, sino más bien crienlos con disciplina e instrúyalos en el amor del señor. Efesios 6:4"', 
+      pageWidth / 2, 280, { align: 'center' });
+
+  
+    // Mapa para conducta (1-15)
+    const conductMap = new Map<number, { [key: number]: string }>();
+    for (let i = 1; i <= 15; i++) {
+      conductMap.set(i, { 1: '', 2: '', 3: '' });
+    }
   
     calificaciones.forEach(cal => {
       const actividad = actividades.find(a => a.id === cal.actividadId);
       if (actividad) {
+        // Identificar si es un item de conducta (Empieza con numero y punto, ej: "1. ")
+        const match = actividad.nombre.match(/^(\d+)\./);
+        if (match) {
+          const itemIdx = parseInt(match[1]);
+          if (itemIdx >= 1 && itemIdx <= 15) {
+            const tId = actividad.trimestreId;
+            if (tId >= 1 && tId <= 3) {
+              // Si la nota es 10 (o >= 1 como salvaguarda), mostramos un cheque, de lo contrario una X
+              conductMap.get(itemIdx)![tId] = cal.nota >= 5 ? '✅' : '❌'; 
+              return; // No incluir en promedios academicos
+
+            }
+          }
+        }
+
         const materia = materiasMap.get(actividad.materiaId);
         if (materia) {
           const trimestre = trimestres.find(t => t.id === actividad.trimestreId);
@@ -155,13 +205,83 @@ export class Reporte {
         5: { halign: 'center' }  // Promedio
       }
     });
-    //Sacar promedio final general
-    /*if (subjectCount > 0) {
-      const overallAverage = (finalAverage / subjectCount).toFixed(2);
-      const finalY = (doc as any).lastAutoTable.finalY;
-      doc.text(`Promedio Final General: ${overallAverage}`, 14, finalY + 10);
-    }*/
-  
+
+
+    const finalY = (doc as any).lastAutoTable.finalY;
+
+    // --- Tabla de Formato (Positivos y A Mejorar) ---
+    const footerData: any[] = [
+      // --- BLOQUE POSITIVOS ---
+      [
+        { content: 'POSITIVOS', styles: { fontStyle: 'bold' as const, lineWidth: { top: 0.1, right: 0.1, bottom: 0, left: 0.1 } } }, 
+        { content: 'I', styles: { halign: 'center', fontStyle: 'bold' as const } }, 
+        { content: 'II', styles: { halign: 'center', fontStyle: 'bold' as const } }, 
+        { content: 'III', styles: { halign: 'center', fontStyle: 'bold' as const } }
+      ],
+      [{ content: '1.  Coopera y participa en las distintas actividades del aula y Centro Escolar.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, conductMap.get(1)![1], conductMap.get(1)![2], conductMap.get(1)![3]],
+      [{ content: '2.  Es respetuoso con todos los profesores, compañeros y demás personas.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, conductMap.get(2)![1], conductMap.get(2)![2], conductMap.get(2)![3]],
+      [{ content: '3.  Presenta sus trabajos completos, en orden, limpios y en la fecha indicada.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, conductMap.get(3)![1], conductMap.get(3)![2], conductMap.get(3)![3]],
+      [{ content: '4.  Es responsable y organizado en su trabajo.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, conductMap.get(4)![1], conductMap.get(4)![2], conductMap.get(4)![3]],
+      [{ content: '5.  Tiene hábito de estudio.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, conductMap.get(5)![1], conductMap.get(5)![2], conductMap.get(5)![3]],
+      [{ content: '6.  Ha mejorado su rendimiento escolar.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0.1, left: 0.1 } } }, conductMap.get(6)![1], conductMap.get(6)![2], conductMap.get(6)![3]],
+
+      // --- BLOQUE A MEJORAR ---
+      [
+        { content: 'A MEJORAR', styles: { fontStyle: 'bold' as const, lineWidth: { top: 0.1, right: 0.1, bottom: 0, left: 0.1 } } }, 
+        '', '', ''
+      ],
+      [{ content: '7.  Tiene ausencia sin justificación escrita.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, conductMap.get(7)![1], conductMap.get(7)![2], conductMap.get(7)![3]],
+      [{ content: '8.  Se presenta al Centro Escolar con uniforme incompleto.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, conductMap.get(8)![1], conductMap.get(8)![2], conductMap.get(8)![3]],
+      [{ content: '9.  No trae completos sus textos y útiles escolares.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, conductMap.get(9)![1], conductMap.get(9)![2], conductMap.get(9)![3]],
+      [{ content: '10. Usa vocabulario Soez.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, conductMap.get(10)![1], conductMap.get(10)![2], conductMap.get(10)![3]],
+      [{ content: '11. Interrumpe el desarrollo de las clases.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, conductMap.get(11)![1], conductMap.get(11)![2], conductMap.get(11)![3]],
+      [{ content: '12. Presenta sus tareas escolares incompletas y fuera del tiempo fijado.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, conductMap.get(12)![1], conductMap.get(12)![2], conductMap.get(12)![3]],
+      [{ content: '13. Usa tintes, maquillajes, joyas y celulares.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, conductMap.get(13)![1], conductMap.get(13)![2], conductMap.get(13)![3]],
+      [{ content: '14. Se presenta el estudiante con corte de cabello inadecuado.', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0, left: 0.1 } } }, conductMap.get(14)![1], conductMap.get(14)![2], conductMap.get(14)![3]],
+      [{ content: '15. Tiene Deméritos', styles: { lineWidth: { top: 0, right: 0.1, bottom: 0.1, left: 0.1 } } }, conductMap.get(15)![1], conductMap.get(15)![2], conductMap.get(15)![3]],
+    ];
+
+    autoTable(doc, {
+      body: footerData,
+      startY: finalY + 20,
+      theme: 'grid',
+      styles: {
+        fontSize: 7,
+        cellPadding: 1,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.1,
+      },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 25, halign: 'center' },
+        2: { cellWidth: 25, halign: 'center' },
+        3: { cellWidth: 25, halign: 'center' },
+      },
+      didDrawCell: (data) => {
+        // Solo actuar en las celdas de las columnas I, II, III (indices 1, 2, 3) de la tabla de conducta
+        if (data.section === 'body' && (data.column.index === 1 || data.column.index === 2 || data.column.index === 3)) {
+          const text = data.cell.text[0];
+          if (text === '✅') {
+            const x = data.cell.x + data.cell.width / 2;
+            const y = data.cell.y + data.cell.height / 2;
+            doc.setDrawColor(0, 128, 0); // Verde
+            doc.setLineWidth(0.4);
+            doc.line(x - 2, y, x - 0.5, y + 2);
+            doc.line(x - 0.5, y + 2, x + 2.5, y - 2);
+            data.cell.text = ['']; // Limpiar texto para que no salga el emoji roto
+          } else if (text === '❌') {
+            const x = data.cell.x + data.cell.width / 2;
+            const y = data.cell.y + data.cell.height / 2;
+            doc.setDrawColor(200, 0, 0); // Rojo
+            doc.setLineWidth(0.4);
+            doc.line(x - 2, y - 2, x + 2, y + 2);
+            doc.line(x + 2, y - 2, x - 2, y + 2);
+            data.cell.text = ['']; // Limpiar texto
+          }
+        }
+      }
+    });
+
     return doc.output('blob');
   }
   
@@ -175,4 +295,6 @@ export class Reporte {
     });
     return totalPonderacion > 0 ? totalNota / totalPonderacion : 0;
   }
+
+  
 }
