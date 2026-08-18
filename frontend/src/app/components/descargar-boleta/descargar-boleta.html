@@ -15,23 +15,39 @@
                     <i class="bi bi-file-earmark-pdf display-1 text-danger"></i>
                 </div>
                 <h2 class="fw-bold mb-2" style="font-family: var(--font-heading);">Descargar Boleta</h2>
-                <p class="text-muted mb-4">Ingresa tu número de lista para obtener tu boleta en PDF.</p>
+                <p class="text-muted mb-4">Ingresa el NIE del estudiante para obtener su boleta en PDF.</p>
 
                 <form (ngSubmit)="onSubmit()" #downloadForm="ngForm">
-                    <div class="mb-4">
-                        <label for="listNumber" class="form-label fw-semibold text-start d-block">Número de Lista</label>
+                    <div class="mb-3">
+                        <label for="nieInput" class="form-label fw-semibold text-start d-block">NIE del Estudiante</label>
                         <input
-                            type="number"
-                            id="listNumber"
-                            name="listNumber"
-                            [(ngModel)]="studentListNumber"
-                            placeholder="Ej: 15"
+                            type="text"
+                            id="nieInput"
+                            name="nieInput"
+                            [(ngModel)]="nie"
+                            (ngModelChange)="onNieInput()"
+                            placeholder="Ej: 10179258"
+                            maxlength="8"
                             required
                             class="form-control form-control-lg text-center"
-                            style="max-width: 200px; margin: 0 auto; border-radius: var(--radius-lg); font-size: 1.25rem;">
+                            style="max-width: 250px; margin: 0 auto; border-radius: var(--radius-lg); font-size: 1.25rem;">
+                        <small class="text-muted d-block mt-1">El NIE es el código de 8 dígitos del estudiante</small>
                     </div>
 
-                    <button type="submit" [disabled]="loading || !studentListNumber"
+                    @if (checkingNie) {
+                        <div class="text-muted small mb-3">
+                            <span class="spinner-border spinner-border-sm me-1"></span> Verificando disponibilidad...
+                        </div>
+                    }
+
+                    @if (nieAvailable && nie.length === 8) {
+                        <div class="alert alert-success py-2 mb-3 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <span>Boleta disponible</span>
+                        </div>
+                    }
+
+                    <button type="submit" [disabled]="loading || !isNieValid()"
                             class="btn btn-primary btn-lg w-100 rounded-pill fw-semibold"
                             style="max-width: 300px; margin: 0 auto; display: block; min-height: 3rem;">
                         @if (loading) {

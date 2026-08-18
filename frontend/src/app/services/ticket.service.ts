@@ -10,8 +10,12 @@ export class TicketService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  validateTicket(studentListNumber: number): Observable<{ token: string }> {
-    return this.http.post<{ token: string }>(`${this.apiUrl}/tickets/validate`, { studentListNumber });
+  validateTicket(nie: string): Observable<{ token: string }> {
+    return this.http.post<{ token: string }>(`${this.apiUrl}/tickets/validate`, { nie });
+  }
+
+  checkNie(nie: string): Observable<{ available: boolean; message: string }> {
+    return this.http.get<{ available: boolean; message: string }>(`${this.apiUrl}/tickets/check-nie/${nie}`);
   }
 
   generateTickets(): Observable<any> {

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +19,8 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
     
-    // Inyéctar con @Value("${jwt.secret.key}")
-    // Para este ejemplo rápido, usa esta constante larga:
-    private static final String SECRET_KEY = "LlaveSecretaMuyLargaYSeguraParaMiAplicacionDeCalificaciones1234567890";
+    @Value("${jwt.secret.key}")
+    private String secretKey;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -82,8 +82,7 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY); // Si tu clave es texto plano, usa .getBytes()
-        // Como tu clave de ejemplo es texto simple, usaremos esto para evitar errores de Base64:
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 }

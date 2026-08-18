@@ -17,12 +17,13 @@ export class DescargarBoleta implements OnInit {
   private authService = inject(AuthService);
   private toast = inject(ToastService);
 
-  studentListNumber: number | null = null;
+  nie: string = '';
   loading = false;
   message = '';
   error = '';
+  nieAvailable = false;
+  checkingNie = false;
 
-  // Configuración Admin
   showAdmin = false;
   isAdmin = false;
   configPath = '';
@@ -53,8 +54,6 @@ export class DescargarBoleta implements OnInit {
         this.error = '';
       },
       error: (err) => {
-        // Si el directorio no existe, no es un error crítico para el usuario, 
-        // simplemente vaciamos la lista de sugerencias.
         this.subDirectories = [];
       }
     });
@@ -66,14 +65,12 @@ export class DescargarBoleta implements OnInit {
   }
 
   goBack() {
-    // Si la ruta está vacía o es la raíz, no hacemos nada
     if (!this.configPath || this.configPath === '/' || this.configPath === '.') {
-      this.configPath = '/'; // Asegurar que mostramos algo válido
+      this.configPath = '/';
       this.explorePath(this.configPath);
       return;
     }
-    
-    // Quitar la última parte de la ruta
+
     const parts = this.configPath.split('/').filter(p => p.length > 0);
     if (parts.length > 0) {
       parts.pop();
@@ -91,7 +88,6 @@ export class DescargarBoleta implements OnInit {
 
   saveConfig() {
     if (this.selectedFiles && this.selectedFiles.length > 0) {
-      // Primero asegurar que la ruta es la correcta en el servidor antes de subir
       this.loading = true;
       this.ticketService.setConfigPath(this.configPath).subscribe({
         next: () => {
@@ -139,9 +135,33 @@ export class DescargarBoleta implements OnInit {
     });
   }
 
+  onNieInput() {
+    this.nieAvailable = false;
+    this.message = '';
+    this.error = '';
+
+    if (this.nie.length === 8) {
+      this.checkingNie = true;
+      this.ticketService.checkNie(this.nie).subscribe({
+        next: (res) => {
+          this.checkingNie = false;
+          this.nieAvailable = res.available;
+        },
+        error: (err) => {
+          this.checkingNie = false;
+          this.nieAvailable = false;
+        }
+      });
+    }
+  }
+
+  isNieValid(): boolean {
+    return /^\d{8}$/.test(this.nie);
+  }
+
   onSubmit() {
-    if (this.studentListNumber === null) {
-      this.error = 'Por favor, ingresa tu número de lista.';
+    if (!this.isNieValid()) {
+      this.error = 'El NIE debe tener exactamente 8 dígitos.';
       return;
     }
 
@@ -149,23 +169,23 @@ export class DescargarBoleta implements OnInit {
     this.message = '';
     this.error = '';
 
-    this.ticketService.validateTicket(this.studentListNumber).subscribe({
+    this.ticketService.validateTicket(this.nie).subscribe({
       next: (response) => {
         this.loading = false;
         this.message = 'Validación exitosa. Descargando boleta...';
         const url = this.ticketService.getDownloadUrl(response.token);
-        
+
         const link = document.createElement('a');
         link.href = url;
         link.target = '_blank';
-        link.download = `boleta_${this.studentListNumber}.pdf`;
+        link.download = `boleta_${this.nie}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       },
       error: (err) => {
         this.loading = false;
-        this.error = err.error?.message || 'No se pudo validar el número de lista. Asegúrate de que tu boleta esté disponible.';
+        this.error = err.error?.message || 'No se encontró una boleta disponible para este NIE.';
       }
     });
   }

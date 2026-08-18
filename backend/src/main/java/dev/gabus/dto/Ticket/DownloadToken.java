@@ -22,6 +22,9 @@ public class DownloadToken {
     private UUID id;
 
     @Column(nullable = false)
+    private String nie;
+
+    @Column(nullable = true)
     private Integer studentListNumber;
 
     @Column(nullable = false)

@@ -36,11 +36,33 @@ public class TicketController {
     }
 
     @PostMapping("/tickets/validate")
-    public ResponseEntity<?> validateTicket(@RequestBody Map<String, Integer> request) {
-        Integer listNumber = request.get("studentListNumber");
-        return ticketService.validateToken(listNumber)
-                .map(uuid -> ResponseEntity.ok(Map.of("token", uuid.toString())))
-                .orElse(ResponseEntity.status(404).body(Map.of("message", "No se encontró un token válido para este número de lista")));
+    public ResponseEntity<?> validateTicket(@RequestBody Map<String, String> request) {
+        String nie = request.get("nie");
+        if (nie == null || nie.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "El NIE es requerido"));
+        }
+        return ticketService.validateToken(nie.trim())
+                .map(token -> ResponseEntity.ok(Map.of("token", token.getId().toString())))
+                .orElse(ResponseEntity.status(404).body(Map.of("message", "No se encontró una boleta disponible para este NIE")));
+    }
+
+    @GetMapping("/tickets/check-nie/{nie}")
+    public ResponseEntity<?> checkNie(@PathVariable String nie) {
+        if (nie == null || nie.length() != 8) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "available", false,
+                "message", "El NIE debe tener exactamente 8 dígitos"
+            ));
+        }
+        return ticketService.checkNieAvailability(nie)
+                .map(token -> ResponseEntity.ok(Map.of(
+                    "available", true,
+                    "message", "Boleta disponible"
+                )))
+                .orElse(ResponseEntity.ok(Map.of(
+                    "available", false,
+                    "message", "No se encontró boleta para este NIE"
+                )));
     }
 
     @GetMapping("/download/{uuid}")
@@ -77,19 +99,28 @@ public class TicketController {
     }
 
     @PostMapping("/tickets/upload")
-    public ResponseEntity<?> uploadFiles(@RequestParam(value = "files", required = false) MultipartFile[] files) {
+    public ResponseEntity<?> uploadFiles(
+            @RequestParam(value = "files", required = false) MultipartFile[] files,
+            @RequestParam(value = "nieMap", required = false) String nieMapJson) {
         try {
             if (files == null || files.length == 0) {
-                return ResponseEntity.badRequest().body(Map.of("message", "No se recibieron archivos. Asegúrate de que el campo se llame 'files' y que hayas seleccionado una carpeta con archivos PDF."));
+                return ResponseEntity.badRequest().body(Map.of("message", "No se recibieron archivos."));
             }
-            ticketService.saveUploadedFiles(files);
+
+            java.util.Map<String, String> nieMap = new java.util.HashMap<>();
+            if (nieMapJson != null && !nieMapJson.isEmpty()) {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                nieMap = mapper.readValue(nieMapJson, com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance()
+                        .constructMapType(java.util.HashMap.class, String.class, String.class));
+            }
+
+            ticketService.saveUploadedFilesWithNie(files, nieMap);
             List<DownloadToken> tokens = ticketService.generateTokens();
             return ResponseEntity.ok(Map.of(
                 "message", "Archivos subidos y procesados correctamente. Se generaron " + tokens.size() + " tokens de descarga.",
                 "tokensGenerated", tokens.size()
             ));
         } catch (Exception e) {
-            e.printStackTrace(); // Para ver el error en los logs del servidor
             return ResponseEntity.badRequest().body(Map.of(
                 "message", "Error al subir archivos: " + e.getMessage(),
                 "error", e.getClass().getSimpleName()
