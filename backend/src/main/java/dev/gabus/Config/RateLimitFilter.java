@@ -15,11 +15,11 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private final Map<String, RateBucket> validateBuckets = new ConcurrentHashMap<>();
     private final Map<String, RateBucket> downloadBuckets = new ConcurrentHashMap<>();
+    private final Map<String, RateBucket> checkNieBuckets = new ConcurrentHashMap<>();
 
-    private static final int VALIDATE_MAX_REQUESTS = 5;
     private static final int DOWNLOAD_MAX_REQUESTS = 10;
+    private static final int CHECK_NIE_MAX_REQUESTS = 20;
     private static final long WINDOW_MS = 60_000;
 
     @Override
@@ -29,22 +29,22 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String ip = getClientIp(request);
         String path = request.getRequestURI();
 
-        if (path.equals("/api/tickets/validate") && "POST".equalsIgnoreCase(request.getMethod())) {
-            if (!tryConsume(ip, validateBuckets, VALIDATE_MAX_REQUESTS)) {
-                sendTooManyRequests(response, "Demasiadas solicitudes. Intenta de nuevo en un minuto.");
-                return;
-            }
-        }
-
-        if (path.startsWith("/api/download/") && "GET".equalsIgnoreCase(request.getMethod())) {
+        if (path.matches("/api/tickets/download/\\d{8}") && "GET".equalsIgnoreCase(request.getMethod())) {
             if (!tryConsume(ip, downloadBuckets, DOWNLOAD_MAX_REQUESTS)) {
                 sendTooManyRequests(response, "Demasiadas descargas. Intenta de nuevo en un minuto.");
                 return;
             }
         }
 
-        cleanExpiredBuckets(validateBuckets);
+        if (path.matches("/api/tickets/check-nie/\\d{8}") && "GET".equalsIgnoreCase(request.getMethod())) {
+            if (!tryConsume(ip, checkNieBuckets, CHECK_NIE_MAX_REQUESTS)) {
+                sendTooManyRequests(response, "Demasiadas solicitudes. Intenta de nuevo en un minuto.");
+                return;
+            }
+        }
+
         cleanExpiredBuckets(downloadBuckets);
+        cleanExpiredBuckets(checkNieBuckets);
 
         filterChain.doFilter(request, response);
     }

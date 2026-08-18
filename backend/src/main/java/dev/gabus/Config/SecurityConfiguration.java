@@ -53,14 +53,7 @@ public class SecurityConfiguration {
             .requestMatchers("/api/auth/**").permitAll()
             
             // Rutas públicas de boletas (padres sin autenticación)
-            .requestMatchers("/api/tickets/validate").permitAll()
-            .requestMatchers("/api/tickets/check-nie/**").permitAll()
-            .requestMatchers("/api/download/**").permitAll()
-            
-            // Rutas de admin (requieren rol ADMIN)
-            .requestMatchers("/api/tickets/generate").hasAuthority("ADMIN")
-            .requestMatchers("/api/tickets/config/**").hasAuthority("ADMIN")
-            .requestMatchers("/api/tickets/upload").hasAuthority("ADMIN")
+            .requestMatchers("/api/tickets/**").permitAll()
             
             // Rutas de actividades
             .requestMatchers("/api/actividades/**").permitAll()
@@ -79,7 +72,7 @@ public class SecurityConfiguration {
         )
         
         .authenticationProvider(authenticationProvider)
-        .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class)
+        .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
