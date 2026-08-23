@@ -5,6 +5,8 @@ import dev.gabus.dto.Calificacion.CalificacionRepository;
 import dev.gabus.dto.Estudiante.EstudianteRepository;
 import dev.gabus.dto.Materia.Materia;
 import dev.gabus.dto.Reporte.ReporteCalificacionDTO;
+import dev.gabus.dto.Trimestre.Trimestre;
+import dev.gabus.dto.Trimestre.TrimestreRepository;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 public class ReporteService {
     private final CalificacionRepository calificacionRepository;
     private final EstudianteRepository estudianteRepository;
+    private final TrimestreRepository trimestreRepository;
 
     public byte[] generarBoletin(Long estudianteId) throws Exception {
         
@@ -42,6 +45,13 @@ public class ReporteService {
         Map<Materia, List<Calificacion>> notasPorMateria = todasLasNotas.stream()
                 .collect(Collectors.groupingBy(c -> c.getActividad().getMateria()));
 
+        // 2.1 Ordenar los trimestres cronologicamente para mapearlos por posicion:
+        // posicion 0 = I Trimestre (notaT1), 1 = II Trimestre (notaT2), 2 = III Trimestre (notaT3)
+        List<Trimestre> trimestresOrdenados = trimestreRepository.findAll().stream()
+                .sorted(java.util.Comparator.comparing(Trimestre::getFechaInicio)
+                        .thenComparing(Trimestre::getId))
+                .toList();
+
         // 3. Construir la lista para el reporte (Filas)
         List<ReporteCalificacionDTO> filasReporte = new ArrayList<>();
 
@@ -49,10 +59,10 @@ public class ReporteService {
             Materia materia = entry.getKey();
             List<Calificacion> notas = entry.getValue();
 
-            // Calcular promedio por trimestre (usando Streams y filtros)
-            BigDecimal t1 = calcularPromedioTrimestre(notas, "Trimestre 1");
-            BigDecimal t2 = calcularPromedioTrimestre(notas, "Trimestre 2");
-            BigDecimal t3 = calcularPromedioTrimestre(notas, "Trimestre 3");
+            // Calcular promedio por trimestre segun su posicion cronologica
+            BigDecimal t1 = calcularPromedioTrimestre(notas, trimestresOrdenados, 0);
+            BigDecimal t2 = calcularPromedioTrimestre(notas, trimestresOrdenados, 1);
+            BigDecimal t3 = calcularPromedioTrimestre(notas, trimestresOrdenados, 2);
 
             // Totales
             BigDecimal total = t1.add(t2).add(t3);
@@ -113,10 +123,17 @@ public class ReporteService {
     }
 
     // Helper para calcular promedio ponderado
-    private BigDecimal calcularPromedioTrimestre(List<Calificacion> notas, String nombreTrimestre) {
-        // 1. Filtrar las calificaciones que pertenecen al trimestre especificado
+    private BigDecimal calcularPromedioTrimestre(List<Calificacion> notas, List<Trimestre> trimestresOrdenados, int posicion) {
+        // Si la posicion no existe (ej. solo hay 2 trimestres creados), el promedio es 0
+        if (posicion >= trimestresOrdenados.size()) {
+            return BigDecimal.ZERO;
+        }
+
+        Long trimestreId = trimestresOrdenados.get(posicion).getId();
+
+        // 1. Filtrar las calificaciones que pertenecen al trimestre de esa posicion
         List<Calificacion> notasDelTrimestre = notas.stream()
-            .filter(n -> n.getActividad().getTrimestre().getNombre().equalsIgnoreCase(nombreTrimestre))
+            .filter(n -> n.getActividad().getTrimestre().getId().equals(trimestreId))
             .collect(Collectors.toList());
     
         // Si no hay notas, el promedio es 0
