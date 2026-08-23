@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TicketService } from '../../services/ticket.service';
+import { Reporte } from '../../services/reporte';
 
 @Component({
   selector: 'app-descargar-boleta',
@@ -12,6 +13,7 @@ import { TicketService } from '../../services/ticket.service';
 })
 export class DescargarBoleta {
   private ticketService = inject(TicketService);
+  private reporteService = inject(Reporte);
 
   nie: string = '';
   downloading = false;
@@ -55,17 +57,36 @@ export class DescargarBoleta {
     this.downloading = true;
     this.error = '';
 
-    const url = this.ticketService.getDownloadUrl(this.nie);
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    link.download = `boleta_${this.nie}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    setTimeout(() => {
-      this.downloading = false;
-    }, 3000);
+    // Flujo completo del frontend: el backend entrega los datos por NIE
+    // y el PDF (notas + conducta) se genera localmente con jsPDF.
+    this.ticketService.getBoletaData(this.nie).subscribe({
+      next: (datos) => {
+        try {
+          const blob = this.reporteService.generarPdfDesdeDatos(datos);
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `boleta_${this.nie}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          this.downloading = false;
+        } catch {
+          this.downloading = false;
+          this.error = 'No se pudo generar la boleta. Intenta de nuevo.';
+        }
+      },
+      error: (err) => {
+        this.downloading = false;
+        if (err?.status === 404) {
+          this.error = 'No hay boleta disponible para este NIE.';
+        } else if (err?.status === 429) {
+          this.error = 'Demasiadas solicitudes. Intenta de nuevo en un minuto.';
+        } else {
+          this.error = 'Error al obtener los datos de la boleta. Verifica tu conexión.';
+        }
+      }
+    });
   }
 }

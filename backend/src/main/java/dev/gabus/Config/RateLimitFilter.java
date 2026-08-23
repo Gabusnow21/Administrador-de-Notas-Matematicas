@@ -17,9 +17,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final Map<String, RateBucket> downloadBuckets = new ConcurrentHashMap<>();
     private final Map<String, RateBucket> checkNieBuckets = new ConcurrentHashMap<>();
+    private final Map<String, RateBucket> boletaDataBuckets = new ConcurrentHashMap<>();
 
     private static final int DOWNLOAD_MAX_REQUESTS = 10;
     private static final int CHECK_NIE_MAX_REQUESTS = 20;
+    private static final int BOLETA_DATA_MAX_REQUESTS = 20;
     private static final long WINDOW_MS = 60_000;
 
     @Override
@@ -43,8 +45,16 @@ public class RateLimitFilter extends OncePerRequestFilter {
             }
         }
 
+        if (path.matches("/api/tickets/data/\\d{8}") && "GET".equalsIgnoreCase(request.getMethod())) {
+            if (!tryConsume(ip, boletaDataBuckets, BOLETA_DATA_MAX_REQUESTS)) {
+                sendTooManyRequests(response, "Demasiadas solicitudes. Intenta de nuevo en un minuto.");
+                return;
+            }
+        }
+
         cleanExpiredBuckets(downloadBuckets);
         cleanExpiredBuckets(checkNieBuckets);
+        cleanExpiredBuckets(boletaDataBuckets);
 
         filterChain.doFilter(request, response);
     }
