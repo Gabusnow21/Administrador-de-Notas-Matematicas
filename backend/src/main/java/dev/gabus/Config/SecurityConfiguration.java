@@ -18,6 +18,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import lombok.RequiredArgsConstructor;
+import dev.gabus.Config.RateLimitFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -31,6 +32,8 @@ public class SecurityConfiguration {
     // Si no existe la variable, por defecto usa localhost:4200
     @Value("${application.cors.allowed-origin:http://localhost:4200}")
     private String allowedOrigin;
+
+    private final RateLimitFilter rateLimitFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -46,15 +49,18 @@ public class SecurityConfiguration {
             // Permitir OPTIONS explícitamente (Preflight checks del navegador)
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             
-            // Permitir tus rutas públicas de autenticación
-            // ASEGÚRATE que tu Controller tenga @RequestMapping("/api/auth")
-            //.requestMatchers("/api/auth/**").permitAll()
-            .requestMatchers("/api/**").permitAll()
+            // Rutas de autenticación
+            .requestMatchers("/api/auth/**").permitAll()
+            
+            // Rutas públicas de boletas (padres sin autenticación)
+            .requestMatchers("/api/tickets/**").permitAll()
+            
+            // Rutas de actividades
+            .requestMatchers("/api/actividades/**").permitAll()
+            
+            // Otras rutas estáticas
             .requestMatchers("/").permitAll()
             .requestMatchers("/error").permitAll()
-            
-            // Otras rutas públicas
-            .requestMatchers("/api/actividades/**").permitAll()
             
             // Todo lo demás requiere autenticación
             .anyRequest().authenticated()
@@ -66,6 +72,7 @@ public class SecurityConfiguration {
         )
         
         .authenticationProvider(authenticationProvider)
+        .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();

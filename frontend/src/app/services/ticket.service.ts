@@ -3,6 +3,20 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
 
+// Estructura plana que entrega el backend para generar la boleta con jsPDF.
+// Espeja BoletaDataDTO del backend (dev.gabus.dto.Ticket).
+export interface BoletaData {
+  estudiante: {
+    nombres: string;
+    apellidos: string;
+    codigoProgreso: string;
+  };
+  calificaciones: { nota: number; actividadId: number }[];
+  actividades: { id: number; nombre: string; ponderacion: number; materiaId: number; trimestreId: number }[];
+  materias: { id: number; nombre: string }[];
+  trimestres: { id: number }[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -10,35 +24,17 @@ export class TicketService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  validateTicket(studentListNumber: number): Observable<{ token: string }> {
-    return this.http.post<{ token: string }>(`${this.apiUrl}/tickets/validate`, { studentListNumber });
+  checkNie(nie: string): Observable<{ available: boolean; nombre?: string; message: string }> {
+    return this.http.get<{ available: boolean; nombre?: string; message: string }>(
+      `${this.apiUrl}/tickets/check-nie/${nie}`
+    );
   }
 
-  generateTickets(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/tickets/generate`, {});
+  getDownloadUrl(nie: string): string {
+    return `${this.apiUrl}/tickets/download/${nie}`;
   }
 
-  getDownloadUrl(token: string): string {
-    return `${this.apiUrl}/download/${token}`;
-  }
-
-  getConfigPath(): Observable<{ path: string }> {
-    return this.http.get<{ path: string }>(`${this.apiUrl}/tickets/config/path`);
-  }
-
-  setConfigPath(path: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/tickets/config/path`, { path });
-  }
-
-  listDirectories(path: string): Observable<string[]> {
-    return this.http.post<string[]>(`${this.apiUrl}/tickets/config/list-dirs`, { path });
-  }
-
-  uploadFiles(files: FileList): Observable<any> {
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append('files', files[i]);
-    }
-    return this.http.post(`${this.apiUrl}/tickets/upload`, formData);
+  getBoletaData(nie: string): Observable<BoletaData> {
+    return this.http.get<BoletaData>(`${this.apiUrl}/tickets/data/${nie}`);
   }
 }

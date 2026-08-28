@@ -1,53 +1,53 @@
 <div class="download-container">
     <div class="card shadow-lg border-0">
         <div class="card-body p-5">
-            <!-- Header actions -->
-            <div class="d-flex justify-content-end mb-3" *ngIf="isAdmin">
-                <button class="btn btn-outline-secondary btn-sm rounded-pill" (click)="showAdmin = !showAdmin">
-                    <i class="bi" [ngClass]="showAdmin ? 'bi-x-lg' : 'bi-gear'"></i>
-                    {{ showAdmin ? 'Cerrar' : 'Configurar' }}
-                </button>
-            </div>
-
-            <!-- Student Download View -->
-            <div *ngIf="!showAdmin" class="text-center">
+            <div class="text-center">
                 <div class="mb-4">
                     <i class="bi bi-file-earmark-pdf display-1 text-danger"></i>
                 </div>
                 <h2 class="fw-bold mb-2" style="font-family: var(--font-heading);">Descargar Boleta</h2>
-                <p class="text-muted mb-4">Ingresa tu número de lista para obtener tu boleta en PDF.</p>
+                <p class="text-muted mb-4">Ingresa el NIE del estudiante para obtener su boleta en PDF.</p>
 
                 <form (ngSubmit)="onSubmit()" #downloadForm="ngForm">
-                    <div class="mb-4">
-                        <label for="listNumber" class="form-label fw-semibold text-start d-block">Número de Lista</label>
+                    <div class="mb-3">
+                        <label for="nieInput" class="form-label fw-semibold text-start d-block">NIE del Estudiante</label>
                         <input
-                            type="number"
-                            id="listNumber"
-                            name="listNumber"
-                            [(ngModel)]="studentListNumber"
-                            placeholder="Ej: 15"
+                            type="text"
+                            id="nieInput"
+                            name="nieInput"
+                            [(ngModel)]="nie"
+                            (ngModelChange)="onNieInput()"
+                            placeholder="Ej: 10179258"
+                            maxlength="8"
                             required
                             class="form-control form-control-lg text-center"
-                            style="max-width: 200px; margin: 0 auto; border-radius: var(--radius-lg); font-size: 1.25rem;">
+                            style="max-width: 250px; margin: 0 auto; border-radius: var(--radius-lg); font-size: 1.25rem;">
+                        <small class="text-muted d-block mt-1">El NIE es el código de 8 dígitos del estudiante</small>
                     </div>
 
-                    <button type="submit" [disabled]="loading || !studentListNumber"
+                    @if (checkingNie) {
+                        <div class="text-muted small mb-3">
+                            <span class="spinner-border spinner-border-sm me-1"></span> Verificando disponibilidad...
+                        </div>
+                    }
+
+                    @if (nieAvailable && nombreEstudiante) {
+                        <div class="alert alert-success py-2 mb-3 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <span>Boleta de <strong>{{ nombreEstudiante }}</strong></span>
+                        </div>
+                    }
+
+                    <button type="submit" [disabled]="downloading || !nieAvailable"
                             class="btn btn-primary btn-lg w-100 rounded-pill fw-semibold"
                             style="max-width: 300px; margin: 0 auto; display: block; min-height: 3rem;">
-                        @if (loading) {
-                            <span class="spinner-border spinner-border-sm me-2"></span> Validando...
+                        @if (downloading) {
+                            <span class="spinner-border spinner-border-sm me-2"></span> Descargando...
                         } @else {
                             <i class="bi bi-download me-2"></i> Descargar PDF
                         }
                     </button>
                 </form>
-
-                @if (message) {
-                    <div class="alert alert-success mt-4 d-flex align-items-center" role="alert">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        <div>{{ message }}</div>
-                    </div>
-                }
 
                 @if (error) {
                     <div class="alert alert-danger mt-4 d-flex align-items-center" role="alert">
@@ -56,69 +56,6 @@
                     </div>
                 }
             </div>
-
-            <!-- Admin Config View -->
-            @if (showAdmin) {
-                <div>
-                    <h3 class="fw-bold mb-4" style="font-family: var(--font-heading);">Configuración de Boletas</h3>
-
-                    <div class="p-4 bg-light rounded-3 mb-4">
-                        <h5 class="fw-semibold mb-2">
-                            <i class="bi bi-upload me-2 text-primary"></i> 1. Cargar desde mi PC
-                        </h5>
-                        <p class="text-muted small mb-3">Selecciona la carpeta local donde tienes los PDFs.</p>
-                        <input type="file" (change)="onFolderSelected($event)" webkitdirectory directory multiple
-                               class="form-control">
-                        @if (selectedFiles) {
-                            <p class="text-success small mt-2 mb-0">
-                                <i class="bi bi-check-circle me-1"></i> {{ selectedFiles.length }} archivos seleccionados.
-                            </p>
-                        }
-                    </div>
-
-                    <div class="p-4 bg-light rounded-3 mb-4">
-                        <h5 class="fw-semibold mb-2">
-                            <i class="bi bi-folder2-open me-2 text-primary"></i> 2. Ubicación en el Servidor
-                        </h5>
-                        <p class="text-muted small mb-3">Ruta donde se almacenarán las boletas.</p>
-                        <div class="border rounded-3 overflow-hidden bg-white">
-                            <div class="d-flex align-items-center gap-2 p-2 bg-light border-bottom">
-                                <button class="btn btn-sm btn-outline-secondary" (click)="goBack()" title="Volver atrás">
-                                    <i class="bi bi-arrow-up"></i>
-                                </button>
-                                <input type="text" [(ngModel)]="configPath" (change)="explorePath(configPath)"
-                                       class="form-control form-control-sm border-0" style="font-size: 0.85rem;">
-                            </div>
-                            <ul class="list-unstyled mb-0" style="max-height: 150px; overflow-y: auto;">
-                                @for (dir of subDirectories; track dir) {
-                                    <li class="px-3 py-2 border-bottom cursor-pointer hover-bg-light"
-                                        style="cursor: pointer;"
-                                        (click)="selectDirectory(dir)">
-                                        <i class="bi bi-folder2 text-warning me-2"></i>
-                                        {{ dir.split('/').pop() }}
-                                    </li>
-                                }
-                                @if (subDirectories.length === 0) {
-                                    <li class="px-3 py-3 text-muted text-center fst-italic">
-                                        No hay subcarpetas visibles.
-                                    </li>
-                                }
-                            </ul>
-                        </div>
-                    </div>
-
-                    <button (click)="saveConfig()" [disabled]="loading"
-                            class="btn btn-primary w-100 rounded-pill fw-semibold"
-                            style="min-height: 3rem;">
-                        @if (loading) {
-                            <span class="spinner-border spinner-border-sm me-2"></span> Procesando...
-                        } @else {
-                            <i class="bi bi-save me-2"></i>
-                            {{ selectedFiles ? 'Subir y Guardar' : 'Guardar Configuración' }}
-                        }
-                    </button>
-                </div>
-            }
         </div>
     </div>
 </div>
