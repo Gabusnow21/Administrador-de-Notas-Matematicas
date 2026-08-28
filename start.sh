@@ -15,11 +15,13 @@ set -a
 source "$ENV_FILE"
 set +a
 
+COMPOSE_FILE="docker-compose.local.yml"
+
 echo "Deteniendo contenedores existentes..."
-docker compose down
+docker compose -f "$COMPOSE_FILE" down
 
 echo "Levantando servicios..."
-docker compose up -d --build
+docker compose -f "$COMPOSE_FILE" up -d --build
 
 echo "Estado de los contenedores:"
-docker compose ps
+docker compose -f "$COMPOSE_FILE" ps
