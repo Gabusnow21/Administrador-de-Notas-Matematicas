@@ -109,12 +109,12 @@ Navegar a la carpeta del cliente.
 Instalar dependencias:
 
 `Bash`
-`npm install`
+`pnpm install`
 
 Iniciar el servidor de desarrollo:
 
 `Bash`
-`ng serve`
+`pnpm ng serve`
 Acceder a `http://localhost:4200.`
 
 ## Seguridad
