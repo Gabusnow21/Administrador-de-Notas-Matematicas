@@ -115,7 +115,17 @@ Iniciar el servidor de desarrollo:
 
 `Bash`
 `pnpm ng serve`
+
 Acceder a `http://localhost:4200.`
+
+**Modo local:** Para apuntar a un backend local en el puerto 8081:
+`Bash`
+`pnpm ng serve --configuration local`
+
+**Desarrollo de Backend:**
+- Copia `.env.example` a `.env` en la raiz del proyecto
+- Ajusta las variables de entorno segun tu entorno local
+- Asegurate de tener PostgreSQL corriendo en el puerto 5432
 
 ## Seguridad
 El sistema implementa una estrategia de seguridad robusta:
