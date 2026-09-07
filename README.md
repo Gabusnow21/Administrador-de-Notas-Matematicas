@@ -109,13 +109,24 @@ Navegar a la carpeta del cliente.
 Instalar dependencias:
 
 `Bash`
-`npm install`
+`pnpm install`
 
 Iniciar el servidor de desarrollo:
 
 `Bash`
-`ng serve`
+`pnpm ng serve`
+
 Acceder a `http://localhost:4200.`
+
+**Modo local:** Para apuntar a un backend local en el puerto 8081:
+`Bash`
+`pnpm ng serve --configuration local`
+
+**Desarrollo de Backend:**
+- Copia `.env.example` a `.env` en la raiz del proyecto
+- Ajusta las variables de entorno segun tu entorno local
+- Asegurate de tener PostgreSQL corriendo en el puerto 5433 (configurado en `application-dev.properties`)
+- La `jwt.secret.key` debe ser un string Base64 válido (genera una con `openssl rand -base64 64`)
 
 ## Seguridad
 El sistema implementa una estrategia de seguridad robusta:
@@ -150,5 +161,27 @@ El desarrollo continúa hacia la independencia de conexión y uso de escritorio.
 [ ] Sincronización: Mecanismo de sincronización Offline-First (Local -> Nube).
 
 [ ] Edición Masiva: Tabla tipo Excel para carga rápida de notas por lote.
+
+## Changelog
+
+### Fix: Error 500 en Login (JWT Secret Key)
+
+**Problema:** Al intentar loguearse con el usuario admin por defecto (`admin@ejemplo.com` / `1234`), el backend retornaba error 500.
+
+**Causa:** La `jwt.secret.key` en `application-dev.properties` tenía el valor `clave-secreta-para-desarrollo-muy-larga-y-segura`, que contiene guiones (`-`), caracteres no válidos en Base64. El método `Decoders.BASE64.decode()` de la librería JJWT lanza una excepción al intentar decodificarla, lo que provoca el error 500 al generar el token JWT.
+
+**Solución:** Se reemplazó la clave por un string Base64 válido generado con `openssl rand -base64 64`.
+
+**Archivos modificados:**
+- `backend/src/main/resources/application-dev.properties` — `jwt.secret.key` actualizada a Base64 válido
+- `.env` — `JWT_SECRET` actualizado y puerto de BD corregido a `5433`
+- `README.md` — Documentación de cambios
+
+**Pasos para aplicar:**
+1. Reiniciar el backend para que cargue la nueva clave
+2. Limpiar el localStorage del navegador si había tokens previos
+3. Loguearse de nuevo con `admin@ejemplo.com` / `1234`
+
+---
 
 # Autor: Gabriel Ernesto Diaz Galdamez
