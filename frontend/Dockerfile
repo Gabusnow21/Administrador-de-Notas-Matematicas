@@ -1,11 +1,12 @@
 # ETAPA 1: Construcción (Build)
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 RUN corepack enable && corepack prepare pnpm@11.24.0 --activate
 WORKDIR /app
 
-# Copiamos package.json, pnpm-lock.yaml e instalamos dependencias
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# Copiamos package.json, pnpm-lock.yaml y configuración de builds
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# Regeneramos lockfile para que use el formato allowBuilds de pnpm v11
+RUN rm -f pnpm-lock.yaml && pnpm install
 
 # Copiamos el código fuente
 COPY . .
