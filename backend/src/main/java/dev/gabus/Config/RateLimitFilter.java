@@ -15,10 +15,12 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
+    private final Map<String, RateBucket> loginBuckets = new ConcurrentHashMap<>();
     private final Map<String, RateBucket> downloadBuckets = new ConcurrentHashMap<>();
     private final Map<String, RateBucket> checkNieBuckets = new ConcurrentHashMap<>();
     private final Map<String, RateBucket> boletaDataBuckets = new ConcurrentHashMap<>();
 
+    private static final int LOGIN_MAX_REQUESTS = 5;
     private static final int DOWNLOAD_MAX_REQUESTS = 10;
     private static final int CHECK_NIE_MAX_REQUESTS = 20;
     private static final int BOLETA_DATA_MAX_REQUESTS = 20;
@@ -30,6 +32,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         String ip = getClientIp(request);
         String path = request.getRequestURI();
+
+        if (path.matches("/api/auth/login") && "POST".equalsIgnoreCase(request.getMethod())) {
+            if (!tryConsume(ip, loginBuckets, LOGIN_MAX_REQUESTS)) {
+                sendTooManyRequests(response, "Demasiados intentos de login. Intenta de nuevo en un minuto.");
+                return;
+            }
+        }
 
         if (path.matches("/api/tickets/download/\\d{8}") && "GET".equalsIgnoreCase(request.getMethod())) {
             if (!tryConsume(ip, downloadBuckets, DOWNLOAD_MAX_REQUESTS)) {
@@ -52,6 +61,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             }
         }
 
+        cleanExpiredBuckets(loginBuckets);
         cleanExpiredBuckets(downloadBuckets);
         cleanExpiredBuckets(checkNieBuckets);
         cleanExpiredBuckets(boletaDataBuckets);
@@ -85,7 +95,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private String getClientIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim();
+            String ip = xForwardedFor.split(",")[0].trim();
+            if (ip.matches("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$")) {
+                return ip;
+            }
         }
         return request.getRemoteAddr();
     }

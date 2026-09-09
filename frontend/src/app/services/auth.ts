@@ -65,7 +65,6 @@ export class AuthService {
           }
         }),
         catchError(err => {
-          console.warn('⚠️ Fallo Login Online. Intentando Offline...', err);
           return this.loginOffline(credentials);
         })
       );
@@ -95,14 +94,13 @@ export class AuthService {
       }
 
       // ✅ Contraseña válida - Permitir acceso offline
-      console.log('✅ Login offline exitoso para:', user.username);
-
       const fakeToken = this.createFakeToken(user);
       this.setToken(fakeToken);
 
-      // Guardamos flag de sesión offline
+      // Guardamos flag de sesión offline (sin passwordHash)
       if (isPlatformBrowser(this.platformId)) {
-        localStorage.setItem(this.offlineUserKey, JSON.stringify(user));
+        const { passwordHash, ...safeUserData } = user;
+        localStorage.setItem(this.offlineUserKey, JSON.stringify(safeUserData));
       }
 
       return { token: fakeToken };
@@ -111,13 +109,13 @@ export class AuthService {
 
   // Crear un token falso para que el resto de la app (getRole, etc) funcione
   private createFakeToken(user: any): string {
-    // Estructura básica de un JWT (Header.Payload.Signature)
     const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
     const payload = btoa(JSON.stringify({ 
       sub: user.username, 
       role: user.role, 
       nombre: user.nombre + " " + user.apellido,
-      exp: 9999999999 // Expiración lejana
+      offline: true,
+      exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60)
     }));
     const signature = "offline_signature";
     return `${header}.${payload}.${signature}`;
@@ -182,20 +180,29 @@ export class AuthService {
     return null;
   }
 
+  isTokenExpired(): boolean {
+    const decoded: any = this.getDecodedToken();
+    if (!decoded || !decoded.exp) return true;
+    const currentTime = Math.floor(Date.now() / 1000);
+    return decoded.exp < currentTime;
+  }
+
+  isTokenOffline(): boolean {
+    const token = this.getToken();
+    if (!token) return false;
+    const decoded: any = this.getDecodedToken();
+    return decoded?.offline === true || token.includes('offline_signature');
+  }
+
   getRole(): string {
     const decoded: any = this.getDecodedToken();
     if (!decoded) return '';
     
-    // 👇 Imprime esto en consola para depurar
-    console.log('Token Decodificado:', decoded);
-
-    // Buscamos la propiedad "role" que pusimos en Java
     return decoded.role || ''; 
   }
 
   isAdmin(): boolean {
     const role = this.getRole();
-    console.log('Rol detectado:', role); // Debug
     return role === 'ADMIN';
   }
 

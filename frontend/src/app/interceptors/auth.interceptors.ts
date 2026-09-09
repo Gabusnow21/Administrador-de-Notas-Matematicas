@@ -1,25 +1,29 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
+  const router = inject(Router);
   const token = authService.getToken();
 
-  // 👇 DEBUG: Mira la consola del navegador
-  console.log('Interceptando petición a:', req.url);
-  console.log('Token encontrado:', token ? 'SÍ' : 'NO');
-
-  if (token) {
-    // Si hay token, clonamos la petición y le agregamos el header
+  if (token && !authService.isTokenOffline()) {
     const clonedRequest = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`
       }
     });
-    return next(clonedRequest);
+    return next(clonedRequest).pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401) {
+          authService.logout();
+        }
+        return throwError(() => error);
+      })
+    );
   }
 
-  // Si no hay token, dejamos pasar la petición tal cual
   return next(req);
 };

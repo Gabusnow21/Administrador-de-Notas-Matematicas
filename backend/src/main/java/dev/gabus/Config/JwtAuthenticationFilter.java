@@ -2,6 +2,8 @@ package dev.gabus.Config;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,8 +23,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService; // Lo definiremos en el siguiente paso
+    private final UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(
@@ -36,24 +39,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     final String userEmail;
 
     if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-        System.out.println("❌ Filtro: No hay header Authorization o no empieza con Bearer");
         filterChain.doFilter(request, response);
         return;
     }
 
     jwt = authHeader.substring(7);
-    // DEBUG: Imprimir token recibido
-    System.out.println("🔍 Token recibido: " + jwt.substring(0, 10) + "..."); 
 
     try {
         userEmail = jwtService.extractUsername(jwt);
-        System.out.println("👤 Usuario extraído del token: " + userEmail);
 
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
             
             if (jwtService.isTokenValid(jwt, userDetails)) {
-                System.out.println("✅ Token VÁLIDO. Autenticando usuario...");
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
@@ -61,14 +59,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-            } else {
-                System.out.println("❌ Token INVÁLIDO según jwtService");
             }
         }
     } catch (Exception e) {
-        System.out.println("💥 Excepción verificando token: " + e.getMessage());
-        e.printStackTrace(); // Esto nos dirá el error exacto en la terminal
-        SecurityContextHolder.clearContext(); // Limpiar contexto por seguridad
+        logger.error("Error verificando token JWT", e);
+        SecurityContextHolder.clearContext();
     }
 
     filterChain.doFilter(request, response);
