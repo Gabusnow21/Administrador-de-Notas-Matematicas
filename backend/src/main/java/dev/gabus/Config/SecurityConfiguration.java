@@ -46,23 +46,15 @@ public class SecurityConfiguration {
         
         // 3. Configurar Permisos de Rutas
         .authorizeHttpRequests(auth -> auth
-            // Permitir OPTIONS explícitamente (Preflight checks del navegador)
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             
-            // Rutas de autenticación
             .requestMatchers("/api/auth/**").permitAll()
             
-            // Rutas públicas de boletas (padres sin autenticación)
             .requestMatchers("/api/tickets/**").permitAll()
             
-            // Rutas de actividades
-            .requestMatchers("/api/actividades/**").permitAll()
-            
-            // Otras rutas estáticas
             .requestMatchers("/").permitAll()
             .requestMatchers("/error").permitAll()
             
-            // Todo lo demás requiere autenticación
             .anyRequest().authenticated()
         )
         
@@ -82,13 +74,15 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
     
-    // USAR allowedOriginPatterns EN LUGAR DE allowedOrigins
-    // Esto permite que funcione "*" incluso si hay credenciales involucradas
-    configuration.setAllowedOriginPatterns(List.of("*"));
+    configuration.setAllowedOriginPatterns(List.of(
+        "https://gestor.edumathsv.work",
+        "http://localhost:4200",
+        "http://localhost:4201"
+    ));
     
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
     configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
-    configuration.setAllowCredentials(true); // Permitir credenciales/cookies
+    configuration.setAllowCredentials(true);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);

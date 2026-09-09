@@ -7,6 +7,8 @@ export interface Toast {
   message: string;
   type: ToastType;
   duration: number;
+  title?: string;
+  dismissible: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -14,30 +16,54 @@ export class ToastService {
   toasts = signal<Toast[]>([]);
   private counter = 0;
 
-  show(message: string, type: ToastType = 'info', duration = 3500) {
+  show(message: string, type: ToastType = 'info', options?: { duration?: number; title?: string; dismissible?: boolean }) {
     const id = ++this.counter;
-    const toast: Toast = { id, message, type, duration };
+    const duration = options?.duration ?? this.getDefaultDuration(type);
+    const toast: Toast = { 
+      id, 
+      message, 
+      type, 
+      duration,
+      title: options?.title,
+      dismissible: options?.dismissible ?? true
+    };
     this.toasts.update(list => [...list, toast]);
-    setTimeout(() => this.dismiss(id), duration);
+    if (duration > 0) {
+      setTimeout(() => this.dismiss(id), duration);
+    }
+    return id;
   }
 
-  success(message: string, duration = 3500) {
-    this.show(message, 'success', duration);
+  success(message: string, options?: { duration?: number; title?: string }) {
+    return this.show(message, 'success', options);
   }
 
-  error(message: string, duration = 4500) {
-    this.show(message, 'error', duration);
+  error(message: string, options?: { duration?: number; title?: string }) {
+    return this.show(message, 'error', { duration: 5000, ...options });
   }
 
-  warning(message: string, duration = 4000) {
-    this.show(message, 'warning', duration);
+  warning(message: string, options?: { duration?: number; title?: string }) {
+    return this.show(message, 'warning', { duration: 4000, ...options });
   }
 
-  info(message: string, duration = 3500) {
-    this.show(message, 'info', duration);
+  info(message: string, options?: { duration?: number; title?: string }) {
+    return this.show(message, 'info', options);
   }
 
   dismiss(id: number) {
     this.toasts.update(list => list.filter(t => t.id !== id));
+  }
+
+  dismissAll() {
+    this.toasts.set([]);
+  }
+
+  private getDefaultDuration(type: ToastType): number {
+    switch (type) {
+      case 'error': return 5000;
+      case 'warning': return 4000;
+      case 'success': return 3000;
+      case 'info': return 3500;
+    }
   }
 }

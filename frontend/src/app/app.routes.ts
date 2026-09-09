@@ -1,71 +1,92 @@
 import { Routes } from '@angular/router';
-import { Login } from './components/login/login';
-import { Dashboard } from './components/dashboard/dashboard';
-import { InfoRecompensasComponent } from './components/info-recompensas/info-recompensas';
-import { VistaGrado } from './components/vista-grado/vista-grado';
-import { VistaCalificaciones } from './components/vista-calificaciones/vista-calificaciones';
-import { RegistroNotas } from './components/registro-notas/registro-notas';
-import { GestionMaterias } from './components/gestion-materias/gestion-materias';
-import { GestionActividades } from './components/gestion-actividades/gestion-actividades';
 import { adminGuard } from './guards/admin-guard';
 import { teacherGuard } from './guards/teacher-guard';
-import { GestionUsuarios } from './components/gestion-usuarios/gestion-usuarios';
-import { GestionRecompensasComponent } from './components/gestion-recompensas/gestion-recompensas';
-import { NfcTerminalComponent } from './components/nfc-terminal/nfc-terminal';
-import { GestionTrimestres } from './components/gestion-trimestres/gestion-trimestres';
-import { LayoutComponent } from './components/layout/layout';
-import { VistaProgresoEstudiante } from './components/vista-progreso-estudiante/vista-progreso-estudiante';
-import { AccesoProgresoComponent } from './components/acceso-progreso/acceso-progreso';
 import { authGuard } from './guards/auth.guard';
-import { GestionAsistenciaComponent } from './components/gestion-asistencia/gestion-asistencia';
-import { DescargarBoleta } from './components/descargar-boleta/descargar-boleta';
+import { LayoutComponent } from './components/layout/layout';
 
 export const routes: Routes = [
-    { path: 'login', component: Login },
-    { path: 'info-recompensas', component: InfoRecompensasComponent },
-    { path: 'mi-progreso', component: AccesoProgresoComponent },
-    { path: 'mi-progreso/detalle', component: VistaProgresoEstudiante },
-    { path: 'descargar-boleta', component: DescargarBoleta },
+    { 
+        path: 'login', 
+        loadComponent: () => import('./components/login/login').then(m => m.Login)
+    },
+    { 
+        path: 'info-recompensas', 
+        loadComponent: () => import('./components/info-recompensas/info-recompensas').then(m => m.InfoRecompensasComponent)
+    },
+    { 
+        path: 'mi-progreso', 
+        loadComponent: () => import('./components/acceso-progreso/acceso-progreso').then(m => m.AccesoProgresoComponent)
+    },
+    { 
+        path: 'mi-progreso/detalle', 
+        loadComponent: () => import('./components/vista-progreso-estudiante/vista-progreso-estudiante').then(m => m.VistaProgresoEstudiante)
+    },
+    { 
+        path: 'descargar-boleta', 
+        loadComponent: () => import('./components/descargar-boleta/descargar-boleta').then(m => m.DescargarBoleta)
+    },
     {
         path: '',
         component: LayoutComponent,
         canActivate: [authGuard],
         children: [
-            { path: 'dashboard', component: Dashboard },
-            { path: 'grado/:id', component: VistaGrado },
-            { path: 'estudiante/:id/calificaciones', component: VistaCalificaciones },
-            { path: 'registro-notas', component: RegistroNotas },
-            { path: 'gestion-materias', component: GestionMaterias },
-            { path: 'gestion-actividades', component: GestionActividades },
-            { path: 'gestion-asistencia', component: GestionAsistenciaComponent, canActivate: [teacherGuard] },
+            { 
+                path: 'dashboard', 
+                loadComponent: () => import('./components/dashboard/dashboard').then(m => m.Dashboard)
+            },
+            { 
+                path: 'grado/:id', 
+                loadComponent: () => import('./components/vista-grado/vista-grado').then(m => m.VistaGrado)
+            },
+            { 
+                path: 'estudiante/:id/calificaciones', 
+                loadComponent: () => import('./components/vista-calificaciones/vista-calificaciones').then(m => m.VistaCalificaciones)
+            },
+            { 
+                path: 'registro-notas', 
+                loadComponent: () => import('./components/registro-notas/registro-notas').then(m => m.RegistroNotas)
+            },
+            { 
+                path: 'gestion-materias', 
+                loadComponent: () => import('./components/gestion-materias/gestion-materias').then(m => m.GestionMaterias)
+            },
+            { 
+                path: 'gestion-actividades', 
+                loadComponent: () => import('./components/gestion-actividades/gestion-actividades').then(m => m.GestionActividades)
+            },
+            { 
+                path: 'gestion-asistencia', 
+                loadComponent: () => import('./components/gestion-asistencia/gestion-asistencia').then(m => m.GestionAsistenciaComponent),
+                canActivate: [teacherGuard] 
+            },
             {
                 path: 'configuracion/usuarios',
-                component: GestionUsuarios,
+                loadComponent: () => import('./components/gestion-usuarios/gestion-usuarios').then(m => m.GestionUsuarios),
                 canActivate: [adminGuard]
             },
             {
                 path: 'configuracion/trimestres',
-                component: GestionTrimestres,
+                loadComponent: () => import('./components/gestion-trimestres/gestion-trimestres').then(m => m.GestionTrimestres),
                 canActivate: [adminGuard]
             },
             {
                 path: 'configuracion/materias',
-                component: GestionMaterias,
+                loadComponent: () => import('./components/gestion-materias/gestion-materias').then(m => m.GestionMaterias),
                 canActivate: [teacherGuard]
             },
             {
                 path: 'configuracion/actividades',
-                component: GestionActividades,
+                loadComponent: () => import('./components/gestion-actividades/gestion-actividades').then(m => m.GestionActividades),
                 canActivate: [teacherGuard]
             },
             {
                 path: 'gestion-recompensas',
-                component: GestionRecompensasComponent,
+                loadComponent: () => import('./components/gestion-recompensas/gestion-recompensas').then(m => m.GestionRecompensasComponent),
                 canActivate: [teacherGuard]
             },
             {
                 path: 'nfc-terminal',
-                component: NfcTerminalComponent,
+                loadComponent: () => import('./components/nfc-terminal/nfc-terminal').then(m => m.NfcTerminalComponent),
                 canActivate: [teacherGuard]
             },
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
