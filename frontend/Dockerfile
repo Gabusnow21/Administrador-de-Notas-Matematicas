@@ -1,15 +1,17 @@
 # ETAPA 1: Construcción (Build)
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
+RUN corepack enable && corepack prepare pnpm@11.24.0 --activate
 WORKDIR /app
 
-# Copiamos package.json e instalamos dependencias
-COPY package*.json ./
-RUN npm install
+# Copiamos package.json, pnpm-lock.yaml y configuración de builds
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# Regeneramos lockfile para que use el formato allowBuilds de pnpm v11
+RUN rm -f pnpm-lock.yaml && pnpm install
 
 # Copiamos el código fuente
 COPY . .
 # Compilamos la aplicación para producción
-RUN npm run build -- --configuration production
+RUN pnpm ng build --configuration production
 
 # ETAPA 2: Servidor Web (Nginx)
 FROM nginx:alpine
