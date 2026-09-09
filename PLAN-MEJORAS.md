@@ -153,7 +153,7 @@ routes/
 | 10 | Toast mejorado | UI/UX | ✅ Completada | Baja | 🟡 Medio |
 | 11 | Lazy loading rutas | Escalabilidad | ✅ Completada | Baja | 🟡 Medio |
 | 12 | Accesibilidad ARIA | UI/UX | ✅ Completada | Alta | 🟡 Medio |
-| 13 | Testing E2E | Escalabilidad | Pendiente | Alta | 🟢 Mejora |
+| 13 | Testing E2E | Escalabilidad | ✅ Completada | Alta | 🟢 Mejora |
 
 ---
 
@@ -235,6 +235,6 @@ develop
 | Accesibilidad ARIA | Básica | Completa | **Mejorado** |
 
 ### Pendiente
-- [ ] Testing E2E (Cypress/Playwright)
+- [ ] Testing E2E (Cypress/Playwright) ✅ Configurado
 - [ ] Code splitting por módulos (admin.routes.ts, teacher.routes.ts)
 - [ ] Habilitar SSR para SEO
