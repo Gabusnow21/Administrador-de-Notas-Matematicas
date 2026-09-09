@@ -1,20 +1,18 @@
-<div class="login-container">
+<main class="login-container" role="main">
   <div class="card glass-card fade-in">
     <div class="card-body p-5">
       
-      <!-- Header con Logo (Placeholder) -->
-      <div class="text-center mb-4">
-        <!-- Usamos uno de los logos que vimos en la estructura -->
-        <img src="assets/Edumath-login.png" alt="Logo" class="brand-logo mb-2">
+      <header class="text-center mb-4">
+        <img src="assets/Edumath-login.png" alt="Logo EduMath" class="brand-logo mb-2">
         <h3 class="fw-bold text-dark">{{ isRegistering ? 'Crear Cuenta' : 'Bienvenido' }}</h3>
         <p class="text-muted small mb-0">
           {{ isRegistering ? 'Ingresa tus datos para registrarte' : 'Sistema de Administración de Notas' }}
         </p>
-      </div>
+      </header>
 
-      <!-- Vista de Login -->
-      <div *ngIf="!isRegistering" class="fade-in">
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <section *ngIf="!isRegistering" class="fade-in" aria-labelledby="login-title">
+        <h4 id="login-title" class="visually-hidden">Iniciar Sesión</h4>
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" aria-describedby="login-error">
           
           <div class="form-floating mb-3">
             <input 
@@ -23,9 +21,11 @@
               id="floatingInput" 
               placeholder="name@example.com"
               formControlName="username"
-              [class.is-invalid]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched">
+              aria-required="true"
+              [attr.aria-invalid]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched"
+              autocomplete="username email">
             <label for="floatingInput">Correo Electrónico</label>
-            <div class="invalid-feedback ps-2">
+            <div class="invalid-feedback ps-2" role="alert">
               Correo inválido
             </div>
           </div>
@@ -35,78 +35,80 @@
               type="password" 
               class="form-control" 
               id="floatingPassword" 
-              placeholder="Password"
-              formControlName="password">
+              placeholder="Contraseña"
+              formControlName="password"
+              aria-required="true"
+              autocomplete="current-password">
             <label for="floatingPassword">Contraseña</label>
           </div>
 
-          <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-center small py-2" role="alert">
-            <i class="bi bi-exclamation-circle-fill me-2"></i>
+          <div *ngIf="errorMessage" id="login-error" class="alert alert-danger d-flex align-items-center small py-2" role="alert">
+            <i class="bi bi-exclamation-circle-fill me-2" aria-hidden="true"></i>
             <div>{{ errorMessage }}</div>
           </div>
 
           <div class="d-grid gap-2 mb-4">
-            <button type="submit" class="btn btn-primary btn-primary-gradient text-white" [disabled]="loginForm.invalid || isLoading">
+            <button type="submit" class="btn btn-primary btn-primary-gradient text-white" [disabled]="loginForm.invalid || isLoading" aria-busy="isLoading">
               <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
               {{ isLoading ? 'Verificando...' : 'Iniciar Sesión' }}
             </button>
           </div>
         </form>
 
-        <div class="text-center">
+        <footer class="text-center">
           <span class="text-muted small">¿No tienes cuenta?</span>
-          <a href="#" class="toggle-link ms-1 small" (click)="toggleRegister($event)">Regístrate aquí</a>
-        </div>
-      </div>
+          <a href="#" class="toggle-link ms-1 small" (click)="toggleRegister($event)" aria-label="Crear una nueva cuenta">Regístrate aquí</a>
+        </footer>
+      </section>
 
-      <!-- Vista de Registro -->
-      <div *ngIf="isRegistering" class="fade-in">
-        <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+      <section *ngIf="isRegistering" class="fade-in" aria-labelledby="register-title">
+        <h4 id="register-title" class="visually-hidden">Crear Cuenta</h4>
+        <form [formGroup]="registerForm" (ngSubmit)="onRegister()" aria-describedby="register-error">
           
           <div class="row g-2 mb-3">
             <div class="col-6">
               <div class="form-floating">
-                <input type="text" class="form-control" id="regNombre" placeholder="Nombre" formControlName="nombre">
+                <input type="text" class="form-control" id="regNombre" placeholder="Nombre" formControlName="nombre" aria-required="true" autocomplete="given-name">
                 <label for="regNombre">Nombre</label>
               </div>
             </div>
             <div class="col-6">
               <div class="form-floating">
-                <input type="text" class="form-control" id="regApellido" placeholder="Apellido" formControlName="apellido">
+                <input type="text" class="form-control" id="regApellido" placeholder="Apellido" formControlName="apellido" aria-required="true" autocomplete="family-name">
                 <label for="regApellido">Apellido</label>
               </div>
             </div>
           </div>
 
           <div class="form-floating mb-3">
-            <input type="email" class="form-control" id="regEmail" placeholder="name@example.com" formControlName="email">
+            <input type="email" class="form-control" id="regEmail" placeholder="name@example.com" formControlName="email" aria-required="true" autocomplete="email">
             <label for="regEmail">Correo Electrónico</label>
           </div>
 
           <div class="form-floating mb-4">
-            <input type="password" class="form-control" id="regPass" placeholder="Password" formControlName="password">
+            <input type="password" class="form-control" id="regPass" placeholder="Contraseña" formControlName="password" aria-required="true" autocomplete="new-password">
             <label for="regPass">Contraseña</label>
           </div>
 
-          <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-center small py-2" role="alert">
-            <i class="bi bi-exclamation-circle-fill me-2"></i>
+          <div *ngIf="errorMessage" id="register-error" class="alert alert-danger d-flex align-items-center small py-2" role="alert">
+            <i class="bi bi-exclamation-circle-fill me-2" aria-hidden="true"></i>
             <div>{{ errorMessage }}</div>
           </div>
 
           <div class="d-grid gap-2 mb-4">
-            <button type="submit" class="btn btn-primary btn-primary-gradient text-white" [disabled]="registerForm.invalid || isLoading">
+            <button type="submit" class="btn btn-primary btn-primary-gradient text-white" [disabled]="registerForm.invalid || isLoading" aria-busy="isLoading">
               <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
               {{ isLoading ? 'Registrando...' : 'Crear Cuenta' }}
             </button>
           </div>
         </form>
 
-        <div class="text-center">
+        <footer class="text-center">
           <span class="text-muted small">¿Ya tienes cuenta?</span>
-          <a href="#" class="toggle-link ms-1 small" (click)="toggleRegister($event)">Inicia Sesión</a>
-        </div>
-      </div>
+          <a href="#" class="toggle-link ms-1 small" (click)="toggleRegister($event)" aria-label="Iniciar sesión con cuenta existente">Inicia Sesión</a>
+        </footer>
+      </section>
 
     </div>
   </div>
-</div>
+</main>
