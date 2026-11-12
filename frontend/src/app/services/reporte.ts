@@ -114,7 +114,7 @@ export class Reporte {
     doc.text('Final barrio la Cruz, La Palma Chalatenango.', pageWidth / 2, 30, { align: 'center' });
     
     doc.setFont('sans-serif', 'bold');
-    doc.text('Tel. 2305- 8432, 7187-7141', pageWidth / 2, 35, { align: 'center' });
+    doc.text('Tel. 6014-3125, 7187-7141', pageWidth / 2, 35, { align: 'center' });
 
     doc.setFont('serif', 'bold');
     doc.setFontSize(16);
