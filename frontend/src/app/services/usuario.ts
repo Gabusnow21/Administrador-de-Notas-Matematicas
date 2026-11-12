@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from} from 'rxjs';
+import { Observable, from, throwError} from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { LocalDbService } from './local-db';
 import { environment } from '../environments/environment';
@@ -13,7 +13,20 @@ export interface Usuario {
   username: string; // Email
   password?: string; 
   role: string;   
+  activo?: boolean;
+  fechaEliminacion?: string;
+  eliminadoPor?: number;
   syncStatus?: string;   
+}
+
+export interface UsuarioDesactivado {
+  id: number;
+  nombre: string;
+  apellido: string;
+  username: string;
+  role: string;
+  fechaEliminacion?: string;
+  eliminadoPorNombre?: string;
 }
 @Injectable({
   providedIn: 'root',
@@ -48,6 +61,21 @@ export class UsuarioService {
     return this.http.get<Usuario[]>(`${this.apiUrl}/teachers`);
   }
 
+  getInactivos(): Observable<UsuarioDesactivado[]> {
+    return this.http.get<UsuarioDesactivado[]>(`${this.apiUrl}/inactivos`);
+  }
+
+  restaurar(id: number): Observable<Usuario> {
+    return this.http.patch<Usuario>(`${this.apiUrl}/${id}/restaurar`, {}).pipe(
+      tap(() =>
+        this.localDb.usuarios.where('id').equals(id).modify({
+          activo: true,
+          syncStatus: 'synced' as const,
+        })
+      )
+    );
+  }
+
   // 👇 2. CREAR (¡Revisa esta parte!)
   crear(usuario: Usuario, fromSync = false): Observable<Usuario> {
     
@@ -69,7 +97,10 @@ export class UsuarioService {
         }),
         catchError(err => {
             console.warn('⚠️ Error POST API:', err);
-            return guardarLocal();
+            if (err?.status === 0) {
+              return guardarLocal();
+            }
+            return throwError(() => err);
         })
       );
     } else {
@@ -101,7 +132,12 @@ export class UsuarioService {
                 this.localDb.usuarios.where('id').equals(usuario.id!)
                 .modify({ ...usuario, syncStatus: 'synced' as const });
             }),
-            catchError(() => actualizarLocal())
+            catchError((err) => {
+                if (err?.status === 0) {
+                    return actualizarLocal();
+                }
+                return throwError(() => err);
+            })
         );
     } else {
         return actualizarLocal();
@@ -130,7 +166,12 @@ export class UsuarioService {
     if (this.isOnline) {
       return this.http.delete<void>(`${this.apiUrl}/${usuario.id}`).pipe(
         tap(() => this.localDb.usuarios.where('id').equals(usuario.id!).delete()),
-        catchError(() => borrarLocalmente())
+        catchError((err) => {
+            if (err?.status === 0) {
+                return borrarLocalmente();
+            }
+            return throwError(() => err);
+        })
       );
     } else {
       return borrarLocalmente();

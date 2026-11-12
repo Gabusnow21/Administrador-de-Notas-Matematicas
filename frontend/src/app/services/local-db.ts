@@ -13,6 +13,9 @@ export interface LocalUsuario {
   password?: string;
   passwordHash?: string; // Hash SHA-256 para validación offline
   role: string;
+  activo?: boolean;
+  fechaEliminacion?: string;
+  eliminadoPor?: number;
   syncStatus: SyncStatus;
 }
 
@@ -35,6 +38,9 @@ export interface LocalEstudiante {
   codigoProgreso?: string;
   nfcId?: string;
   saldoTokens?: number;
+  activo?: boolean;
+  fechaEliminacion?: string;
+  eliminadoPor?: number;
   syncStatus: SyncStatus;
 }
 
@@ -181,7 +187,7 @@ export class LocalDbService extends Dexie {
   // ESTUDIANTES
   // ==========================================
 
-  async guardarEstudiantesServer(estudiantes: any[]) {
+  async guardarEstudiantesServer(estudiantes: any[], gradoId?: number) {
     return this.transaction('rw', this.estudiantes, async () => {
       // 1. Obtener los IDs reales que vienen del servidor
       const idsServer = estudiantes.map(e => e.id);
@@ -203,13 +209,28 @@ export class LocalDbService extends Dexie {
 
       // 5. Guardar (Put actualiza si hay llave primaria, agrega si no)
       await this.estudiantes.bulkPut(aGuardar);
+
+      // 6. Propagar bajas lógicas: eliminar locales sincronizados que ya no
+      // vienen del servidor para este grado, sin tocar cambios pendientes.
+      if (gradoId !== undefined) {
+        const idsActivos = new Set(idsServer.filter(id => id != null));
+        const localesGrado = await this.estudiantes.where('gradoId').equals(gradoId).toArray();
+        const obsoletos = localesGrado
+          .filter(e => e.syncStatus === 'synced' && e.id != null && !idsActivos.has(e.id))
+          .map(e => e.localId!)
+          .filter(id => id != null);
+
+        if (obsoletos.length > 0) {
+          await this.estudiantes.bulkDelete(obsoletos);
+        }
+      }
     });
   }
 
   async getEstudiantesPorGrado(gradoId: number) {
     const estudiantes = await this.estudiantes
       .where('gradoId').equals(gradoId)
-      .filter(e => e.syncStatus !== 'delete')
+      .filter(e => e.syncStatus !== 'delete' && e.activo !== false)
       .toArray();
 
     return estudiantes.sort((a, b) => {
@@ -220,7 +241,7 @@ export class LocalDbService extends Dexie {
 
   async getEstudiantesSinNfc(): Promise<LocalEstudiante[]> {
     return await this.estudiantes
-      .filter(estudiante => !estudiante.nfcId && estudiante.syncStatus !== 'delete')
+      .filter(estudiante => !estudiante.nfcId && estudiante.syncStatus !== 'delete' && estudiante.activo !== false)
       .toArray();
   }
 
