@@ -162,6 +162,9 @@ const pendientes = await this.localDb.getPendientes(this.localDb.usuarios);
           console.log('🗑️ Usuario borrado de local');
         }
       } catch (err) {
+        if ((err as any)?.status >= 400 && (err as any)?.status < 500) {
+          await this.localDb.usuarios.update(p.localId!, { syncStatus: 'synced' });
+        }
         console.error('❌ Error sync usuario (Reintentará luego):', p.username, err);
       }
     }
@@ -220,6 +223,9 @@ const pendientes = await this.localDb.getPendientes(this.localDb.usuarios);
           await this.localDb.estudiantes.delete(p.localId!);
         }
       } catch (err) {
+        if ((err as any)?.status >= 400 && (err as any)?.status < 500) {
+          await this.localDb.estudiantes.update(p.localId!, { syncStatus: 'synced' });
+        }
         console.error('Error sincronizando estudiante:', p, err);
       }
     }

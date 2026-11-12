@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { Usuario, UsuarioService } from '../../services/usuario';
-import { Routes } from '@angular/router';
+import { DatePipe } from '@angular/common';
+import { Usuario, UsuarioDesactivado, UsuarioService } from '../../services/usuario';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SyncService } from '../../services/sync';
 import { AuthService } from '../../services/auth';
@@ -10,7 +11,7 @@ import { ToastService } from '../../services/toast.service';
 @Component({
   selector: 'app-gestion-usuarios',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink, DatePipe],
   templateUrl: './gestion-usuarios.html',
   styleUrl: './gestion-usuarios.css',
 })
@@ -22,7 +23,10 @@ export class GestionUsuarios implements OnInit {
   private toast = inject(ToastService);
 
   usuarios: Usuario[] = [];
+  usuariosInactivos: UsuarioDesactivado[] = [];
   loading: boolean = true;
+  cargandoInactivos: boolean = false;
+  restaurandoId: number | null = null;
   procesando: boolean = false; // Para el spinner del botón guardar
   mostrarFormulario: boolean = false; // Toggle para mostrar/ocultar
   esEdicion: boolean = false; // Indica si el formulario está en modo edición
@@ -38,6 +42,7 @@ export class GestionUsuarios implements OnInit {
 
   ngOnInit() {
     this.cargarUsuarios();
+    this.cargarInactivos();
   }
 
   cargarUsuarios() {
@@ -47,6 +52,20 @@ export class GestionUsuarios implements OnInit {
         this.loading = false;
       },
       error: (e) => { console.error(e); this.loading = false; }
+    });
+  }
+
+  cargarInactivos() {
+    this.cargandoInactivos = true;
+    this.usuarioService.getInactivos().subscribe({
+      next: (data) => {
+        this.usuariosInactivos = data;
+        this.cargandoInactivos = false;
+      },
+      error: (e) => {
+        console.error(e);
+        this.cargandoInactivos = false;
+      }
     });
   }
 
@@ -74,12 +93,43 @@ export class GestionUsuarios implements OnInit {
   }
 
   eliminar(id: number) {
-    if(!confirm('¿Estás seguro de eliminar este usuario?')) return;
+    const usuario = this.usuarios.find(u => u.id === id);
+    if (!usuario) return;
 
-    this.usuarioService.borrar(this.usuarios.find(u => u.id === id)!).subscribe({
+    if (!confirm(`¿Desactivar a ${usuario.nombre} ${usuario.apellido}? Conservará su historial y podrá restaurarse después.`)) return;
+
+    this.usuarioService.borrar(usuario).subscribe({
       next: () => {
-        this.toast.success('Usuario eliminado');
+        this.toast.success('Usuario desactivado');
         this.cargarUsuarios();
+        this.cargarInactivos();
+      },
+      error: (err) => {
+        this.toast.error(this.mensajeError(err, 'No se pudo desactivar el usuario.'));
+      }
+    });
+  }
+
+  restaurar(usuario: UsuarioDesactivado) {
+    if (!navigator.onLine) {
+      this.toast.warning('Necesitas conexión para restaurar al usuario.');
+      return;
+    }
+
+    const nombre = `${usuario.nombre} ${usuario.apellido}`;
+    if (!confirm(`¿Restaurar a ${nombre}? Podrá volver a iniciar sesión.`)) return;
+
+    this.restaurandoId = usuario.id;
+    this.usuarioService.restaurar(usuario.id).subscribe({
+      next: () => {
+        this.restaurandoId = null;
+        this.toast.success('Usuario restaurado');
+        this.cargarUsuarios();
+        this.cargarInactivos();
+      },
+      error: (err) => {
+        this.restaurandoId = null;
+        this.toast.error(this.mensajeError(err, 'No se pudo restaurar el usuario.'));
       }
     });
   }
@@ -116,6 +166,10 @@ export class GestionUsuarios implements OnInit {
 
   logout() {
     this.authService.logout();
+  }
+
+  private mensajeError(err: any, porDefecto: string): string {
+    return err?.error?.message || err?.error?.detail || porDefecto;
   }
 
 }

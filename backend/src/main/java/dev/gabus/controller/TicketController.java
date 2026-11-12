@@ -45,7 +45,7 @@ public class TicketController {
                 "message", "El NIE debe tener exactamente 8 dígitos"
             ));
         }
-        return estudianteRepository.findByCodigoProgreso(nie)
+        return estudianteRepository.findByCodigoProgresoAndActivoTrue(nie)
                 .map(est -> ResponseEntity.ok(Map.of(
                     "available", true,
                     "nombre", est.getApellidos() + " " + est.getNombres(),
@@ -63,7 +63,7 @@ public class TicketController {
             return ResponseEntity.badRequest().build();
         }
         try {
-            Estudiante estudiante = estudianteRepository.findByCodigoProgreso(nie)
+            Estudiante estudiante = estudianteRepository.findByCodigoProgresoAndActivoTrue(nie)
                     .orElse(null);
             if (estudiante == null) {
                 return ResponseEntity.notFound().build();
@@ -89,7 +89,7 @@ public class TicketController {
             return ResponseEntity.badRequest().build();
         }
         try {
-            Estudiante estudiante = estudianteRepository.findByCodigoProgreso(nie)
+            Estudiante estudiante = estudianteRepository.findByCodigoProgresoAndActivoTrue(nie)
                     .orElse(null);
             if (estudiante == null) {
                 return ResponseEntity.notFound().build();

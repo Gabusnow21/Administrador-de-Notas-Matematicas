@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from, of } from 'rxjs';
+import { Observable, from, of, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { LocalDbService, LocalEstudiante } from './local-db';
 import { environment } from '../environments/environment';
@@ -15,8 +15,21 @@ export interface Estudiante {
   nfcId?: string;
   saldoTokens?: number;
   grado?: any;
+  activo?: boolean;
+  fechaEliminacion?: string;
+  eliminadoPor?: number;
   localId?: number;
   syncStatus?: string;
+}
+
+export interface EstudianteDesactivado {
+  id: number;
+  nombres: string;
+  apellidos: string;
+  codigoProgreso: string;
+  grado: string;
+  fechaEliminacion?: string;
+  eliminadoPorNombre?: string;
 }
 
 @Injectable({
@@ -52,7 +65,7 @@ export class EstudianteService {
       return this.http.get<Estudiante[]>(`${this.apiUrl}/grado/${gradoId}`).pipe(
         tap(data => {
           console.log('📡 [EstudianteService] Bajando datos frescos...');
-          this.localDb.guardarEstudiantesServer(data);
+          this.localDb.guardarEstudiantesServer(data, gradoId);
         }),
         catchError(err => {
           console.warn('⚠️ [EstudianteService] Fallo API. Usando local.');
@@ -77,6 +90,18 @@ export class EstudianteService {
       console.log('🔌 [EstudianteService] Offline. Usando local para sin-nfc.');
       return from(this.localDb.getEstudiantesSinNfc() as Promise<Estudiante[]>);
     } 
+  }
+
+  getEstudiantesInactivos(): Observable<EstudianteDesactivado[]> {
+    return this.http.get<EstudianteDesactivado[]>(`${this.apiUrl}/inactivos`);
+  }
+
+  getEstudiantesInactivosPorGrado(gradoId: number): Observable<EstudianteDesactivado[]> {
+    return this.http.get<EstudianteDesactivado[]>(`${this.apiUrl}/grado/${gradoId}/inactivos`);
+  }
+
+  restaurarEstudiante(id: number): Observable<Estudiante> {
+    return this.http.patch<Estudiante>(`${this.apiUrl}/${id}/restaurar`, {});
   }
 
   createEstudiante(estudiante: any): Observable<Estudiante> {
@@ -106,7 +131,10 @@ export class EstudianteService {
         }),
         catchError(err => {
           console.warn('⚠️ Error POST API:', err);
-          return guardarLocalmente();
+          if (err?.status === 0) {
+            return guardarLocalmente();
+          }
+          return throwError(() => err);
         })
       );
     } else {
@@ -170,7 +198,10 @@ export class EstudianteService {
         }),
         catchError(err => {
             console.warn('⚠️ Error PUT API:', err);
-            return actualizarLocalmente();
+            if (err?.status === 0) {
+              return actualizarLocalmente();
+            }
+            return throwError(() => err);
         })
       );
     } else {
@@ -219,7 +250,10 @@ export class EstudianteService {
         }), 
         catchError(err => {
             console.warn('⚠️ Error DELETE API:', err);
-            return borrarLocalmente();
+            if (err?.status === 0) {
+                return borrarLocalmente();
+            }
+            return throwError(() => err);
         })
       );
     } else {

@@ -64,9 +64,9 @@ public class AsistenciaController {
         Optional<Estudiante> estudianteOpt;
 
         if (request.getNfcId() != null) {
-            estudianteOpt = estudianteRepository.findByNfcId(request.getNfcId());
+            estudianteOpt = estudianteRepository.findByNfcIdAndActivoTrue(request.getNfcId());
         } else if (request.getEstudianteId() != null) {
-            estudianteOpt = estudianteRepository.findById(request.getEstudianteId());
+            estudianteOpt = estudianteRepository.findByIdAndActivoTrue(request.getEstudianteId());
         } else {
             return ResponseEntity.badRequest().body("Debe proporcionar estudianteId o nfcId");
         }
@@ -126,7 +126,7 @@ public class AsistenciaController {
     @GetMapping("/estudiante/{estudianteId}")
     public ResponseEntity<?> getHistorialEstudiante(@PathVariable Long estudianteId) {
         Usuario user = getCurrentUser();
-        Estudiante estudiante = estudianteRepository.findById(estudianteId).orElse(null);
+        Estudiante estudiante = estudianteRepository.findByIdAndActivoTrue(estudianteId).orElse(null);
 
         if (estudiante == null) {
              return ResponseEntity.notFound().build();

@@ -1,6 +1,7 @@
 import { Component, inject, OnInit} from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { EstudianteService, Estudiante } from '../../services/estudiante';
+import { EstudianteService, Estudiante, EstudianteDesactivado } from '../../services/estudiante';
 import { FormsModule } from '@angular/forms';
 import { Grado, GradoService } from '../../services/grado';
 import { SyncService } from '../../services/sync';
@@ -11,7 +12,7 @@ import { ToastService } from '../../services/toast.service';
 @Component({
   selector: 'app-vista-grado',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, DatePipe],
   templateUrl: './vista-grado.html',
   styleUrl: './vista-grado.css',
 })
@@ -29,6 +30,9 @@ export class VistaGrado implements OnInit {
 
   //Variables
   estudiantes: Estudiante[] = [];
+  estudiantesInactivos: EstudianteDesactivado[] = [];
+  cargandoInactivos: boolean = false;
+  restaurandoId: number | null = null;
   gradoId: number = 0;
   loading: boolean = true;
   descargando: boolean = false;
@@ -65,6 +69,7 @@ export class VistaGrado implements OnInit {
         this.loading = true;
         this.obtenerInfoGrado();
         this.cargarEstudiantes();
+        this.cargarInactivos();
 
       } else {
         // Caso Error (NaN o 0)
@@ -89,6 +94,29 @@ export class VistaGrado implements OnInit {
     });
   }
 
+  get esAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  cargarInactivos() {
+    if (!this.esAdmin || !this.gradoId) {
+      this.estudiantesInactivos = [];
+      return;
+    }
+
+    this.cargandoInactivos = true;
+    this.estudianteService.getEstudiantesInactivosPorGrado(this.gradoId).subscribe({
+      next: (data) => {
+        this.estudiantesInactivos = data;
+        this.cargandoInactivos = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar estudiantes desactivados:', err);
+        this.cargandoInactivos = false;
+      }
+    });
+  }
+
 
   // 👇 NUEVA FUNCIÓN: Preparar formulario para editar
   editarEstudiante(est: Estudiante) {
@@ -104,16 +132,44 @@ export class VistaGrado implements OnInit {
     };
   }
 
-  // Eliminar estudiante
+  // Desactivar estudiante (solo ADMIN)
   eliminarEstudiante(est: Estudiante) {
-    if (!confirm(`¿Eliminar a ${est.nombres} ${est.apellidos}? Se borrarán sus notas.`)) return;
+    if (!this.esAdmin) {
+      this.toast.warning('Solo un administrador puede desactivar estudiantes.');
+      return;
+    }
+    if (!confirm(`¿Desactivar a ${est.nombres} ${est.apellidos}? Sus notas y asistencias se conservarán y podrá restaurarse después.`)) return;
 
     this.estudianteService.deleteEstudiante(est).subscribe({
       next: () => {
-        this.toast.success('Estudiante eliminado');
+        this.toast.success('Estudiante desactivado');
         this.cargarEstudiantes();
+        this.cargarInactivos();
       },
-      error: (err) => this.toast.error('Error al eliminar.')
+      error: (err) => this.toast.error(this.mensajeError(err, 'No se pudo desactivar al estudiante.'))
+    });
+  }
+
+  restaurarEstudiante(est: EstudianteDesactivado) {
+    if (!navigator.onLine) {
+      this.toast.warning('Necesitas conexión para restaurar al estudiante.');
+      return;
+    }
+
+    if (!confirm(`¿Restaurar a ${est.apellidos}, ${est.nombres}? Volverá con sus notas y asistencias.`)) return;
+
+    this.restaurandoId = est.id;
+    this.estudianteService.restaurarEstudiante(est.id).subscribe({
+      next: () => {
+        this.restaurandoId = null;
+        this.toast.success('Estudiante restaurado');
+        this.cargarEstudiantes();
+        this.cargarInactivos();
+      },
+      error: (err) => {
+        this.restaurandoId = null;
+        this.toast.error(this.mensajeError(err, 'No se pudo restaurar al estudiante.'));
+      }
     });
   }
 
@@ -220,6 +276,12 @@ export class VistaGrado implements OnInit {
 
   logout() {
     this.authService.logout();
+  }
+
+  private mensajeError(err: any, porDefecto: string): string {
+    const mensaje = err?.error?.message || err?.error?.detail;
+    if (typeof mensaje === 'string') return mensaje;
+    return porDefecto;
   }
 
 }

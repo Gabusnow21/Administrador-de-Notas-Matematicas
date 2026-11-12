@@ -47,7 +47,7 @@ public class NfcController {
     // 1. Endpoint para buscar un estudiante por su ID de NFC
     @GetMapping("/estudiante/{nfcId}")
     public ResponseEntity<Estudiante> getEstudianteByNfcId(@PathVariable String nfcId) {
-        Optional<Estudiante> estOpt = estudianteRepository.findByNfcId(nfcId);
+        Optional<Estudiante> estOpt = estudianteRepository.findByNfcIdAndActivoTrue(nfcId);
         if (estOpt.isEmpty()) return ResponseEntity.notFound().build();
         
         Estudiante estudiante = estOpt.get();
@@ -68,12 +68,12 @@ public class NfcController {
 
         Usuario user = getCurrentUser();
 
-        // Validar que el NFC ID no esté ya asignado
+        // Validar que el NFC ID no esté ya asignado (incluye estudiantes desactivados)
         if (estudianteRepository.findByNfcId(nfcId).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("El Tag NFC ya está asignado a otro estudiante.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("El Tag NFC ya está asignado a otro estudiante (activo o desactivado).");
         }
 
-        return estudianteRepository.findById(estudianteId)
+        return estudianteRepository.findByIdAndActivoTrue(estudianteId)
                 .map(estudiante -> {
                     if (!canAccessStudent(user, estudiante)) {
                          return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -95,7 +95,7 @@ public class NfcController {
 
         Usuario user = getCurrentUser();
 
-        return estudianteRepository.findByNfcId(nfcId)
+        return estudianteRepository.findByNfcIdAndActivoTrue(nfcId)
                 .map(estudiante -> {
                     if (!canAccessStudent(user, estudiante)) {
                          return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
