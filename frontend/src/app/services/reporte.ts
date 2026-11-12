@@ -171,8 +171,8 @@ export class Reporte {
           if (itemIdx >= 1 && itemIdx <= 15) {
             const tId = actividad.trimestreId;
             if (tId >= 1 && tId <= 3) {
-              // Si la nota es 10 (o >= 1 como salvaguarda), mostramos un cheque, de lo contrario una X
-              conductMap.get(itemIdx)![tId] = cal.nota >= 5 ? '✅' : '❌'; 
+              // Si la nota es 10 (o >= 5 como salvaguarda), mostramos un cheque; de lo contrario no marcamos nada
+              conductMap.get(itemIdx)![tId] = cal.nota >= 5 ? '✅' : '';
               return; // No incluir en promedios academicos
 
             }
@@ -301,14 +301,6 @@ export class Reporte {
             doc.line(x - 2, y, x - 0.5, y + 2);
             doc.line(x - 0.5, y + 2, x + 2.5, y - 2);
             data.cell.text = ['']; // Limpiar texto para que no salga el emoji roto
-          } else if (text === '❌') {
-            const x = data.cell.x + data.cell.width / 2;
-            const y = data.cell.y + data.cell.height / 2;
-            doc.setDrawColor(200, 0, 0); // Rojo
-            doc.setLineWidth(0.4);
-            doc.line(x - 2, y - 2, x + 2, y + 2);
-            doc.line(x + 2, y - 2, x - 2, y + 2);
-            data.cell.text = ['']; // Limpiar texto
           }
         }
       }
