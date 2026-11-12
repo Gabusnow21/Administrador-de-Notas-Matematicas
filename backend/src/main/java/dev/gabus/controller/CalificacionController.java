@@ -47,7 +47,7 @@ public class CalificacionController {
     public ResponseEntity<?> guardarCalificacion(@RequestBody CalificacionRequest request) {
         
         // Validar existencia de estudiante y actividad
-        var estudiante = estudianteRepository.findById(request.getEstudianteId())
+        var estudiante = estudianteRepository.findByIdAndActivoTrue(request.getEstudianteId())
                 .orElseThrow(() -> new RuntimeException("Estudiante no encontrado"));
         
         var actividad = actividadRepository.findById(request.getActividadId())
@@ -84,7 +84,7 @@ public class CalificacionController {
             @RequestParam Long actividadId
     ) {
         // 1. Obtener todos los estudiantes del grado (ordenados ascendentemente por apellidos)
-        List<Estudiante> estudiantes = estudianteRepository.findByGrado_IdOrderByApellidosAsc(gradoId);
+        List<Estudiante> estudiantes = estudianteRepository.findByGrado_IdAndActivoTrueOrderByApellidosAsc(gradoId);
 
         estudiantes.sort((e1, e2) -> {
             int porApellidos = e1.getApellidos().compareToIgnoreCase(e2.getApellidos());

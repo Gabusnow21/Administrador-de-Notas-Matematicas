@@ -35,7 +35,7 @@ public class ReporteService {
         
         System.setProperty("java.awt.headless", "true");
 
-        var estudiante = estudianteRepository.findById(estudianteId)
+        var estudiante = estudianteRepository.findByIdAndActivoTrue(estudianteId)
                 .orElseThrow(() -> new RuntimeException("Estudiante no encontrado"));
 
         // 1. Traer TODAS las notas del estudiante

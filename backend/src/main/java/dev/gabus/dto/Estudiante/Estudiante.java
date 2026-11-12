@@ -2,6 +2,8 @@ package dev.gabus.dto.Estudiante;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.time.LocalDateTime;
+
 import dev.gabus.dto.Grado.Grado;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -54,5 +56,16 @@ public class Estudiante {
     @JoinColumn(name = "grado_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler","profesor"})
     private Grado grado;
+
+    // --- Borrado lógico ---
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    @Builder.Default
+    private boolean activo = true;
+
+    @Column(name = "fecha_eliminacion")
+    private LocalDateTime fechaEliminacion;
+
+    @Column(name = "eliminado_por")
+    private Long eliminadoPor;
 
 }

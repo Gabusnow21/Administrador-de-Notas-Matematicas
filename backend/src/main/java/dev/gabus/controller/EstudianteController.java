@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -21,11 +22,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.gabus.dto.Estudiante.Estudiante;
 import dev.gabus.dto.Estudiante.EstudianteRepository;
+import dev.gabus.dto.Administracion.EstudianteDesactivadoDTO;
 import dev.gabus.dto.Grado.Grado;
 import dev.gabus.dto.Grado.GradoRepository;
 import dev.gabus.dto.Usuario.Role;
 import dev.gabus.dto.Usuario.Usuario;
 import dev.gabus.dto.Usuario.UsuarioRepository;
+import dev.gabus.service.BajaLogicaService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +41,7 @@ public class EstudianteController {
     private final EstudianteRepository estudianteRepository;
     private final GradoRepository gradoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final BajaLogicaService bajaLogicaService;
 
     private Usuario getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -55,7 +59,7 @@ public class EstudianteController {
     @GetMapping
     public ResponseEntity<List<Estudiante>> getAllEstudiantes() {
         Usuario user = getCurrentUser();
-        List<Estudiante> allStudents = estudianteRepository.findAll();
+        List<Estudiante> allStudents = estudianteRepository.findByActivoTrue();
 
         if (user.getRole() == Role.ADMIN) {
             return ResponseEntity.ok(allStudents);
@@ -84,7 +88,7 @@ public class EstudianteController {
         }
 
         // Fetch students for the grade
-        List<Estudiante> students = estudianteRepository.findByGrado_IdOrderByApellidosAsc(gradoId);
+        List<Estudiante> students = estudianteRepository.findByGrado_IdAndActivoTrueOrderByApellidosAsc(gradoId);
         
         // Defensive check: filter out students with null grades if any exist in DB despite entity constraint
         // This could happen if data integrity is compromised at the DB level.
@@ -95,9 +99,20 @@ public class EstudianteController {
         return ResponseEntity.ok(validStudents);
     }
 
+    // --- Borrado lógico: listados solo para ADMIN ---
+    @GetMapping("/inactivos")
+    public ResponseEntity<List<EstudianteDesactivadoDTO>> getInactivos() {
+        return ResponseEntity.ok(bajaLogicaService.listarEstudiantesDesactivados(getCurrentUser()));
+    }
+
+    @GetMapping("/grado/{gradoId}/inactivos")
+    public ResponseEntity<List<EstudianteDesactivadoDTO>> getInactivosPorGrado(@PathVariable Long gradoId) {
+        return ResponseEntity.ok(bajaLogicaService.listarEstudiantesDesactivadosPorGrado(gradoId, getCurrentUser()));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getEstudianteById(@PathVariable Long id) {
-        Estudiante estudiante = estudianteRepository.findById(id)
+        Estudiante estudiante = estudianteRepository.findByIdAndActivoTrue(id)
                 .orElseThrow(() -> new RuntimeException("Estudiante no encontrado"));
         
         Usuario user = getCurrentUser();
@@ -119,7 +134,7 @@ public class EstudianteController {
         // This method does not check for user permissions based on Grado, 
         // assuming direct code access bypasses standard grade-based access control.
         // If permission checks are needed here, they should be added.
-        return estudianteRepository.findByCodigoProgreso(codigo)
+        return estudianteRepository.findByCodigoProgresoAndActivoTrue(codigo)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
@@ -127,7 +142,7 @@ public class EstudianteController {
     @GetMapping("/sin-nfc")
     public ResponseEntity<List<Estudiante>> getEstudiantesWithoutNfcId() {
         Usuario user = getCurrentUser();
-        List<Estudiante> students = estudianteRepository.findByNfcIdIsNull();
+        List<Estudiante> students = estudianteRepository.findByNfcIdIsNullAndActivoTrue();
         
         if (user.getRole() == Role.ADMIN) {
              return ResponseEntity.ok(students);
@@ -173,7 +188,7 @@ public class EstudianteController {
     public ResponseEntity<?> updateEstudiante(@PathVariable Long id, @RequestBody EstudianteRequest request) {
         Usuario user = getCurrentUser();
 
-        return estudianteRepository.findById(id).map(estudiante -> {
+        return estudianteRepository.findByIdAndActivoTrue(id).map(estudiante -> {
             
             // Add null check for estudiante.getGrado() before calling canAccessGrado
             if (estudiante.getGrado() == null) {
@@ -218,22 +233,14 @@ public class EstudianteController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteEstudiante(@PathVariable Long id) {
-        Usuario user = getCurrentUser();
+    public ResponseEntity<Void> deleteEstudiante(@PathVariable Long id) {
+        bajaLogicaService.desactivarEstudiante(id, getCurrentUser());
+        return ResponseEntity.noContent().build();
+    }
 
-        // Fetch student first to check grade and permissions before deletion
-        return estudianteRepository.findById(id).map(estudiante -> {
-            if (estudiante.getGrado() == null) {
-                System.err.println("Inconsistent data: Estudiante with ID " + id + " has a null Grado during deletion.");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Student data is inconsistent: missing grade information.");
-            }
-            if (!canAccessGrado(user, estudiante.getGrado())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-            
-            estudianteRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }).orElse(ResponseEntity.notFound().build());
+    @PatchMapping("/{id}/restaurar")
+    public ResponseEntity<Estudiante> restaurarEstudiante(@PathVariable Long id) {
+        return ResponseEntity.ok(bajaLogicaService.restaurarEstudiante(id, getCurrentUser()));
     }
 
     @Data

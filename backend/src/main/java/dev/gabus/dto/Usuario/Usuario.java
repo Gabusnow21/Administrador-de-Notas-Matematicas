@@ -1,5 +1,6 @@
 package dev.gabus.dto.Usuario;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -48,6 +49,17 @@ public class Usuario implements UserDetails {
     @Enumerated(EnumType.STRING) // Guarda el rol como texto (ej. "ADMIN") en lugar de un número
     private Role role;
 
+    // --- Borrado lógico ---
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    @Builder.Default
+    private boolean activo = true;
+
+    @Column(name = "fecha_eliminacion")
+    private LocalDateTime fechaEliminacion;
+
+    @Column(name = "eliminado_por")
+    private Long eliminadoPor;
+
     // Métodos de UserDetails (Spring Security)
     
     @Override
@@ -76,7 +88,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true; // La cuenta está siempre habilitada
+        return activo; // El borrado lógico deshabilita el acceso
     }
     
 }

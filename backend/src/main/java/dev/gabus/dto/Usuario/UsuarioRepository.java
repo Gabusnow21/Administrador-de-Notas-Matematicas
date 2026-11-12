@@ -8,4 +8,11 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     //Accede a los datos de los usuarios en la base de datos: SELECT * FROM _usuario WHERE username = ?
     Optional<Usuario> findByUsername(String username);
     List<Usuario> findByRole(Role role);
+
+    // --- Borrado lógico ---
+    List<Usuario> findByActivoTrue();
+    List<Usuario> findByRoleAndActivoTrue(Role role);
+    List<Usuario> findByRoleAndActivoFalseOrderByApellidoAscNombreAsc(Role role);
+    Optional<Usuario> findByUsernameAndActivoTrue(String username);
+    Optional<Usuario> findByIdAndActivoTrue(Long id);
 }

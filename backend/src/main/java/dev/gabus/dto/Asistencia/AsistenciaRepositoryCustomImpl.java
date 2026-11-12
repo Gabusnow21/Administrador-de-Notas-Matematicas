@@ -13,7 +13,7 @@ public class AsistenciaRepositoryCustomImpl implements AsistenciaRepositoryCusto
     public List<AsistenciaReporteDTO> getReporteAsistenciaMensual(Long gradoId, int month, int year) {
         String query = "SELECT new dev.gabus.dto.Asistencia.AsistenciaReporteDTO(e.codigoProgreso, CONCAT(e.nombres, ' ', e.apellidos), COUNT(a)) " +
                        "FROM Asistencia a JOIN a.estudiante e " +
-                       "WHERE e.grado.id = :gradoId AND EXTRACT(MONTH FROM a.fecha) = :month AND EXTRACT(YEAR FROM a.fecha) = :year " +
+                       "WHERE e.grado.id = :gradoId AND e.activo = true AND EXTRACT(MONTH FROM a.fecha) = :month AND EXTRACT(YEAR FROM a.fecha) = :year " +
                        "AND a.estado = :estado " +
                        "GROUP BY e.id, e.codigoProgreso, e.nombres, e.apellidos " +
                        "ORDER BY e.apellidos";
