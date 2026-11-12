@@ -199,7 +199,7 @@ export class Reporte {
       let t3 = this.calculateWeightedAverage(materia.trimestres[3].notas, materia.trimestres[3].ponderaciones);
   
       let total = t1 + t2 + t3;
-      let promedio = total > 0 ? (total / 3).toFixed(2) : "0.00";
+      let promedio = total > 0 ? Math.round(total / 3).toString() : '0';
   
       if (total > 0) {
         finalAverage += parseFloat(promedio as string);
