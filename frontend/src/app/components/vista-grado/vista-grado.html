@@ -137,11 +137,13 @@
                       <i class="bi bi-pencil-fill"></i>
                     </button>
 
-                    <button class="btn btn-sm btn-danger" 
-                            (click)="eliminarEstudiante(est)"
-                            title="Eliminar Estudiante">
-                      <i class="bi bi-trash-fill"></i>
-                    </button>
+                    @if (esAdmin) {
+                      <button class="btn btn-sm btn-danger" 
+                              (click)="eliminarEstudiante(est)"
+                              title="Desactivar Estudiante">
+                        <i class="bi bi-person-dash-fill"></i>
+                      </button>
+                    }
 
                 </td>
               </tr>
@@ -175,14 +177,79 @@
                     title="Editar Datos">
               <i class="bi bi-pencil-fill"></i>
             </button>
-            <button class="btn btn-sm btn-danger" 
-                    (click)="eliminarEstudiante(est)"
-                    title="Eliminar Estudiante">
-              <i class="bi bi-trash-fill"></i>
-            </button>
+            @if (esAdmin) {
+              <button class="btn btn-sm btn-danger" 
+                      (click)="eliminarEstudiante(est)"
+                      title="Desactivar Estudiante">
+                <i class="bi bi-person-dash-fill"></i>
+              </button>
+            }
           </div>
         </div>
       }
     </div>
+  }
+
+  <!-- ESTUDIANTES DESACTIVADOS (solo ADMIN) -->
+  @if (esAdmin) {
+    <section class="mt-5">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h5 class="mb-0 fw-bold text-secondary">
+          <i class="bi bi-person-dash me-2"></i>Estudiantes desactivados
+          <span class="badge text-bg-secondary ms-1">{{ estudiantesInactivos.length }}</span>
+        </h5>
+        <a class="btn btn-sm btn-outline-primary" routerLink="/configuracion/desactivados">
+          <i class="bi bi-clock-history me-1"></i> Ver historial completo
+        </a>
+      </div>
+
+      @if (cargandoInactivos) {
+        <div class="text-center py-3">
+          <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+        </div>
+      } @else if (estudiantesInactivos.length === 0) {
+        <div class="alert alert-light border mb-0">
+          No hay estudiantes desactivados en este grado.
+        </div>
+      } @else {
+        <div class="card shadow-sm border-0">
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-4">Apellidos</th>
+                  <th>Nombres</th>
+                  <th>Código</th>
+                  <th>Desactivado el</th>
+                  <th>Desactivado por</th>
+                  <th class="text-end pe-4">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (est of estudiantesInactivos; track est.id) {
+                  <tr>
+                    <td class="ps-4 fw-semibold">{{ est.apellidos }}</td>
+                    <td>{{ est.nombres }}</td>
+                    <td><span class="badge bg-secondary">{{ est.codigoProgreso }}</span></td>
+                    <td>{{ est.fechaEliminacion ? (est.fechaEliminacion | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+                    <td>{{ est.eliminadoPorNombre || 'No registrado' }}</td>
+                    <td class="text-end pe-4">
+                      <button class="btn btn-sm btn-success" (click)="restaurarEstudiante(est)" [disabled]="restaurandoId === est.id">
+                        @if (restaurandoId === est.id) {
+                          <span class="spinner-border spinner-border-sm me-1"></span>
+                        } @else {
+                          <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        }
+                        Restaurar
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </section>
   }
 </div>

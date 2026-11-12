@@ -119,14 +119,75 @@
               <button class="btn btn-touch btn-outline-warning" (click)="editar(u)" title="Editar">
                 <i class="bi bi-pencil-fill"></i>
               </button>
-              <button class="btn btn-touch btn-outline-danger" (click)="eliminar(u.id!)" title="Eliminar">
-                <i class="bi bi-trash-fill"></i>
-              </button>
+              @if (u.role !== 'ADMIN') {
+                <button class="btn btn-touch btn-outline-danger" (click)="eliminar(u.id!)" title="Desactivar">
+                  <i class="bi bi-person-dash-fill"></i>
+                </button>
+              }
             </div>
 
           </div>
         </div>
       }
     </div>
+  </section>
+
+  <!-- USUARIOS DESACTIVADOS (solo ADMIN) -->
+  <section class="mt-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <h5 class="mb-0 fw-bold text-secondary">
+        <i class="bi bi-person-dash me-2"></i>Usuarios desactivados
+        <span class="badge text-bg-secondary ms-1">{{ usuariosInactivos.length }}</span>
+      </h5>
+      <a class="btn btn-sm btn-outline-primary" routerLink="/configuracion/desactivados">
+        <i class="bi bi-clock-history me-1"></i> Ver historial completo
+      </a>
+    </div>
+
+    @if (cargandoInactivos) {
+      <div class="text-center py-3">
+        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+      </div>
+    } @else if (usuariosInactivos.length === 0) {
+      <div class="alert alert-light border mb-0">
+        No hay profesores desactivados.
+      </div>
+    } @else {
+      <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Profesor</th>
+                <th>Correo</th>
+                <th>Desactivado el</th>
+                <th>Desactivado por</th>
+                <th class="text-end pe-4">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (u of usuariosInactivos; track u.id) {
+                <tr>
+                  <td class="ps-4 fw-semibold">{{ u.nombre }} {{ u.apellido }}</td>
+                  <td class="text-muted">{{ u.username }}</td>
+                  <td>{{ u.fechaEliminacion ? (u.fechaEliminacion | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+                  <td>{{ u.eliminadoPorNombre || 'No registrado' }}</td>
+                  <td class="text-end pe-4">
+                    <button class="btn btn-sm btn-success" (click)="restaurar(u)" [disabled]="restaurandoId === u.id">
+                      @if (restaurandoId === u.id) {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                      } @else {
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                      }
+                      Restaurar
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
   </section>
 </main>

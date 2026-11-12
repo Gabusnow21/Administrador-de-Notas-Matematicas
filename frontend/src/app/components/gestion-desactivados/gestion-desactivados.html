@@ -1,0 +1,291 @@
+<header class="mb-4 border-bottom pb-2">
+  <div class="container-fluid d-flex flex-wrap align-items-center justify-content-between px-3 py-2 gap-2">
+    <div>
+      <h1 class="header-title mb-0 fw-bold d-flex align-items-center text-primary gap-2">
+        <i class="bi bi-archive-fill"></i>
+        <span>Registros desactivados</span>
+      </h1>
+      <p class="text-muted mb-0 small">
+        Revisa las bajas lógicas y restaura profesores o estudiantes cuando sea necesario.
+      </p>
+    </div>
+    <button class="btn btn-outline-primary" (click)="cargarDesactivados()" [disabled]="cargandoDesactivados">
+      <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+    </button>
+  </div>
+</header>
+
+<main class="container-fluid px-3 px-md-4 mt-2">
+  <ul class="nav nav-pills mb-4 gap-2">
+    <li class="nav-item">
+      <button
+        class="nav-link"
+        [class.active]="pestana === 'desactivados'"
+        (click)="cambiarPestana('desactivados')">
+        <i class="bi bi-person-dash me-1"></i> Desactivados
+        <span class="badge rounded-pill text-bg-light ms-1">{{ profesores.length + estudiantes.length }}</span>
+      </button>
+    </li>
+    <li class="nav-item">
+      <button
+        class="nav-link"
+        [class.active]="pestana === 'historial'"
+        (click)="cambiarPestana('historial')">
+        <i class="bi bi-clock-history me-1"></i> Historial
+      </button>
+    </li>
+  </ul>
+
+  @if (pestana === 'desactivados') {
+    <section>
+      <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
+        <ul class="nav nav-tabs">
+          <li class="nav-item">
+            <button
+              class="nav-link"
+              [class.active]="tipoLista === 'profesores'"
+              (click)="cambiarTipoLista('profesores')">
+              Profesores <span class="badge text-bg-secondary ms-1">{{ profesores.length }}</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button
+              class="nav-link"
+              [class.active]="tipoLista === 'estudiantes'"
+              (click)="cambiarTipoLista('estudiantes')">
+              Estudiantes <span class="badge text-bg-secondary ms-1">{{ estudiantes.length }}</span>
+            </button>
+          </li>
+        </ul>
+
+        <div class="input-group search-box">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input
+            type="search"
+            class="form-control"
+            placeholder="Buscar por nombre, correo o código"
+            [(ngModel)]="busqueda"
+            name="busquedaDesactivados">
+        </div>
+      </div>
+
+      @if (cargandoDesactivados) {
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="text-muted mt-2 mb-0">Cargando registros...</p>
+        </div>
+      } @else if (tipoLista === 'profesores') {
+        @if (profesoresFiltrados.length === 0) {
+          <div class="alert alert-light border text-center py-4">
+            <i class="bi bi-inbox fs-3 d-block mb-2 text-muted"></i>
+            No hay profesores desactivados que coincidan con la búsqueda.
+          </div>
+        } @else {
+          <div class="card shadow-sm border-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="ps-4">Profesor</th>
+                    <th>Correo</th>
+                    <th>Desactivado el</th>
+                    <th>Desactivado por</th>
+                    <th class="text-end pe-4">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (profesor of profesoresFiltrados; track profesor.id) {
+                    <tr>
+                      <td class="ps-4 fw-semibold">{{ profesor.nombre }} {{ profesor.apellido }}</td>
+                      <td class="text-muted">{{ profesor.username }}</td>
+                      <td>{{ formatearFecha(profesor.fechaEliminacion) }}</td>
+                      <td>{{ profesor.eliminadoPorNombre || 'No registrado' }}</td>
+                      <td class="text-end pe-4">
+                        <button
+                          class="btn btn-sm btn-success"
+                          (click)="restaurarProfesor(profesor)"
+                          [disabled]="restauradoId === profesor.id">
+                          @if (restauradoId === profesor.id) {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                          } @else {
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>
+                          }
+                          Restaurar
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      } @else {
+        @if (estudiantesFiltrados.length === 0) {
+          <div class="alert alert-light border text-center py-4">
+            <i class="bi bi-inbox fs-3 d-block mb-2 text-muted"></i>
+            No hay estudiantes desactivados que coincidan con la búsqueda.
+          </div>
+        } @else {
+          <div class="card shadow-sm border-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="ps-4">Estudiante</th>
+                    <th>Código</th>
+                    <th>Grado</th>
+                    <th>Desactivado el</th>
+                    <th>Desactivado por</th>
+                    <th class="text-end pe-4">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (estudiante of estudiantesFiltrados; track estudiante.id) {
+                    <tr>
+                      <td class="ps-4 fw-semibold">{{ estudiante.apellidos }}, {{ estudiante.nombres }}</td>
+                      <td><span class="badge text-bg-secondary">{{ estudiante.codigoProgreso }}</span></td>
+                      <td>{{ estudiante.grado }}</td>
+                      <td>{{ formatearFecha(estudiante.fechaEliminacion) }}</td>
+                      <td>{{ estudiante.eliminadoPorNombre || 'No registrado' }}</td>
+                      <td class="text-end pe-4">
+                        <button
+                          class="btn btn-sm btn-success"
+                          (click)="restaurarEstudiante(estudiante)"
+                          [disabled]="restauradoId === estudiante.id">
+                          @if (restauradoId === estudiante.id) {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                          } @else {
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>
+                          }
+                          Restaurar
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      }
+    </section>
+  } @else {
+    <section>
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+          <div class="row g-3 align-items-end">
+            <div class="col-12 col-md-6 col-lg-2">
+              <label class="form-label small fw-semibold" for="filtroTipo">Tipo</label>
+              <select id="filtroTipo" class="form-select" [(ngModel)]="filtros.tipo" name="filtroTipo">
+                <option value="">Todos</option>
+                <option value="PROFESOR">Profesores</option>
+                <option value="ESTUDIANTE">Estudiantes</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+              <label class="form-label small fw-semibold" for="filtroAccion">Acción</label>
+              <select id="filtroAccion" class="form-select" [(ngModel)]="filtros.accion" name="filtroAccion">
+                <option value="">Todas</option>
+                <option value="DESACTIVACION">Desactivación</option>
+                <option value="RESTAURACION">Restauración</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+              <label class="form-label small fw-semibold" for="filtroDesde">Desde</label>
+              <input id="filtroDesde" type="date" class="form-control" [(ngModel)]="filtros.desde" name="filtroDesde">
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+              <label class="form-label small fw-semibold" for="filtroHasta">Hasta</label>
+              <input id="filtroHasta" type="date" class="form-control" [(ngModel)]="filtros.hasta" name="filtroHasta">
+            </div>
+            <div class="col-12 col-lg-4">
+              <label class="form-label small fw-semibold" for="filtroBuscar">Buscar</label>
+              <div class="input-group">
+                <input
+                  id="filtroBuscar"
+                  type="search"
+                  class="form-control"
+                  placeholder="Nombre del registro o admin"
+                  [(ngModel)]="filtros.buscar"
+                  name="filtroBuscar"
+                  (keyup.enter)="aplicarFiltros()">
+                <button class="btn btn-primary" (click)="aplicarFiltros()">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button class="btn btn-outline-secondary btn-sm" (click)="limpiarFiltros()">
+              <i class="bi bi-x-circle me-1"></i> Limpiar
+            </button>
+            <button class="btn btn-primary btn-sm" (click)="aplicarFiltros()">
+              <i class="bi bi-funnel me-1"></i> Aplicar filtros
+            </button>
+          </div>
+        </div>
+      </div>
+
+      @if (cargandoHistorial) {
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="text-muted mt-2 mb-0">Cargando historial...</p>
+        </div>
+      } @else if (historial.length === 0) {
+        <div class="alert alert-light border text-center py-4">
+          <i class="bi bi-clock-history fs-3 d-block mb-2 text-muted"></i>
+          No hay eventos que coincidan con los filtros.
+        </div>
+      } @else {
+        <div class="card shadow-sm border-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-4">Fecha</th>
+                  <th>Registro</th>
+                  <th>Tipo</th>
+                  <th>Acción</th>
+                  <th class="pe-4">Ejecutado por</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (evento of historial; track evento.id) {
+                  <tr>
+                    <td class="ps-4 text-nowrap">{{ formatearFecha(evento.fecha) }}</td>
+                    <td class="fw-semibold">{{ evento.nombreRegistro }}</td>
+                    <td>
+                      <span class="badge" [class.text-bg-primary]="evento.tipo === 'PROFESOR'" [class.text-bg-info]="evento.tipo === 'ESTUDIANTE'">
+                        {{ etiquetaTipo(evento.tipo) }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge" [class.text-bg-danger]="evento.accion === 'DESACTIVACION'" [class.text-bg-success]="evento.accion === 'RESTAURACION'">
+                        {{ etiquetaAccion(evento.accion) }}
+                      </span>
+                    </td>
+                    <td class="pe-4">{{ evento.ejecutadoPorNombre }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer bg-white d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+            <span class="text-muted small">
+              {{ totalElementos }} evento(s) · Página {{ paginaActual + 1 }} de {{ totalPaginas || 1 }}
+            </span>
+            <div class="btn-group">
+              <button class="btn btn-outline-secondary btn-sm" (click)="paginaAnterior()" [disabled]="paginaActual <= 0">
+                <i class="bi bi-chevron-left"></i> Anterior
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" (click)="paginaSiguiente()" [disabled]="paginaActual + 1 >= totalPaginas">
+                Siguiente <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </section>
+  }
+</main>

@@ -65,6 +65,11 @@ export const routes: Routes = [
                 canActivate: [adminGuard]
             },
             {
+                path: 'configuracion/desactivados',
+                loadComponent: () => import('./components/gestion-desactivados/gestion-desactivados').then(m => m.GestionDesactivados),
+                canActivate: [adminGuard]
+            },
+            {
                 path: 'configuracion/trimestres',
                 loadComponent: () => import('./components/gestion-trimestres/gestion-trimestres').then(m => m.GestionTrimestres),
                 canActivate: [adminGuard]
