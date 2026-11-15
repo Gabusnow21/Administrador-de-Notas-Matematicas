@@ -52,6 +52,10 @@ public class SecurityConfiguration {
             
             .requestMatchers("/api/tickets/**").permitAll()
             
+            // Plantilla del reporte: lectura pública (padres sin sesión),
+            // escritura restringida a ADMIN en ConfiguracionController.
+            .requestMatchers(HttpMethod.GET, "/api/configuracion/reporte-boleta").permitAll()
+            
             .requestMatchers("/").permitAll()
             .requestMatchers("/error").permitAll()
             
