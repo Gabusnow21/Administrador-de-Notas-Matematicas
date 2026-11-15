@@ -43,6 +43,12 @@
           <span class="link-text">Trimestres</span>
         </a>
       </li>
+      <li class="nav-item" role="none">
+        <a routerLink="/configuracion/reportes" routerLinkActive="active" class="nav-link" role="menuitem" [title]="!isExpanded ? 'Reportes' : ''">
+          <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+          <span class="link-text">Reportes</span>
+        </a>
+      </li>
     }
 
     @if (authService.isAdmin() || authService.isTeacher()) {

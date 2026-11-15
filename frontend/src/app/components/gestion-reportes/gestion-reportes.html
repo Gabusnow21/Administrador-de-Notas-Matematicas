@@ -1,0 +1,751 @@
+<div class="mb-4 border-bottom pb-2">
+  <div class="container-fluid px-3 py-2">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <h1 class="h4 mb-0 fw-bold d-flex align-items-center text-primary gap-2">
+        <i class="bi bi-file-earmark-pdf"></i>
+        Configuración del Reporte
+      </h1>
+      @if (sucio) {
+        <span class="badge bg-warning text-dark">Cambios sin guardar</span>
+      }
+    </div>
+    <p class="text-muted small mb-0">
+      Define el encabezado, las columnas, los aspectos de conducta y el estilo de la boleta en PDF.
+    </p>
+  </div>
+</div>
+
+<div class="main-content">
+  @if (cargando) {
+    <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+  } @else {
+    <ul class="nav nav-tabs config-tabs" role="tablist">
+      @for (p of pestanas; track p.id) {
+        <li class="nav-item" role="presentation">
+          <button
+            type="button"
+            class="nav-link"
+            [class.active]="pestana === p.id"
+            (click)="seleccionarPestana(p.id)"
+          >
+            <i class="bi {{ p.icono }} me-1"></i>{{ p.etiqueta }}
+          </button>
+        </li>
+      }
+    </ul>
+
+    <div class="card shadow-sm border-0 rounded-top-0 config-card">
+      <div class="card-body">
+        @if (errores.length > 0) {
+          <div class="alert alert-danger">
+            <strong>La configuración tiene errores:</strong>
+            <ul class="mb-0 mt-1">
+              @for (error of errores; track error) {
+                <li>{{ error }}</li>
+              }
+            </ul>
+          </div>
+        }
+
+        @switch (pestana) {
+
+          <!-- ================= ENCABEZADO ================= -->
+          @case ('encabezado') {
+            <div class="row g-3">
+              <div class="col-lg-6">
+                <label class="form-label fw-semibold">Institución</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="borrador.encabezado.institucion"
+                  (ngModelChange)="marcarSucio()"
+                  placeholder="Nombre del centro escolar"
+                />
+              </div>
+              <div class="col-lg-3">
+                <label class="form-label fw-semibold">Código</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="borrador.encabezado.codigo"
+                  (ngModelChange)="marcarSucio()"
+                  placeholder="21276"
+                />
+              </div>
+              <div class="col-lg-3 d-flex align-items-end">
+                <div class="form-check form-switch mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="mostrarCodigoEnc"
+                    [(ngModel)]="borrador.encabezado.mostrarCodigo"
+                    (ngModelChange)="marcarSucio()"
+                  />
+                  <label class="form-check-label" for="mostrarCodigoEnc">Mostrar código</label>
+                </div>
+              </div>
+
+              <div class="col-lg-6">
+                <label class="form-label fw-semibold">Título</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="borrador.encabezado.titulo"
+                  (ngModelChange)="marcarSucio()"
+                />
+              </div>
+              <div class="col-lg-6">
+                <label class="form-label fw-semibold">Subtítulo</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="borrador.encabezado.subtitulo"
+                  (ngModelChange)="marcarSucio()"
+                />
+              </div>
+
+              <div class="col-12 d-flex flex-wrap gap-4 pt-1">
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="mostrarLogos"
+                    [(ngModel)]="borrador.encabezado.mostrarLogos"
+                    (ngModelChange)="marcarSucio()"
+                  />
+                  <label class="form-check-label" for="mostrarLogos">Mostrar logos</label>
+                </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="mostrarContacto"
+                    [(ngModel)]="borrador.encabezado.mostrarContacto"
+                    (ngModelChange)="marcarSucio()"
+                  />
+                  <label class="form-check-label" for="mostrarContacto">Mostrar bloque de contacto</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                  Líneas de contacto
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="agregarLineaContacto()">
+                    <i class="bi bi-plus-lg"></i> Agregar línea
+                  </button>
+                </label>
+
+                @if (borrador.encabezado.lineasContacto.length === 0) {
+                  <p class="text-muted small mb-0">No hay líneas de contacto.</p>
+                }
+
+                @for (linea of borrador.encabezado.lineasContacto; track $index) {
+                  <div class="contacto-fila input-group input-group-sm mb-2">
+                    <button
+                      class="btn btn-outline-secondary"
+                      type="button"
+                      title="Subir"
+                      [disabled]="$index === 0"
+                      (click)="moverLineaContacto($index, -1)"
+                    >
+                      <i class="bi bi-arrow-up"></i>
+                    </button>
+                    <button
+                      class="btn btn-outline-secondary"
+                      type="button"
+                      title="Bajar"
+                      [disabled]="$index === borrador.encabezado.lineasContacto.length - 1"
+                      (click)="moverLineaContacto($index, 1)"
+                    >
+                      <i class="bi bi-arrow-down"></i>
+                    </button>
+                    <input
+                      type="text"
+                      class="form-control"
+                      [(ngModel)]="linea.texto"
+                      (ngModelChange)="marcarSucio()"
+                      placeholder="Email, dirección o teléfono"
+                    />
+                    <div class="input-group-text">
+                      <input
+                        class="form-check-input mt-0 me-1"
+                        type="checkbox"
+                        [id]="'negrita-' + $index"
+                        [(ngModel)]="linea.negrita"
+                        (ngModelChange)="marcarSucio()"
+                      />
+                      <label class="small" [for]="'negrita-' + $index">Negrita</label>
+                    </div>
+                    <button
+                      class="btn btn-outline-danger"
+                      type="button"
+                      title="Eliminar"
+                      (click)="eliminarLineaContacto($index)"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-semibold">Logos</label>
+                <div class="row g-3">
+                  @for (lado of lados; track lado) {
+                    <div class="col-md-6">
+                      <div class="logo-card p-3">
+                        <div class="d-flex align-items-center gap-3">
+                          <div class="logo-preview">
+                            <img
+                              [src]="lado === 'logoIzquierda' ? borrador.encabezado.logoIzquierda ?? logoDefectoIzquierdo : borrador.encabezado.logoDerecha ?? logoDefectoDerecho"
+                              alt="Vista previa del logo"
+                            />
+                          </div>
+                          <div class="flex-grow-1">
+                            <div class="fw-semibold small">
+                              {{ lado === 'logoIzquierda' ? 'Logo izquierdo' : 'Logo derecho' }}
+                            </div>
+                            <div class="text-muted small mb-2">
+                              PNG, JPG o WEBP · máx. {{ LOGO_MAX_PX }}×{{ LOGO_MAX_PX }} px ·
+                              {{ (LOGO_MAX_BYTES / 1024 / 1024) | number: '1.0-0' }} MB
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                              <label class="btn btn-sm btn-outline-primary mb-0">
+                                {{ esLogoPersonalizado(lado) ? 'Cambiar' : 'Subir imagen' }}
+                                <input
+                                  type="file"
+                                  accept="image/png,image/jpeg,image/webp"
+                                  class="d-none"
+                                  (change)="subirLogo($event, lado)"
+                                  [disabled]="procesandoLogo"
+                                />
+                              </label>
+                              @if (esLogoPersonalizado(lado)) {
+                                <button
+                                  type="button"
+                                  class="btn btn-sm btn-outline-secondary"
+                                  (click)="limpiarLogo(lado)"
+                                >
+                                  Usar el de defecto
+                                </button>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+                <p class="form-text mt-2 mb-0">
+                  Las imágenes se reducen automáticamente a {{ LOGO_MAX_PX }} px como máximo antes de guardarse.
+                </p>
+              </div>
+            </div>
+          }
+
+          <!-- ================= ESTUDIANTE ================= -->
+          @case ('estudiante') {
+            <div class="row g-3">
+              <div class="col-lg-6">
+                <div class="form-check form-switch mb-3">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="mostrarNombre"
+                    [(ngModel)]="borrador.estudiante.mostrarNombre"
+                    (ngModelChange)="marcarSucio()"
+                  />
+                  <label class="form-check-label" for="mostrarNombre">Mostrar nombre del estudiante</label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="mostrarCodigoEst"
+                    [(ngModel)]="borrador.estudiante.mostrarCodigo"
+                    (ngModelChange)="marcarSucio()"
+                  />
+                  <label class="form-check-label" for="mostrarCodigoEst">Mostrar código de progreso</label>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <label class="form-label fw-semibold">Etiqueta del código</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="borrador.estudiante.etiquetaCodigo"
+                  (ngModelChange)="marcarSucio()"
+                  placeholder="NIE"
+                />
+                <div class="form-text">Se muestra antes del número de identificación.</div>
+              </div>
+            </div>
+          }
+
+          <!-- ================= MATERIAS ================= -->
+          @case ('materias') {
+            <div class="row g-3 mb-3">
+              <div class="col-lg-4">
+                <label class="form-label fw-semibold">Etiqueta de la columna de asignaturas</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="borrador.materias.etiquetaMateria"
+                  (ngModelChange)="marcarSucio()"
+                />
+              </div>
+              <div class="col-lg-3">
+                <label class="form-label fw-semibold">Decimales (trimestres y total)</label>
+                <select class="form-select" [(ngModel)]="borrador.materias.decimales" (ngModelChange)="marcarSucio()">
+                  @for (opcion of [0, 1, 2, 3, 4]; track opcion) {
+                    <option [ngValue]="opcion">{{ opcion }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-lg-3">
+                <label class="form-label fw-semibold">Decimales (promedio)</label>
+                <select
+                  class="form-select"
+                  [(ngModel)]="borrador.materias.decimalesPromedio"
+                  (ngModelChange)="marcarSucio()"
+                >
+                  @for (opcion of [0, 1, 2, 3, 4]; track opcion) {
+                    <option [ngValue]="opcion">{{ opcion }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-lg-2 d-flex align-items-end">
+                <div class="form-check form-switch mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="sinNotas"
+                    [(ngModel)]="borrador.materias.mostrarMateriasSinNotas"
+                    (ngModelChange)="marcarSucio()"
+                  />
+                  <label class="form-check-label" for="sinNotas">Incluir sin notas</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width: 40%">Columna</th>
+                    <th>Encabezado</th>
+                    <th style="width: 110px" class="text-center">Visible</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (trimestre of borrador.materias.columnas.trimestres; track $index) {
+                    <tr>
+                      <td class="fw-semibold">Trimestre {{ $index + 1 }}</td>
+                      <td>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          [(ngModel)]="trimestre.etiqueta"
+                          (ngModelChange)="marcarSucio()"
+                        />
+                        <div class="form-text">Corto en conducta: {{ trimestre.etiquetaCorta }}</div>
+                      </td>
+                      <td class="text-center">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          [(ngModel)]="trimestre.visible"
+                          (ngModelChange)="marcarSucio()"
+                        />
+                      </td>
+                    </tr>
+                  }
+                  <tr>
+                    <td class="fw-semibold">Total</td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control form-control-sm"
+                        [(ngModel)]="borrador.materias.columnas.total.etiqueta"
+                        (ngModelChange)="marcarSucio()"
+                      />
+                    </td>
+                    <td class="text-center">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [(ngModel)]="borrador.materias.columnas.total.visible"
+                        (ngModelChange)="marcarSucio()"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="fw-semibold">Promedio</td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control form-control-sm"
+                        [(ngModel)]="borrador.materias.columnas.promedio.etiqueta"
+                        (ngModelChange)="marcarSucio()"
+                      />
+                    </td>
+                    <td class="text-center">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [(ngModel)]="borrador.materias.columnas.promedio.visible"
+                        (ngModelChange)="marcarSucio()"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label fw-semibold">Encabezado corto para conducta</label>
+              <div class="d-flex gap-2 flex-wrap">
+                @for (trimestre of borrador.materias.columnas.trimestres; track $index) {
+                  <input
+                    type="text"
+                    class="form-control form-control-sm etiqueta-corta"
+                    [(ngModel)]="trimestre.etiquetaCorta"
+                    (ngModelChange)="marcarSucio()"
+                    [placeholder]="'T' + ($index + 1)"
+                    [attr.aria-label]="'Etiqueta corta del trimestre ' + ($index + 1)"
+                  />
+                }
+              </div>
+            </div>
+          }
+
+          <!-- ================= CONDUCTA ================= -->
+          @case ('conducta') {
+            <div class="form-check form-switch mb-3">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="conductaActiva"
+                [(ngModel)]="borrador.conducta.habilitado"
+                (ngModelChange)="marcarSucio()"
+              />
+              <label class="form-check-label fw-semibold" for="conductaActiva">
+                Mostrar la sección de aspectos de conducta
+              </label>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-lg-5">
+                <label class="form-label fw-semibold">Título de la sección</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="borrador.conducta.titulo"
+                  (ngModelChange)="marcarSucio()"
+                />
+              </div>
+              <div class="col-lg-5">
+                <label class="form-label fw-semibold">Subtítulo</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="borrador.conducta.subtitulo"
+                  (ngModelChange)="marcarSucio()"
+                />
+              </div>
+              <div class="col-lg-2">
+                <label class="form-label fw-semibold">Nota mínima del cheque</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  min="0"
+                  max="10"
+                  step="0.5"
+                  [(ngModel)]="borrador.conducta.notaMinimaCheck"
+                  (ngModelChange)="marcarSucio()"
+                />
+              </div>
+            </div>
+
+            @if (numerosDuplicados.length > 0) {
+              <div class="alert alert-warning py-2">
+                Números de ítem duplicados: <strong>{{ numerosDuplicados.join(', ') }}</strong>. Cada ítem debe tener
+                un número único.
+              </div>
+            }
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label fw-semibold mb-0">Bloques e ítems</label>
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="agregarBloque()">
+                <i class="bi bi-plus-lg"></i> Agregar bloque
+              </button>
+            </div>
+
+            <div class="form-text mb-3">
+              El número del ítem es el que identifica la actividad en el sistema: una actividad llamada
+              <code>1. Coopera...</code> marcará el ítem número 1. Los ítems de conducta no entran en los promedios.
+            </div>
+
+            <div class="row g-3">
+              @for (bloque of borrador.conducta.bloques; track bloque.id; let i = $index) {
+                <div class="col-12">
+                  <div class="bloque-card">
+                    <div class="d-flex gap-2 align-items-center flex-wrap mb-3">
+                      <input
+                        type="text"
+                        class="form-control form-control-sm fw-bold bloque-titulo"
+                        [(ngModel)]="bloque.titulo"
+                        (ngModelChange)="marcarSucio()"
+                        aria-label="Título del bloque"
+                      />
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="eliminarBloque(i)"
+                        title="Eliminar bloque"
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+
+                    @for (item of bloque.items; track $index; let j = $index) {
+                      <div class="item-fila input-group input-group-sm mb-2">
+                        <span class="input-group-text numero-item">{{ item.numero }}</span>
+                        <input
+                          type="number"
+                          class="form-control form-control-sm numero-input"
+                          [(ngModel)]="item.numero"
+                          (ngModelChange)="marcarSucio()"
+                          min="1"
+                          max="99"
+                          aria-label="Número del ítem"
+                        />
+                        <input
+                          type="text"
+                          class="form-control"
+                          [(ngModel)]="item.texto"
+                          (ngModelChange)="marcarSucio()"
+                          aria-label="Texto del ítem"
+                        />
+                        <button
+                          class="btn btn-outline-secondary"
+                          type="button"
+                          title="Subir"
+                          [disabled]="j === 0"
+                          (click)="moverItem(bloque, j, -1)"
+                        >
+                          <i class="bi bi-arrow-up"></i>
+                        </button>
+                        <button
+                          class="btn btn-outline-secondary"
+                          type="button"
+                          title="Bajar"
+                          [disabled]="j === bloque.items.length - 1"
+                          (click)="moverItem(bloque, j, 1)"
+                        >
+                          <i class="bi bi-arrow-down"></i>
+                        </button>
+                        <button
+                          class="btn btn-outline-danger"
+                          type="button"
+                          title="Eliminar ítem"
+                          (click)="eliminarItem(bloque, j)"
+                        >
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    }
+
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-success"
+                      (click)="agregarItem(bloque)"
+                    >
+                      <i class="bi bi-plus-lg"></i> Agregar ítem ({{ proximoNumeroItem() }})
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- ================= PIE Y AVANZADO ================= -->
+          @case ('avanzado') {
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="form-check form-switch mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="pieActivo"
+                    [(ngModel)]="borrador.pie.habilitado"
+                    (ngModelChange)="marcarSucio()"
+                  />
+                  <label class="form-check-label fw-semibold" for="pieActivo">Mostrar texto de pie</label>
+                </div>
+                <label class="form-label fw-semibold">Texto de pie</label>
+                <textarea
+                  class="form-control"
+                  rows="3"
+                  [(ngModel)]="borrador.pie.texto"
+                  (ngModelChange)="marcarSucio()"
+                ></textarea>
+              </div>
+
+              <div class="col-12">
+                <hr />
+                <h2 class="h6 fw-bold text-uppercase text-muted">Ajustes avanzados</h2>
+              </div>
+
+              <div class="col-lg-4">
+                <label class="form-label fw-semibold">Orientación de la página</label>
+                <div class="d-flex gap-3">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="orientacion"
+                      id="orientPortrait"
+                      value="portrait"
+                      [(ngModel)]="borrador.estilos.orientacion"
+                      (ngModelChange)="marcarSucio()"
+                    />
+                    <label class="form-check-label" for="orientPortrait">Vertical (A4)</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="orientacion"
+                      id="orientLandscape"
+                      value="landscape"
+                      [(ngModel)]="borrador.estilos.orientacion"
+                      (ngModelChange)="marcarSucio()"
+                    />
+                    <label class="form-check-label" for="orientLandscape">Horizontal (A4)</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-4">
+                <label class="form-label fw-semibold">
+                  Tamaño de fuente: {{ borrador.estilos.tamanoFuente }} pt
+                </label>
+                <input
+                  type="range"
+                  class="form-range"
+                  min="8"
+                  max="14"
+                  step="1"
+                  [(ngModel)]="borrador.estilos.tamanoFuente"
+                  (ngModelChange)="marcarSucio()"
+                />
+              </div>
+
+              <div class="col-lg-4">
+                <label class="form-label fw-semibold">
+                  Tamaño de logos: {{ borrador.estilos.tamanoLogo }} mm
+                </label>
+                <input
+                  type="range"
+                  class="form-range"
+                  min="15"
+                  max="40"
+                  step="1"
+                  [(ngModel)]="borrador.estilos.tamanoLogo"
+                  (ngModelChange)="marcarSucio()"
+                />
+              </div>
+
+              <div class="col-lg-4">
+                <label class="form-label fw-semibold">Color primario</label>
+                <div class="input-group">
+                  <input
+                    type="color"
+                    class="form-control form-control-color"
+                    [(ngModel)]="borrador.estilos.colorPrimario"
+                    (ngModelChange)="marcarSucio()"
+                    aria-label="Selector de color"
+                  />
+                  <input
+                    type="text"
+                    class="form-control color-hex"
+                    [(ngModel)]="borrador.estilos.colorPrimario"
+                    (ngModelChange)="marcarSucio()"
+                    aria-label="Color en hexadecimal"
+                  />
+                </div>
+                <div class="form-text">Se usa en los datos del estudiante.</div>
+              </div>
+            </div>
+          }
+
+          <!-- ================= VISTA PREVIA ================= -->
+          @case ('vista-previa') {
+            <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+              <span class="text-muted small">
+                Vista previa con datos de ejemplo. Guarda los cambios para verlos aplicados.
+              </span>
+              <div class="d-flex gap-2">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="actualizarPreview()"
+                  [disabled]="actualizandoPreview"
+                >
+                  @if (actualizandoPreview) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                  } @else {
+                    <i class="bi bi-arrow-clockwise"></i>
+                  }
+                  Actualizar
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-primary"
+                  (click)="descargarPreview()"
+                  [disabled]="!previewUrl && actualizandoPreview"
+                >
+                  <i class="bi bi-download"></i> Descargar PDF de prueba
+                </button>
+              </div>
+            </div>
+
+            @if (previewUrl) {
+              <div class="preview-contenedor" [style.aspect-ratio]="aspectoPrevia">
+                <iframe [src]="previewSafe" title="Vista previa del reporte"></iframe>
+              </div>
+            } @else {
+              <div class="text-center text-muted py-5 border rounded">
+                <i class="bi bi-file-earmark-pdf display-4 d-block mb-2"></i>
+                Presiona "Actualizar" para generar la vista previa.
+              </div>
+            }
+          }
+        }
+      </div>
+
+      <div class="card-footer bg-white d-flex flex-wrap gap-2 justify-content-end">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="restaurarPorDefecto()"
+          [disabled]="guardando"
+        >
+          <i class="bi bi-arrow-counterclockwise"></i> Restaurar valores por defecto
+        </button>
+        <button type="button" class="btn btn-outline-primary" (click)="recargarDelServidor()" [disabled]="guardando">
+          <i class="bi bi-cloud-arrow-down"></i> Recargar del servidor
+        </button>
+        <button type="button" class="btn btn-success" (click)="guardar()" [disabled]="guardando || !sucio">
+          @if (guardando) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          } @else {
+            <i class="bi bi-check-lg me-1"></i>
+          }
+          Guardar configuración
+        </button>
+      </div>
+    </div>
+  }
+</div>
