@@ -314,7 +314,11 @@ export class GestionReportes implements OnInit, OnDestroy {
   }
 
   get aspectoPrevia(): string {
-    return this.orientacionPrevia === 'landscape' ? '297 / 210' : '210 / 297';
+    // Medidas en mm: carta (letter) 215.9×279.4, A4 210×297.
+    const carta = this.borrador.estilos.tamanoPagina !== 'a4';
+    const ancho = carta ? 215.9 : 210;
+    const alto = carta ? 279.4 : 297;
+    return this.orientacionPrevia === 'landscape' ? `${alto} / ${ancho}` : `${ancho} / ${alto}`;
   }
 
   actualizarPreview(): void {

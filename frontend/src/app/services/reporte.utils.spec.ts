@@ -170,6 +170,7 @@ describe('configuración de reporte', () => {
     expect(config.materias.decimales).toBe(2);
     expect(config.materias.decimalesPromedio).toBe(0);
     expect(config.estilos.orientacion).toBe('portrait');
+    expect(config.estilos.tamanoPagina).toBe('letter'); // carta por defecto
   });
 
   it('fusiona configuraciones parciales sobre los valores por defecto', () => {

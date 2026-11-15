@@ -628,6 +628,37 @@
               </div>
 
               <div class="col-lg-4">
+                <label class="form-label fw-semibold">Tamaño de página</label>
+                <div class="d-flex gap-3">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="tamanoPagina"
+                      id="paginaCarta"
+                      value="letter"
+                      [(ngModel)]="borrador.estilos.tamanoPagina"
+                      (ngModelChange)="marcarSucio()"
+                    />
+                    <label class="form-check-label" for="paginaCarta">Carta (Letter)</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="tamanoPagina"
+                      id="paginaA4"
+                      value="a4"
+                      [(ngModel)]="borrador.estilos.tamanoPagina"
+                      (ngModelChange)="marcarSucio()"
+                    />
+                    <label class="form-check-label" for="paginaA4">A4</label>
+                  </div>
+                </div>
+                <div class="form-text">Carta es el valor por defecto en ambas orientaciones.</div>
+              </div>
+
+              <div class="col-lg-4">
                 <label class="form-label fw-semibold">
                   Tamaño de fuente: {{ borrador.estilos.tamanoFuente }} pt
                 </label>

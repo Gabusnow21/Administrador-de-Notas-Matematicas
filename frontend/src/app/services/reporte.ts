@@ -117,7 +117,9 @@ export class Reporte {
     const cfg = config ?? this.configService.getSnapshot();
 
     const orientacion = cfg.estilos.orientacion === 'landscape' ? 'landscape' : 'portrait';
-    const doc = new jsPDF({ orientation: orientacion, unit: 'mm', format: 'a4' });
+    // Carta (letter) por defecto para ambas orientaciones; A4 opcional.
+    const tamano = cfg.estilos.tamanoPagina === 'a4' ? 'a4' : 'letter';
+    const doc = new jsPDF({ orientation: orientacion, unit: 'mm', format: tamano });
 
     const contexto: ContextoPagina = {
       pageWidth: doc.internal.pageSize.getWidth(),

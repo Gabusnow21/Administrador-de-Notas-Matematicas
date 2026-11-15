@@ -113,6 +113,8 @@ export interface ReporteConfig {
 
   estilos: {
     orientacion: Orientacion;
+    /** Tamaño de la página. Letter (carta) es el valor por defecto. */
+    tamanoPagina: 'letter' | 'a4';
     /** Tamaño base de fuente en puntos (10 = tamaño original). */
     tamanoFuente: number;
     /** Color primario de los datos del estudiante (hex). */
@@ -212,6 +214,7 @@ export const CONFIGURACION_REPORTE_POR_DEFECTO: ReporteConfig = {
 
   estilos: {
     orientacion: 'portrait',
+    tamanoPagina: 'letter',
     tamanoFuente: 10,
     colorPrimario: '#003366',
     tamanoLogo: 25,
@@ -318,6 +321,9 @@ export function validarConfig(config: ReporteConfig): string[] {
   if (estilos) {
     if (estilos.orientacion !== 'portrait' && estilos.orientacion !== 'landscape') {
       errores.push('La orientación debe ser vertical u horizontal.');
+    }
+    if (estilos.tamanoPagina !== 'letter' && estilos.tamanoPagina !== 'a4') {
+      errores.push('El tamaño de página debe ser carta o A4.');
     }
     if (estilos.tamanoFuente < 8 || estilos.tamanoFuente > 14) {
       errores.push('El tamaño de fuente debe estar entre 8 y 14.');

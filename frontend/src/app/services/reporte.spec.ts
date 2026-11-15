@@ -97,8 +97,8 @@ describe('Reporte', () => {
     expect(texto).toContain('A MEJORAR');
     // Cabecera
     expect(texto).toContain('REGISTRO ACAD');
-    // Orientación vertical A4
-    expect(texto).toContain('MediaBox [0 0 595');
+    // Orientación vertical, tamaño carta (612×792 pt)
+    expect(texto).toContain('MediaBox [0 0 612');
   });
 
   it('respeta una configuración personalizada', async () => {
@@ -120,8 +120,16 @@ describe('Reporte', () => {
     expect(texto).not.toContain('III TRIMESTRE');
     expect(texto).not.toContain('POSITIVOS');
     expect(texto).not.toContain('Efesios 6:4');
-    // Orientación horizontal A4
-    expect(texto).toContain('MediaBox [0 0 841');
+    // Orientación horizontal en tamaño carta (792×612 pt)
+    expect(texto).toContain('MediaBox [0 0 792');
+  });
+
+  it('usa A4 solo cuando se configura explícitamente', async () => {
+    const config = clonarConfig(CONFIGURACION_REPORTE_POR_DEFECTO);
+    config.estilos.tamanoPagina = 'a4';
+
+    const texto = await textoPdf(service.generarPdfDesdeDatos(datos, config));
+    expect(texto).toContain('MediaBox [0 0 595');
   });
 
   it('usa la configuración vigente del servicio cuando no se envía ninguna', () => {
