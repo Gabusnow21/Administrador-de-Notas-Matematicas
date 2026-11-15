@@ -1,18 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { NfcTerminal } from './nfc-terminal';
+import { NfcTerminalComponent } from './nfc-terminal';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 
-describe('NfcTerminal', () => {
-  let component: NfcTerminal;
-  let fixture: ComponentFixture<NfcTerminal>;
+describe('NfcTerminalComponent', () => {
+  let component: NfcTerminalComponent;
+  let fixture: ComponentFixture<NfcTerminalComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NfcTerminal]
+      imports: [NfcTerminalComponent],
+        providers: [provideHttpClient(), provideRouter([])]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(NfcTerminal);
+    fixture = TestBed.createComponent(NfcTerminalComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

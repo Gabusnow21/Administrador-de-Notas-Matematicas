@@ -1,13 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 
-import { LocalDb } from './local-db';
+import { LocalDbService } from './local-db';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 
-describe('LocalDb', () => {
-  let service: LocalDb;
+describe('LocalDbService', () => {
+  let service: LocalDbService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(LocalDb);
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideRouter([])] });
+    service = TestBed.inject(LocalDbService);
   });
 
   it('should be created', () => {

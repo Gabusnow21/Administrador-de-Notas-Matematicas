@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RegistroNotas } from './registro-notas';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 
 describe('RegistroNotas', () => {
   let component: RegistroNotas;
@@ -8,13 +10,14 @@ describe('RegistroNotas', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RegistroNotas]
+      imports: [RegistroNotas],
+      providers: [provideHttpClient(), provideRouter([])]
     })
     .compileComponents();
 
     fixture = TestBed.createComponent(RegistroNotas);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.detectChanges();
   });
 
   it('should create', () => {

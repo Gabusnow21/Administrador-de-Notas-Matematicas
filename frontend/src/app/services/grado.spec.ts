@@ -1,13 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 
-import { Grado } from './grado';
+import { GradoService } from './grado';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 
-describe('Grado', () => {
-  let service: Grado;
+describe('GradoService', () => {
+  let service: GradoService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Grado);
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideRouter([])] });
+    service = TestBed.inject(GradoService);
   });
 
   it('should be created', () => {

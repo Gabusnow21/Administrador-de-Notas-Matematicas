@@ -1,18 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { InfoRecompensas } from './info-recompensas';
+import { InfoRecompensasComponent } from './info-recompensas';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 
-describe('InfoRecompensas', () => {
-  let component: InfoRecompensas;
-  let fixture: ComponentFixture<InfoRecompensas>;
+describe('InfoRecompensasComponent', () => {
+  let component: InfoRecompensasComponent;
+  let fixture: ComponentFixture<InfoRecompensasComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InfoRecompensas]
+      imports: [InfoRecompensasComponent],
+        providers: [provideHttpClient(), provideRouter([])]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(InfoRecompensas);
+    fixture = TestBed.createComponent(InfoRecompensasComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

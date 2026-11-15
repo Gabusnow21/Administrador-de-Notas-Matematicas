@@ -1,13 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 
-import { Calificacion } from './calificacion';
+import { CalificacionService } from './calificacion';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 
-describe('Calificacion', () => {
-  let service: Calificacion;
+describe('CalificacionService', () => {
+  let service: CalificacionService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Calificacion);
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideRouter([])] });
+    service = TestBed.inject(CalificacionService);
   });
 
   it('should be created', () => {

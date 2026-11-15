@@ -1,13 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 
-import { Sync } from './sync';
+import { SyncService } from './sync';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 
-describe('Sync', () => {
-  let service: Sync;
+describe('SyncService', () => {
+  let service: SyncService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Sync);
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideRouter([])] });
+    service = TestBed.inject(SyncService);
   });
 
   it('should be created', () => {
