@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TicketService } from '../../services/ticket.service';
 import { Reporte } from '../../services/reporte';
+import { ReporteConfigService } from '../../services/reporte-config.service';
 
 @Component({
   selector: 'app-descargar-boleta',
@@ -14,6 +15,7 @@ import { Reporte } from '../../services/reporte';
 export class DescargarBoleta {
   private ticketService = inject(TicketService);
   private reporteService = inject(Reporte);
+  private configService = inject(ReporteConfigService);
 
   nie: string = '';
   downloading = false;
@@ -60,9 +62,11 @@ export class DescargarBoleta {
     // Flujo completo del frontend: el backend entrega los datos por NIE
     // y el PDF (notas + conducta) se genera localmente con jsPDF.
     this.ticketService.getBoletaData(this.nie).subscribe({
-      next: (datos) => {
+      next: async (datos) => {
         try {
-          const blob = this.reporteService.generarPdfDesdeDatos(datos);
+          // Carga la plantilla del reporte (o la caché local si no hay conexión).
+          const config = await this.configService.ensureLoaded();
+          const blob = this.reporteService.generarPdfDesdeDatos(datos, config);
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
